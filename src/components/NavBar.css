@@ -1,0 +1,39 @@
+.nav-bar {
+  border-bottom: 1px solid var(--color-line);
+  background: var(--color-paper-raised);
+}
+
+.nav-bar__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+}
+
+.nav-bar__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  text-decoration: none;
+  color: var(--color-ink);
+}
+
+.nav-bar__wordmark {
+  font: var(--text-heading);
+  letter-spacing: -0.01em;
+}
+
+.nav-bar__links {
+  display: flex;
+  gap: var(--space-5);
+}
+
+.nav-bar__links a {
+  text-decoration: none;
+  color: var(--color-muted);
+  font: var(--text-small);
+}
+
+.nav-bar__links a:hover {
+  color: var(--color-teal-dark);
+}

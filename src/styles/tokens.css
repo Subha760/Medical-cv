@@ -1,0 +1,60 @@
+/*
+  MedCV Maker — design tokens.
+
+  Concept: a clinical chart / patient-file metaphor, not a marketing template.
+  Cool paper background (not the generic warm-cream default), the same brand
+  teal carried over from the Android app for real continuity, and an ochre
+  accent (not the generic AI-default terracotta) that reads as a manila-folder
+  tab color. Hairline rules stand in for chart-paper lines. IBM Plex Mono is
+  used for anything chart-like: registration numbers, dates, zone/version ids.
+*/
+
+:root {
+  /* Color */
+  --color-ink: #16241f;          /* primary text — deep green-black, not pure black */
+  --color-paper: #f4f7f5;        /* app background — cool clinical white */
+  --color-paper-raised: #ffffff; /* cards / panels */
+  --color-teal: #0f6b66;         /* brand primary — matches the Android app */
+  --color-teal-dark: #0b504c;
+  --color-navy: #123b5e;         /* brand secondary */
+  --color-amber: #c97a2b;        /* accent — chart-tab ochre, not template terracotta */
+  --color-amber-soft: #f2e4d2;
+  --color-line: #d8e2de;         /* hairline rules, chart-paper grid */
+  --color-line-strong: #b9c9c4;
+  --color-error: #a4342a;
+  --color-muted: #5b6d67;
+
+  /* Type */
+  --font-display: "Fraunces", "Iowan Old Style", "Georgia", serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", monospace;
+
+  --text-display-lg: 600 3.4rem/1.05 var(--font-display);
+  --text-display: 600 2.1rem/1.1 var(--font-display);
+  --text-heading: 600 1.25rem/1.3 var(--font-body);
+  --text-body: 400 1rem/1.55 var(--font-body);
+  --text-small: 400 0.875rem/1.5 var(--font-body);
+  --text-mono: 500 0.8rem/1.4 var(--font-mono);
+
+  /* Layout */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  --radius-sm: 3px;
+  --radius-md: 6px;
+  --chart-rail-width: 380px;
+
+  --shadow-card: 0 1px 2px rgba(22, 36, 31, 0.06), 0 4px 16px rgba(22, 36, 31, 0.05);
+}
+
+@media (prefers-color-scheme: dark) {
+  /* Reserved for a future dark theme — the app defaults to light/paper
+     regardless of system theme for now, since a clinical document context
+     benefits from consistent, high-legibility paper tones. */
+}

@@ -1,0 +1,149 @@
+.hero {
+  padding: var(--space-8) 0 var(--space-7);
+}
+
+.hero__grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: var(--space-8);
+  align-items: center;
+}
+
+.hero__eyebrow {
+  margin-bottom: var(--space-3);
+}
+
+.hero__headline {
+  font: var(--text-display-lg);
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
+  margin-bottom: var(--space-4);
+}
+
+.hero__sub {
+  font: var(--text-body);
+  font-size: 1.05rem;
+  color: var(--color-muted);
+  max-width: 46ch;
+  margin-bottom: var(--space-6);
+}
+
+.hero__ctas {
+  display: flex;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+.hero__shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.chip {
+  border: 1px solid var(--color-line-strong);
+  background: var(--color-paper-raised);
+  color: var(--color-ink);
+  border-radius: 999px;
+  padding: var(--space-2) var(--space-4);
+  font: var(--text-small);
+  cursor: pointer;
+}
+
+.chip:hover {
+  border-color: var(--color-teal);
+  color: var(--color-teal-dark);
+}
+
+/* Signature element: a stacked "chart" card with a folder tab, standing in
+   for the always-visible live preview the actual editor will show. */
+.hero__chart {
+  position: relative;
+  height: 420px;
+}
+
+.chart-card {
+  position: absolute;
+  width: 300px;
+  height: 380px;
+  top: 10px;
+  left: 50%;
+  border-radius: var(--radius-md);
+}
+
+.chart-card--back {
+  background: var(--color-amber-soft);
+  transform: translateX(-38%) rotate(-6deg);
+  box-shadow: var(--shadow-card);
+}
+
+.chart-card--front {
+  background: var(--color-paper-raised);
+  border: 1px solid var(--color-line);
+  transform: translateX(-58%) rotate(2deg);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-5) var(--space-5) var(--space-5) var(--space-6);
+}
+
+.chart-card__tab {
+  position: absolute;
+  top: 22px;
+  right: -14px;
+  background: var(--color-teal);
+  color: #fff;
+  font: var(--text-mono);
+  letter-spacing: 0.08em;
+  padding: var(--space-1) var(--space-3);
+  border-radius: 3px 0 0 3px;
+}
+
+.chart-card__name {
+  font: var(--text-heading);
+  font-size: 1rem;
+  margin-bottom: var(--space-4);
+  color: var(--color-ink);
+}
+
+.chart-card__rule {
+  height: 1px;
+  background: var(--color-line);
+  margin: var(--space-3) 0;
+}
+
+.chart-card__line {
+  height: 8px;
+  border-radius: 2px;
+  background: var(--color-line-strong);
+  margin-bottom: var(--space-2);
+}
+
+.trust-strip {
+  border-top: 1px solid var(--color-line);
+  padding: var(--space-6) 0;
+}
+
+.trust-strip__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-6);
+}
+
+.trust-item p {
+  margin-top: var(--space-2);
+  color: var(--color-muted);
+  font-size: 0.95rem;
+}
+
+@media (max-width: 860px) {
+  .hero__grid {
+    grid-template-columns: 1fr;
+  }
+  .hero__chart {
+    height: 320px;
+    order: -1;
+  }
+  .trust-strip__grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+}
