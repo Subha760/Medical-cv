@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import NavBar from "../components/NavBar";
+import AdSlot from "../components/AdSlot";
 import { cvStorage } from "../storage/cvStorage";
 import { templateById } from "../data/templateCatalog";
 import {
@@ -18,6 +19,7 @@ import {
   generateProfessionalSummary,
   improveResponsibilities,
   writingTips,
+  runCvAutopilot,
 } from "../ai/localWritingAssistant";
 
 const STEPS = [
@@ -41,6 +43,7 @@ export default function EditorPage() {
   const navigate = useNavigate();
   const [doc, setDoc] = useState<CvDocument | null>(null);
   const [stepIndex, setStepIndex] = useState(0);
+  const [autopilotMessage, setAutopilotMessage] = useState<string | null>(null);
   const saveTimer = useRef<number | null>(null);
 
   useEffect(() => {
@@ -77,6 +80,18 @@ export default function EditorPage() {
     else setStepIndex((i) => i - 1);
   }
 
+  function autoCompleteCv() {
+    if (!doc) return;
+    try {
+      const result = runCvAutopilot(doc);
+      update(() => result.doc);
+      const completed = result.completed.length ? result.completed.join(", ") + "." : "Your existing writing was preserved.";
+      setAutopilotMessage(completed + " Still needed: " + result.needsInput.join(", ") + ".");
+    } catch {
+      setAutopilotMessage("Autopilot could not finish this pass. Your CV was not changed; continue manually and try again.");
+    }
+  }
+
   const progressPct = useMemo(() => ((stepIndex + 1) / STEPS.length) * 100, [stepIndex]);
 
   if (!doc) {
@@ -94,6 +109,17 @@ export default function EditorPage() {
     <>
       <NavBar />
       <main className="container" style={{ padding: "32px 24px", maxWidth: 760 }}>
+        <div className="card ai-panel">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+            <div>
+              <strong>CV Autopilot</strong>
+              <p style={{ color: "var(--color-muted)", fontSize: ".9rem" }}>Completes safe writing tasks offline and shows what only you can confirm.</p>
+            </div>
+            <button className="btn btn-primary" onClick={autoCompleteCv}>Auto-complete my CV</button>
+          </div>
+          {autopilotMessage && <p role="status" style={{ marginTop: 12, color: "var(--color-muted)" }}>{autopilotMessage}</p>}
+        </div>
+        <AdSlot placement="editor" />
         <div style={{ height: 4, background: "var(--color-line)", borderRadius: 2, marginBottom: 16 }}>
           <div
             style={{

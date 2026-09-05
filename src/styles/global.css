@@ -220,6 +220,32 @@ button, input, textarea, select {
 .ai-panel ul { margin: 10px 0 0; padding-left: 20px; }
 .ai-panel li { margin-bottom: 5px; color: var(--color-muted); }
 
+.ad-slot {
+  width: 100%;
+  min-height: 92px;
+  margin: 20px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  overflow: hidden;
+  border: 1px dashed var(--color-line-strong);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, .72);
+  color: var(--color-muted);
+  text-align: center;
+}
+
+.ad-slot span {
+  font: var(--text-mono);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.ad-slot small { font-size: .75rem; }
+.ad-slot--preview { max-width: 728px; }
+
 @media (max-width: 620px) {
   .template-confirm { align-items: stretch; flex-direction: column; }
 }

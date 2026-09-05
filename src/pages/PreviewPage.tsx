@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import NavBar from "../components/NavBar";
+import AdSlot from "../components/AdSlot";
 import { cvStorage } from "../storage/cvStorage";
 import { generateCvPdf, suggestedFileName } from "../pdf/pdfGenerator";
 import { CvDocument } from "../types/cv";
@@ -88,6 +89,8 @@ export default function PreviewPage() {
             )}
           </div>
         </div>
+
+        <AdSlot placement="preview" />
 
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 20 }}>
           <a className="btn btn-primary" href={pdfUrl} download={fileName} onClick={markFinal}>

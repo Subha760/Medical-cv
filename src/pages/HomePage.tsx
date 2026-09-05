@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import NavBar from "../components/NavBar";
+import AdSlot from "../components/AdSlot";
 import { PROFESSION_LABELS, Profession } from "../types/cv";
 import "./HomePage.css";
 
@@ -75,6 +76,8 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+
+        <div className="container"><AdSlot placement="home" /></div>
 
         <section className="trust-strip">
           <div className="container trust-strip__grid">

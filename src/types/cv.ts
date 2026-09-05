@@ -192,7 +192,7 @@ export function newCvDocument(id: string, profession: Profession = "OTHER"): CvD
     id,
     label: "",
     profession,
-    templateId: "ats_classic_01",
+    templateId: "ats_professional_clarity_01",
     colorId: "navy",
     personalInfo: emptyPersonalInfo(),
     registrationInfo: emptyRegistrationInfo(),
