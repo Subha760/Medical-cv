@@ -14,6 +14,11 @@ import {
   SECTION_LABELS,
   newCvDocument,
 } from "../types/cv";
+import {
+  generateProfessionalSummary,
+  improveResponsibilities,
+  writingTips,
+} from "../ai/localWritingAssistant";
 
 const STEPS = [
   "Personal Details",
@@ -155,6 +160,24 @@ export default function EditorPage() {
 
         {step === "Professional Summary" && (
           <div>
+            <div className="card ai-panel">
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+                <div>
+                  <strong>Local writing assistant</strong>
+                  <p style={{ color: "var(--color-muted)", fontSize: ".9rem" }}>Works offline. Your CV never leaves this device.</p>
+                </div>
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => update((d) => ({
+                    ...d,
+                    personalInfo: { ...d.personalInfo, professionalSummary: generateProfessionalSummary(d) },
+                  }))}
+                >
+                  Write my summary
+                </button>
+              </div>
+              <ul>{writingTips(doc).map((tip) => <li key={tip}>{tip}</li>)}</ul>
+            </div>
             <div className="field">
               <label>Professional Summary</label>
               <textarea
@@ -375,6 +398,15 @@ function ExperienceStep({
               value={entry.responsibilities}
               onChange={(e) => updateEntry(entry.id, { responsibilities: e.target.value })}
             />
+            <button
+              className="btn btn-secondary"
+              style={{ alignSelf: "flex-start" }}
+              onClick={() => updateEntry(entry.id, {
+                responsibilities: improveResponsibilities(entry.responsibilities, entry),
+              })}
+            >
+              Improve with local assistant
+            </button>
           </div>
           <button className="btn btn-ghost" onClick={() => removeEntry(entry.id)}>
             Delete

@@ -18,14 +18,25 @@ import { colorRgb } from "../data/colorPalette";
  */
 export function generateCvPdf(doc: CvDocument): Blob {
   const pdf = new jsPDF({ unit: "pt", format: "a4" });
-  const marginX = 48;
+  const template = templateById(doc.templateId);
+  const marginX = template.layout === "compact" ? 38 : template.layout === "sidebar" ? 68 : 48;
   const pageHeight = pdf.internal.pageSize.getHeight();
   const pageWidth = pdf.internal.pageSize.getWidth();
-  let y = 56;
+  let y = template.density === "dense" ? 44 : template.density === "airy" ? 68 : 56;
 
-  const template = templateById(doc.templateId);
   const [accentR, accentG, accentB] = colorRgb(doc.colorId);
   const INK: [number, number, number] = [22, 36, 31];
+  const fontName = template.fontStyle === "serif" ? "times" : "helvetica";
+  const densityScale = template.density === "dense" ? 0.88 : template.density === "airy" ? 1.12 : 1;
+
+  if (template.layout === "sidebar") {
+    pdf.setFillColor(accentR, accentG, accentB);
+    pdf.rect(0, 0, 28, pageHeight, "F");
+  }
+  if (template.layout === "banded") {
+    pdf.setFillColor(accentR, accentG, accentB);
+    pdf.rect(0, 0, pageWidth, 18, "F");
+  }
 
   if (template.supportsPhoto && doc.personalInfo.profilePhotoDataUrl) {
     // Top-right headshot — starter placement, same single-column simplicity
@@ -54,34 +65,49 @@ export function generateCvPdf(doc: CvDocument): Blob {
   }
 
   function line(text: string, size: number, bold: boolean, gap: number, color: [number, number, number] = INK) {
-    ensureSpace(gap);
-    pdf.setFont("helvetica", bold ? "bold" : "normal");
+    const scaledGap = gap * densityScale;
+    ensureSpace(scaledGap);
+    pdf.setFont(fontName, bold ? "bold" : "normal");
     pdf.setFontSize(size);
     pdf.setTextColor(color[0], color[1], color[2]);
     pdf.text(text, marginX, y);
-    y += gap;
+    y += scaledGap;
   }
 
   function heading(text: string) {
+    if (template.layout === "timeline") {
+      pdf.setFillColor(accentR, accentG, accentB);
+      pdf.circle(marginX - 10, y - 4, 3, "F");
+    }
     line(text, 12, true, 18, [accentR, accentG, accentB]);
   }
 
   function paragraph(text: string, size = 11, gap = 15) {
-    pdf.setFont("helvetica", "normal");
+    pdf.setFont(fontName, "normal");
     pdf.setFontSize(size);
     pdf.setTextColor(INK[0], INK[1], INK[2]);
     const maxWidth = pageWidth - marginX * 2;
     const wrapped = pdf.splitTextToSize(text, maxWidth) as string[];
     wrapped.forEach((wrappedLine) => {
-      ensureSpace(gap);
+      const scaledGap = gap * densityScale;
+      ensureSpace(scaledGap);
       pdf.text(wrappedLine, marginX, y);
-      y += gap;
+      y += scaledGap;
     });
     y += 6;
   }
 
   // Header block always comes first, regardless of section order.
-  line(doc.personalInfo.fullName || "Untitled CV", 20, true, 26, [accentR, accentG, accentB]);
+  const headerName = doc.personalInfo.fullName || "Untitled CV";
+  if (template.header === "center") {
+    pdf.setFont(fontName, "bold");
+    pdf.setFontSize(20);
+    pdf.setTextColor(accentR, accentG, accentB);
+    pdf.text(headerName, pageWidth / 2, y, { align: "center" });
+    y += 26 * densityScale;
+  } else {
+    line(headerName, 20, true, 26, [accentR, accentG, accentB]);
+  }
   if (doc.personalInfo.professionalTitle) {
     line(doc.personalInfo.professionalTitle, 12, false, 18);
   }

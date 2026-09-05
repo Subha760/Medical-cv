@@ -146,6 +146,84 @@ button, input, textarea, select {
   border-color: var(--color-teal);
 }
 
+.template-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.template-card {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  text-align: left;
+  cursor: pointer;
+  border-width: 2px;
+}
+
+.template-sheet {
+  position: relative;
+  height: 135px;
+  padding: 18px 14px;
+  overflow: hidden;
+  border: 1px solid var(--color-line);
+  background: #fff;
+}
+
+.template-sheet span:not(.template-avatar) {
+  display: block;
+  height: 5px;
+  margin-bottom: 9px;
+  border-radius: 2px;
+  background: currentColor;
+  opacity: .2;
+}
+
+.template-sheet .template-name-line { width: 62%; height: 9px; opacity: .8; }
+.template-sheet .template-copy-line { width: 88%; }
+.template-sheet .template-copy-line.short { width: 66%; }
+.template-sheet .template-section-line { width: 40%; opacity: .65; margin-top: 14px; }
+.template-avatar { position: absolute; top: 14px; right: 14px; font-size: 26px; }
+.template-card[data-layout="sidebar"] .template-sheet { border-left: 34px solid currentColor; }
+.template-card[data-layout="banded"] .template-sheet { border-top: 24px solid currentColor; }
+.template-card[data-layout="center"] .template-sheet { text-align: center; }
+.template-card[data-layout="timeline"] .template-sheet { border-left: 5px double currentColor; }
+.template-card[data-layout="editorial"] .template-name-line { width: 88%; height: 12px; }
+
+.template-badges { display: flex; gap: 6px; min-height: 23px; }
+.template-badges span {
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--color-amber-soft);
+  color: var(--color-ink);
+  font-size: .75rem;
+}
+
+.template-confirm {
+  position: sticky;
+  bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 16px 20px;
+  margin-top: 24px;
+  z-index: 4;
+}
+
+.ai-panel {
+  padding: 16px;
+  margin-bottom: 18px;
+  border-left: 4px solid var(--color-teal);
+}
+
+.ai-panel ul { margin: 10px 0 0; padding-left: 20px; }
+.ai-panel li { margin-bottom: 5px; color: var(--color-muted); }
+
+@media (max-width: 620px) {
+  .template-confirm { align-items: stretch; flex-direction: column; }
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   * {
