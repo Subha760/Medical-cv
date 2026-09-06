@@ -107,11 +107,11 @@ export default function TemplateSelectPage() {
 
         {selectedTemplateId && (
           <div className="card template-confirm" role="region" aria-label="Selected template">
-            <div>
+            <div className="template-confirm__info">
               <p style={{ fontWeight: 700 }}>{templateById(selectedTemplateId).displayName}</p>
               <p style={{ color: "var(--color-muted)", fontSize: ".9rem" }}>Choose an accent colour, then continue.</p>
             </div>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <div className="template-confirm__colors">
               {AVAILABLE_COLORS.map((colorId) => (
                 <button
                   key={colorId}
@@ -124,7 +124,7 @@ export default function TemplateSelectPage() {
                 />
               ))}
             </div>
-            <button className="btn btn-primary" onClick={confirm}>Use this template</button>
+            <button className="btn btn-primary template-confirm__action" onClick={confirm}>Use this template</button>
           </div>
         )}
       </main>
