@@ -3,7 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import NavBar from "../components/NavBar";
 import AdSlot from "../components/AdSlot";
 import { cvStorage } from "../storage/cvStorage";
-import { templateById } from "../data/templateCatalog";
 import {
   CertificationEntry,
   CustomSection,
@@ -17,6 +16,7 @@ import {
 } from "../types/cv";
 import {
   generateProfessionalSummary,
+  generateAchievements,
   improveResponsibilities,
   writingTips,
   runCvAutopilot,
@@ -112,10 +112,10 @@ export default function EditorPage() {
         <div className="card ai-panel">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
             <div>
-              <strong>CV Autopilot</strong>
-              <p style={{ color: "var(--color-muted)", fontSize: ".9rem" }}>Completes safe writing tasks offline and shows what only you can confirm.</p>
+              <strong>AI CV Coach & Autopilot</strong>
+              <p style={{ color: "var(--color-muted)", fontSize: ".9rem" }}>Checks missing sections, writes drafts, adds role keywords and improves ATS readability locally.</p>
             </div>
-            <button className="btn btn-primary" onClick={autoCompleteCv}>Auto-complete my CV</button>
+            <button className="btn btn-primary" onClick={autoCompleteCv}>✦ Analyse & improve my CV</button>
           </div>
           {autopilotMessage && <p role="status" style={{ marginTop: 12, color: "var(--color-muted)" }}>{autopilotMessage}</p>}
         </div>
@@ -137,7 +137,6 @@ export default function EditorPage() {
           <div>
             <ProfilePhotoField
               photoDataUrl={doc.personalInfo.profilePhotoDataUrl}
-              templateSupportsPhoto={templateById(doc.templateId).supportsPhoto}
               onChange={(profilePhotoDataUrl) =>
                 update((d) => ({ ...d, personalInfo: { ...d.personalInfo, profilePhotoDataUrl } }))
               }
@@ -149,6 +148,12 @@ export default function EditorPage() {
                 onChange={(e) => update((d) => ({ ...d, personalInfo: { ...d.personalInfo, fullName: e.target.value } }))}
               />
             </div>
+            <div className="form-grid">
+              <div className="field"><label>Date of Birth (optional)</label><input type="date" value={doc.personalInfo.dateOfBirth || ""} onChange={(e) => update((d) => ({...d, personalInfo:{...d.personalInfo,dateOfBirth:e.target.value}}))}/></div>
+              <div className="field"><label>Nationality (optional)</label><input value={doc.personalInfo.nationality || ""} onChange={(e) => update((d) => ({...d, personalInfo:{...d.personalInfo,nationality:e.target.value}}))}/></div>
+              <div className="field"><label>Marital Status (optional)</label><input value={doc.personalInfo.maritalStatus || ""} onChange={(e) => update((d) => ({...d, personalInfo:{...d.personalInfo,maritalStatus:e.target.value}}))}/></div>
+              <div className="field"><label>Full Address</label><input value={doc.personalInfo.fullAddress || ""} onChange={(e) => update((d) => ({...d, personalInfo:{...d.personalInfo,fullAddress:e.target.value}}))}/></div>
+            </div>
             <div className="field">
               <label>Professional Title (e.g. Staff Nurse, MBBS)</label>
               <input
@@ -157,6 +162,7 @@ export default function EditorPage() {
                   update((d) => ({ ...d, personalInfo: { ...d.personalInfo, professionalTitle: e.target.value } }))
                 }
               />
+              <div className="suggestion-row">{["Staff Nurse","Registered Nurse","Clinical Nurse"].map((title)=><button key={title} className="suggestion-chip" onClick={()=>update((d)=>({...d,personalInfo:{...d.personalInfo,professionalTitle:title}}))}>✦ {title}</button>)}</div>
             </div>
             <div className="field">
               <label>Phone</label>
@@ -258,6 +264,7 @@ export default function EditorPage() {
 
         {step === "Achievements" && (
           <div>
+            <div className="card ai-panel"><strong>AI achievement writer</strong><p>Creates a strong starting point from your role and experience. Review it and add only truthful outcomes.</p><button className="btn btn-secondary" onClick={() => update((d) => ({...d, achievements: generateAchievements(d)}))}>✦ Suggest achievements</button></div>
             <div className="field">
               <label>Achievements (awards, recognitions, notable outcomes)</label>
               <textarea
@@ -597,6 +604,14 @@ function AdditionalSectionsStep({
   return (
     <div>
       <div className="field">
+        <label>Internship / Clinical Training</label>
+        <textarea rows={3} placeholder="Hospital, department, dates and key clinical rotations" value={doc.internship || ""} onChange={(e) => onChange({ internship: e.target.value })} />
+      </div>
+      <div className="field">
+        <label>Interests / Hobbies (optional)</label>
+        <textarea rows={2} placeholder="Use only relevant, professional interests" value={doc.hobbies || ""} onChange={(e) => onChange({ hobbies: e.target.value })} />
+      </div>
+      <div className="field">
         <label>Publications</label>
         <textarea rows={2} value={doc.publications} onChange={(e) => onChange({ publications: e.target.value })} />
       </div>
@@ -685,11 +700,9 @@ const MAX_PHOTO_DIMENSION = 480;
 
 function ProfilePhotoField({
   photoDataUrl,
-  templateSupportsPhoto,
   onChange,
 }: {
   photoDataUrl: string | null;
-  templateSupportsPhoto: boolean;
   onChange: (dataUrl: string | null) => void;
 }) {
   const [error, setError] = useState<string | null>(null);
@@ -730,12 +743,7 @@ function ProfilePhotoField({
   return (
     <div className="field">
       <label>Profile Photo (optional)</label>
-      {!templateSupportsPhoto && (
-        <p style={{ color: "var(--color-muted)", fontSize: "0.85rem", margin: "0 0 8px" }}>
-          The template you picked doesn't display a photo — it'll be saved but won't appear
-          on the exported PDF unless you switch to a photo-supporting template.
-        </p>
-      )}
+      <p className="field-help">Upload JPG, PNG or WebP. It is resized and stored only on this device.</p>
       {photoDataUrl ? (
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <img

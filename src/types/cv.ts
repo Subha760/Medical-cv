@@ -40,6 +40,10 @@ export interface PersonalInfo {
   profilePhotoDataUrl: string | null;
   linkedInUrl: string;
   professionalWebsite: string;
+  dateOfBirth: string;
+  maritalStatus: string;
+  nationality: string;
+  fullAddress: string;
 }
 
 export interface RegistrationInfo {
@@ -120,6 +124,8 @@ export interface CvDocument {
   conferences: string;
   memberships: string;
   references: string;
+  internship: string;
+  hobbies: string;
   customSections: CustomSection[];
   /** Controls PDF section order — see SECTION_LABELS below. */
   sectionOrder: string[];
@@ -141,6 +147,8 @@ export const SECTION_LABELS: Record<string, string> = {
   memberships: "Professional Memberships",
   custom: "Custom Sections",
   references: "References",
+  internship: "Internship / Clinical Training",
+  hobbies: "Interests",
 };
 
 export function defaultSectionOrder(): string[] {
@@ -149,6 +157,7 @@ export function defaultSectionOrder(): string[] {
     "registration",
     "experience",
     "education",
+    "internship",
     "certifications",
     "achievements",
     "languages",
@@ -157,6 +166,7 @@ export function defaultSectionOrder(): string[] {
     "memberships",
     "custom",
     "references",
+    "hobbies",
   ];
 }
 
@@ -171,6 +181,10 @@ export function emptyPersonalInfo(): PersonalInfo {
     profilePhotoDataUrl: null,
     linkedInUrl: "",
     professionalWebsite: "",
+    dateOfBirth: "",
+    maritalStatus: "",
+    nationality: "",
+    fullAddress: "",
   };
 }
 
@@ -205,6 +219,8 @@ export function newCvDocument(id: string, profession: Profession = "OTHER"): CvD
     conferences: "",
     memberships: "",
     references: "",
+    internship: "",
+    hobbies: "",
     customSections: [],
     sectionOrder: defaultSectionOrder(),
     createdAt: now,

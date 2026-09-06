@@ -127,6 +127,11 @@ button, input, textarea, select {
   font: var(--text-small);
   color: var(--color-muted);
 }
+.field-help { color:var(--color-muted); font-size:.82rem; margin-bottom:8px; }
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:0 14px; }
+.suggestion-row { display:flex; flex-wrap:wrap; gap:7px; margin-top:7px; }
+.suggestion-chip { border:1px solid #bfe3e4; background:#effafa; color:var(--color-teal-dark); border-radius:999px; padding:6px 10px; font-size:.78rem; cursor:pointer; }
+.suggestion-chip:hover { background:#dff5f3; }
 
 .field input,
 .field textarea {
@@ -154,6 +159,8 @@ button, input, textarea, select {
 .template-header .selection-subtitle { margin-bottom:0; }
 .template-tools { display:flex; gap:10px; flex-wrap:wrap; }
 .template-tools input,.template-tools select { min-height:44px; padding:10px 13px; border:1px solid var(--color-line-strong); border-radius:10px; background:#fff; }
+.photo-filter { display:flex; align-items:center; gap:7px; min-height:44px; padding:9px 12px; border:1px solid var(--color-line-strong); border-radius:10px; background:#fff; font-size:.86rem; }
+.photo-filter input { min-height:auto; }
 
 .template-grid {
   display: grid;
@@ -248,6 +255,7 @@ button, input, textarea, select {
 .ad-slot--preview { max-width: 728px; }
 
 @media (max-width: 620px) {
+  .form-grid { grid-template-columns:1fr; }
   .template-confirm { padding:12px 14px; gap:10px; }
   .template-confirm>div:nth-child(2), .template-confirm>div:first-child p:last-child { display:none; }
   .template-confirm .btn { min-height:42px; padding:9px 13px; white-space:nowrap; }

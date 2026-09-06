@@ -38,7 +38,7 @@ export function generateCvPdf(doc: CvDocument): Blob {
     pdf.rect(0, 0, pageWidth, 18, "F");
   }
 
-  if (template.supportsPhoto && doc.personalInfo.profilePhotoDataUrl) {
+  if (doc.personalInfo.profilePhotoDataUrl) {
     // Top-right headshot — starter placement, same single-column simplicity
     // as the rest of this generator (and a step ahead of the Android app's
     // PdfGenerator.kt, which doesn't embed a photo yet either).
@@ -115,6 +115,9 @@ export function generateCvPdf(doc: CvDocument): Blob {
     .filter(Boolean)
     .join("   •   ");
   if (contactLine) line(contactLine, 10, false, 20);
+  const personalLine = [doc.personalInfo.fullAddress, doc.personalInfo.dateOfBirth ? `DOB: ${doc.personalInfo.dateOfBirth}` : "", doc.personalInfo.nationality, doc.personalInfo.maritalStatus]
+    .filter(Boolean).join("   •   ");
+  if (personalLine) line(personalLine, 9, false, 18);
 
   const sectionRenderers: Record<string, () => void> = {
     summary: () => {
@@ -146,6 +149,11 @@ export function generateCvPdf(doc: CvDocument): Blob {
         const meta = [`${edu.startYear} - ${edu.graduationYear}`, edu.grade].filter(Boolean).join("   •   ");
         line(meta, 10, false, 16);
       });
+    },
+    internship: () => {
+      if (!doc.internship) return;
+      heading("Internship / Clinical Training");
+      paragraph(doc.internship);
     },
     certifications: () => {
       if (doc.certifications.length === 0) return;
@@ -195,6 +203,11 @@ export function generateCvPdf(doc: CvDocument): Blob {
       if (!doc.references) return;
       heading("References");
       paragraph(doc.references);
+    },
+    hobbies: () => {
+      if (!doc.hobbies) return;
+      heading("Interests");
+      paragraph(doc.hobbies);
     },
   };
 

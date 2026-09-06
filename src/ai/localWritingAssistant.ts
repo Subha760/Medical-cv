@@ -73,6 +73,12 @@ export function writingTips(doc: CvDocument): string[] {
   return tips.length ? tips : ["Your content has the core information recruiters and ATS systems usually need."];
 }
 
+export function generateAchievements(doc: CvDocument): string {
+  const role = doc.personalInfo.professionalTitle || PROFESSION_LABELS[doc.profession] || "Healthcare professional";
+  const area = doc.experience[0]?.department || doc.experience[0]?.specialty || "clinical care";
+  return `Recognised as a dependable ${role.toLowerCase()} supporting safe, patient-centred ${area}. Contributed to accurate documentation, timely handovers, infection-prevention practices and effective multidisciplinary teamwork. Add a truthful number or award here to make this achievement stronger.`;
+}
+
 const ROLE_SKILLS: Partial<Record<CvDocument["profession"], string[]>> = {
   NURSE: ["Patient assessment", "Medication administration", "Care planning", "Clinical documentation", "Infection prevention"],
   NURSING_STUDENT: ["Vital signs", "Patient hygiene", "Clinical documentation", "Team communication", "Infection prevention"],
@@ -98,7 +104,7 @@ export function recommendTemplateId(doc: CvDocument): string {
       ? "MODERN_MEDICAL"
       : "ATS_PROFESSIONAL";
   return TEMPLATE_CATALOG.find((template) =>
-    template.category === preferredCategory && template.isAtsFriendly && !template.supportsPhoto
+    template.category === preferredCategory && template.isAtsFriendly && (doc.personalInfo.profilePhotoDataUrl ? template.supportsPhoto : true)
   )?.id ?? TEMPLATE_CATALOG.find((template) => template.isAtsFriendly)?.id ?? TEMPLATE_CATALOG[0].id;
 }
 
@@ -140,6 +146,7 @@ export function runCvAutopilot(source: CvDocument): CvAutopilotResult {
   if (!doc.education.length) needsInput.push("Education");
   if (!doc.experience.length && !["NURSING_STUDENT", "MEDICAL_STUDENT"].includes(doc.profession)) needsInput.push("Clinical experience");
   if (!doc.languages.length) needsInput.push("Languages");
+  if (!doc.internship?.trim() && ["NURSING_STUDENT", "MEDICAL_STUDENT"].includes(doc.profession)) needsInput.push("Internship or clinical training");
   needsInput.push("Review every generated sentence for accuracy");
 
   return { doc, completed: [...new Set(completed)], needsInput };

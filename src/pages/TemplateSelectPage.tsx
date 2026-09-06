@@ -15,6 +15,7 @@ export default function TemplateSelectPage() {
   const [selectedColorId, setSelectedColorId] = useState("navy");
   const [category, setCategory] = useState("ALL");
   const [query, setQuery] = useState("");
+  const [photoOnly, setPhotoOnly] = useState(false);
   const [visibleCount, setVisibleCount] = useState(24);
 
   const templates = useMemo(() => {
@@ -22,9 +23,9 @@ export default function TemplateSelectPage() {
     return TEMPLATE_CATALOG.filter((template) => {
       const categoryMatches = category === "ALL" || template.category === category;
       const searchMatches = !needle || template.displayName.toLowerCase().includes(needle);
-      return categoryMatches && searchMatches;
+      return categoryMatches && searchMatches && (!photoOnly || template.supportsPhoto);
     });
-  }, [category, query]);
+  }, [category, query, photoOnly]);
 
   function pickTemplate(templateId: string) {
     setSelectedTemplateId(templateId);
@@ -63,6 +64,7 @@ export default function TemplateSelectPage() {
             >
               {CATEGORIES.map((item) => <option key={item} value={item}>{item.replace(/_/g, " ")}</option>)}
             </select>
+            <label className="photo-filter"><input type="checkbox" checked={photoOnly} onChange={(event)=>{setPhotoOnly(event.target.checked);setVisibleCount(24)}}/> Photo templates</label>
           </div>
         </div>
 
@@ -78,7 +80,7 @@ export default function TemplateSelectPage() {
                 <div className="demo-sidebar"><b>SKILLS</b><span>Patient care</span><span>Medication</span><span>EMR</span></div>
                 <div className={`demo-main demo-main--${template.header}`}>
                   <div className="demo-head">
-                    {template.supportsPhoto && <span className="template-avatar">AM</span>}
+                    <span className="template-avatar">{template.supportsPhoto ? "PHOTO" : "AM"}</span>
                     <div><h4>Alex Morgan, RN</h4><p>REGISTERED NURSE</p><small>Bengaluru · alex@example.com · +91 98765 43210</small></div>
                   </div>
                   <section><b>PROFESSIONAL SUMMARY</b><p>Compassionate registered nurse with 5+ years of clinical experience delivering safe, patient-centred care.</p></section>
