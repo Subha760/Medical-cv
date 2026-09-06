@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import NavBar from "../components/NavBar";
 import { cvStorage } from "../storage/cvStorage";
+import { newCvDocument } from "../types/cv";
 import { AVAILABLE_COLORS, TEMPLATE_CATALOG, templateById } from "../data/templateCatalog";
 import { COLOR_HEX } from "../data/colorPalette";
 
@@ -10,7 +11,7 @@ const CATEGORIES = ["ALL", ...new Set(TEMPLATE_CATALOG.map((template) => templat
 export default function TemplateSelectPage() {
   const { cvId } = useParams<{ cvId: string }>();
   const navigate = useNavigate();
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>(TEMPLATE_CATALOG[0]?.id || "");
   const [selectedColorId, setSelectedColorId] = useState("navy");
   const [category, setCategory] = useState("ALL");
   const [query, setQuery] = useState("");
@@ -31,35 +32,34 @@ export default function TemplateSelectPage() {
   }
 
   function confirm() {
-    if (!cvId || !selectedTemplateId) return;
-    const doc = cvStorage.getById(cvId);
-    if (!doc) return;
+    if (!selectedTemplateId) return;
+    const activeId = cvId || (typeof crypto.randomUUID === "function" ? crypto.randomUUID() : `cv-${Date.now()}`);
+    const doc = cvStorage.getById(activeId) || newCvDocument(activeId, "NURSE");
     cvStorage.save({ ...doc, templateId: selectedTemplateId, colorId: selectedColorId }, true);
-    navigate("/editor/" + cvId);
+    navigate("/editor/" + activeId);
   }
 
   return (
     <>
       <NavBar />
-      <main className="container" style={{ padding: "40px 24px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "end", flexWrap: "wrap", marginBottom: 20 }}>
+      <main className="container selection-page template-page">
+        <div className="template-header">
           <div>
-            <p className="mono-label">126 clinical designs</p>
-            <h1 style={{ font: "var(--text-display)", marginTop: 6 }}>Choose a CV template</h1>
+            <p className="selection-step">Step 2 of 3 · {TEMPLATE_CATALOG.length} designs</p>
+            <h1 className="selection-title">Choose a CV template</h1>
+            <p className="selection-subtitle">Every design is editable, print-ready and built for healthcare applications.</p>
           </div>
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <div className="template-tools">
             <input
               aria-label="Search templates"
               placeholder="Search templates"
               value={query}
               onChange={(event) => { setQuery(event.target.value); setVisibleCount(24); }}
-              style={{ padding: "10px 12px", border: "1px solid var(--color-line-strong)", borderRadius: 3 }}
             />
             <select
               aria-label="Template category"
               value={category}
               onChange={(event) => { setCategory(event.target.value); setVisibleCount(24); }}
-              style={{ padding: "10px 12px", border: "1px solid var(--color-line-strong)", borderRadius: 3, background: "white" }}
             >
               {CATEGORIES.map((item) => <option key={item} value={item}>{item.replace(/_/g, " ")}</option>)}
             </select>
@@ -70,9 +70,8 @@ export default function TemplateSelectPage() {
           {templates.slice(0, visibleCount).map((template) => (
             <button
               key={template.id}
-              className="card template-card"
               data-layout={template.layout}
-              style={{ borderColor: template.id === selectedTemplateId ? "var(--color-teal)" : undefined }}
+              className={`card template-card ${template.id === selectedTemplateId ? "is-selected" : ""}`}
               onClick={() => pickTemplate(template.id)}
             >
               <div className="template-sheet" style={{ color: COLOR_HEX[template.defaultColorId] }}>
