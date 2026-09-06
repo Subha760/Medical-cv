@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import NavBar from "../components/NavBar";
 import { cvStorage } from "../storage/cvStorage";
@@ -11,7 +11,7 @@ const CATEGORIES = ["ALL", ...new Set(TEMPLATE_CATALOG.map((template) => templat
 export default function TemplateSelectPage() {
   const { cvId } = useParams<{ cvId: string }>();
   const navigate = useNavigate();
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>(TEMPLATE_CATALOG[0]?.id || "");
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
   const [selectedColorId, setSelectedColorId] = useState("navy");
   const [category, setCategory] = useState("ALL");
   const [query, setQuery] = useState("");
@@ -74,13 +74,17 @@ export default function TemplateSelectPage() {
               className={`card template-card ${template.id === selectedTemplateId ? "is-selected" : ""}`}
               onClick={() => pickTemplate(template.id)}
             >
-              <div className="template-sheet" style={{ color: COLOR_HEX[template.defaultColorId] }}>
-                <span className="template-avatar">{template.supportsPhoto ? "●" : ""}</span>
-                <span className="template-name-line" />
-                <span className="template-copy-line" />
-                <span className="template-copy-line short" />
-                <span className="template-section-line" />
-                <span className="template-copy-line" />
+              <div className="template-sheet" style={{ "--template-color": COLOR_HEX[template.defaultColorId] } as CSSProperties}>
+                <div className="demo-sidebar"><b>SKILLS</b><span>Patient care</span><span>Medication</span><span>EMR</span></div>
+                <div className={`demo-main demo-main--${template.header}`}>
+                  <div className="demo-head">
+                    {template.supportsPhoto && <span className="template-avatar">AM</span>}
+                    <div><h4>Alex Morgan, RN</h4><p>REGISTERED NURSE</p><small>Bengaluru · alex@example.com · +91 98765 43210</small></div>
+                  </div>
+                  <section><b>PROFESSIONAL SUMMARY</b><p>Compassionate registered nurse with 5+ years of clinical experience delivering safe, patient-centred care.</p></section>
+                  <section><b>CLINICAL EXPERIENCE</b><h5>Staff Nurse · City General Hospital</h5><small>2021 — Present</small><ul><li>Managed care for 20+ patients per shift.</li><li>Improved documentation and handover quality.</li></ul></section>
+                  <section className="demo-education"><b>EDUCATION</b><h5>B.Sc. Nursing</h5><small>Rajiv Gandhi University · 2020</small></section>
+                </div>
               </div>
               <strong>{template.displayName}</strong>
               <span className="mono-label">{template.layout} · {template.density}</span>
@@ -100,7 +104,7 @@ export default function TemplateSelectPage() {
         )}
 
         {selectedTemplateId && (
-          <div className="card template-confirm">
+          <div className="card template-confirm" role="region" aria-label="Selected template">
             <div>
               <p style={{ fontWeight: 700 }}>{templateById(selectedTemplateId).displayName}</p>
               <p style={{ color: "var(--color-muted)", fontSize: ".9rem" }}>Choose an accent colour, then continue.</p>
