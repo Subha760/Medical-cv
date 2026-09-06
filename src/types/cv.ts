@@ -44,6 +44,8 @@ export interface PersonalInfo {
   maritalStatus: string;
   nationality: string;
   fullAddress: string;
+  caste: string;
+  religion: string;
 }
 
 export interface RegistrationInfo {
@@ -126,6 +128,12 @@ export interface CvDocument {
   references: string;
   internship: string;
   hobbies: string;
+  skills: string;
+  declaration: string;
+  declarationDate: string;
+  declarationPlace: string;
+  signatureName: string;
+  signatureDataUrl: string | null;
   customSections: CustomSection[];
   /** Controls PDF section order — see SECTION_LABELS below. */
   sectionOrder: string[];
@@ -149,11 +157,14 @@ export const SECTION_LABELS: Record<string, string> = {
   references: "References",
   internship: "Internship / Clinical Training",
   hobbies: "Interests",
+  skills: "Core Skills",
+  declaration: "Declaration",
 };
 
 export function defaultSectionOrder(): string[] {
   return [
     "summary",
+    "skills",
     "registration",
     "experience",
     "education",
@@ -167,6 +178,7 @@ export function defaultSectionOrder(): string[] {
     "custom",
     "references",
     "hobbies",
+    "declaration",
   ];
 }
 
@@ -185,6 +197,8 @@ export function emptyPersonalInfo(): PersonalInfo {
     maritalStatus: "",
     nationality: "",
     fullAddress: "",
+    caste: "",
+    religion: "",
   };
 }
 
@@ -221,6 +235,12 @@ export function newCvDocument(id: string, profession: Profession = "OTHER"): CvD
     references: "",
     internship: "",
     hobbies: "",
+    skills: "",
+    declaration: "I hereby declare that the information provided above is true and correct to the best of my knowledge and belief.",
+    declarationDate: "",
+    declarationPlace: "",
+    signatureName: "",
+    signatureDataUrl: null,
     customSections: [],
     sectionOrder: defaultSectionOrder(),
     createdAt: now,

@@ -91,6 +91,10 @@ const ROLE_SKILLS: Partial<Record<CvDocument["profession"], string[]>> = {
   HEALTHCARE_ASSISTANT: ["Personal care", "Vital signs", "Patient mobility", "Infection prevention", "Team communication"],
 };
 
+export function suggestedSkillsFor(doc: CvDocument): string[] {
+  return ROLE_SKILLS[doc.profession] ?? ROLE_SKILLS.NURSE ?? [];
+}
+
 export interface CvAutopilotResult {
   doc: CvDocument;
   completed: string[];
@@ -122,7 +126,11 @@ export function runCvAutopilot(source: CvDocument): CvAutopilotResult {
     completed.push("Drafted the professional summary");
   }
 
-  const suggestedSkills = ROLE_SKILLS[doc.profession] ?? ROLE_SKILLS.NURSE ?? [];
+  const suggestedSkills = suggestedSkillsFor(doc);
+  if (!doc.skills?.trim()) {
+    doc.skills = suggestedSkills.join("\n");
+    completed.push("Added role-specific core skills");
+  }
   doc.experience = doc.experience.map((entry) => {
     let next = { ...entry };
     if ((entry.position || entry.hospital || entry.department) && !entry.responsibilities.trim()) {

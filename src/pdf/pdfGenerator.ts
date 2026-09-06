@@ -118,12 +118,19 @@ export function generateCvPdf(doc: CvDocument): Blob {
   const personalLine = [doc.personalInfo.fullAddress, doc.personalInfo.dateOfBirth ? `DOB: ${doc.personalInfo.dateOfBirth}` : "", doc.personalInfo.nationality, doc.personalInfo.maritalStatus]
     .filter(Boolean).join("   •   ");
   if (personalLine) line(personalLine, 9, false, 18);
+  const optionalPersonalLine = [doc.personalInfo.caste, doc.personalInfo.religion].filter(Boolean).join("   •   ");
+  if (optionalPersonalLine) line(optionalPersonalLine, 9, false, 18);
 
   const sectionRenderers: Record<string, () => void> = {
     summary: () => {
       if (!doc.personalInfo.professionalSummary) return;
       heading("Professional Summary");
       paragraph(doc.personalInfo.professionalSummary);
+    },
+    skills: () => {
+      if (!doc.skills) return;
+      heading("Core Skills");
+      paragraph(doc.skills.split("\n").filter(Boolean).join("   •   "));
     },
     registration: () => {
       if (!doc.registrationInfo.registrationNumber) return;
@@ -208,6 +215,20 @@ export function generateCvPdf(doc: CvDocument): Blob {
       if (!doc.hobbies) return;
       heading("Interests");
       paragraph(doc.hobbies);
+    },
+    declaration: () => {
+      if (!doc.declaration) return;
+      heading("Declaration");
+      paragraph(doc.declaration);
+      const meta = [doc.declarationDate ? `Date: ${doc.declarationDate}` : "", doc.declarationPlace ? `Place: ${doc.declarationPlace}` : ""].filter(Boolean).join("   •   ");
+      if (meta) line(meta, 10, false, 18);
+      if (doc.signatureDataUrl) {
+        try { ensureSpace(56); const format = doc.signatureDataUrl.includes("image/png") ? "PNG" : "JPEG"; pdf.addImage(doc.signatureDataUrl, format, pageWidth-marginX-130, y, 110, 44); y += 48; } catch { /* keep text signature fallback */ }
+      }
+      if (doc.signatureName) {
+        pdf.setFont(fontName, "bold"); pdf.setFontSize(10); pdf.text(doc.signatureName, pageWidth-marginX, y, {align:"right"}); y += 16;
+        pdf.setFont(fontName, "normal"); pdf.text("Signature", pageWidth-marginX, y, {align:"right"}); y += 18;
+      }
     },
   };
 

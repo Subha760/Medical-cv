@@ -20,11 +20,13 @@ import {
   improveResponsibilities,
   writingTips,
   runCvAutopilot,
+  suggestedSkillsFor,
 } from "../ai/localWritingAssistant";
 
 const STEPS = [
   "Personal Details",
   "Professional Summary",
+  "Core Skills",
   "Education",
   "Experience",
   "Certifications",
@@ -32,6 +34,7 @@ const STEPS = [
   "Languages",
   "Additional Sections",
   "Reorder Sections",
+  "Declaration & Signature",
 ] as const;
 
 function uid() {
@@ -153,6 +156,8 @@ export default function EditorPage() {
               <div className="field"><label>Nationality (optional)</label><input value={doc.personalInfo.nationality || ""} onChange={(e) => update((d) => ({...d, personalInfo:{...d.personalInfo,nationality:e.target.value}}))}/></div>
               <div className="field"><label>Marital Status (optional)</label><input value={doc.personalInfo.maritalStatus || ""} onChange={(e) => update((d) => ({...d, personalInfo:{...d.personalInfo,maritalStatus:e.target.value}}))}/></div>
               <div className="field"><label>Full Address</label><input value={doc.personalInfo.fullAddress || ""} onChange={(e) => update((d) => ({...d, personalInfo:{...d.personalInfo,fullAddress:e.target.value}}))}/></div>
+              <div className="field"><label>Caste / Category (optional)</label><input value={doc.personalInfo.caste || ""} onChange={(e) => update((d) => ({...d, personalInfo:{...d.personalInfo,caste:e.target.value}}))}/></div>
+              <div className="field"><label>Religion (optional)</label><input value={doc.personalInfo.religion || ""} onChange={(e) => update((d) => ({...d, personalInfo:{...d.personalInfo,religion:e.target.value}}))}/></div>
             </div>
             <div className="field">
               <label>Professional Title (e.g. Staff Nurse, MBBS)</label>
@@ -248,6 +253,13 @@ export default function EditorPage() {
           />
         )}
 
+        {step === "Core Skills" && (
+          <div>
+            <div className="card ai-panel"><strong>AI skills assistant</strong><p>Adds healthcare keywords suitable for your selected profession. Remove anything you cannot personally demonstrate.</p><button className="btn btn-secondary" onClick={() => update((d) => ({...d, skills: suggestedSkillsFor(d).join("\n")}))}>✦ Suggest role skills</button></div>
+            <div className="field"><label>Core Skills (one per line)</label><textarea rows={9} placeholder="Patient care and monitoring&#10;Medication administration&#10;Emergency response" value={doc.skills || ""} onChange={(e)=>update((d)=>({...d,skills:e.target.value}))}/></div>
+          </div>
+        )}
+
         {step === "Experience" && (
           <ExperienceStep
             entries={doc.experience}
@@ -295,6 +307,15 @@ export default function EditorPage() {
             order={doc.sectionOrder}
             onChange={(sectionOrder) => update((d) => ({ ...d, sectionOrder }))}
           />
+        )}
+
+        {step === "Declaration & Signature" && (
+          <div>
+            <div className="field"><label>Declaration</label><textarea rows={4} value={doc.declaration || ""} onChange={(e)=>update((d)=>({...d,declaration:e.target.value}))}/></div>
+            <div className="form-grid"><div className="field"><label>Date</label><input type="date" value={doc.declarationDate || ""} onChange={(e)=>update((d)=>({...d,declarationDate:e.target.value}))}/></div><div className="field"><label>Place</label><input value={doc.declarationPlace || ""} onChange={(e)=>update((d)=>({...d,declarationPlace:e.target.value}))}/></div></div>
+            <div className="field"><label>Signature Name</label><input placeholder="Type your full name" value={doc.signatureName || ""} onChange={(e)=>update((d)=>({...d,signatureName:e.target.value}))}/></div>
+            <SignatureField value={doc.signatureDataUrl || null} onChange={(signatureDataUrl)=>update((d)=>({...d,signatureDataUrl}))}/>
+          </div>
         )}
 
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: 32 }}>
@@ -697,6 +718,19 @@ function AdditionalSectionsStep({
 }
 
 const MAX_PHOTO_DIMENSION = 480;
+
+function SignatureField({ value, onChange }: { value: string | null; onChange: (value: string | null) => void }) {
+  const [error, setError] = useState<string | null>(null);
+  function load(file: File) {
+    setError(null);
+    if (!file.type.startsWith("image/")) { setError("Please choose an image file."); return; }
+    const reader = new FileReader();
+    reader.onload = () => onChange(reader.result as string);
+    reader.onerror = () => setError("Couldn't read that signature image.");
+    reader.readAsDataURL(file);
+  }
+  return <div className="field"><label>Signature Image (optional)</label><p className="field-help">Upload a clear signature on a white background. It stays on this device.</p>{value ? <div className="signature-preview"><img src={value} alt="Signature preview"/><button className="btn btn-ghost" onClick={()=>onChange(null)}>Remove</button></div> : <input type="file" accept="image/*" onChange={(e)=>{const file=e.target.files?.[0];if(file)load(file)}}/>}{error&&<p style={{color:"var(--color-error)"}}>{error}</p>}</div>;
+}
 
 function ProfilePhotoField({
   photoDataUrl,
