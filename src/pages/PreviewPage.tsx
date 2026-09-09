@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import NavBar from "../components/NavBar";
 import AdSlot from "../components/AdSlot";
+import PdfPages from '../components/PdfPages';
+import { downloadPdf } from '../utils/download';
 import { cvStorage } from "../storage/cvStorage";
 import { generateCvPdf, suggestedFileName } from "../pdf/pdfGenerator";
 import { CvDocument } from "../types/cv";
@@ -14,6 +16,7 @@ export default function PreviewPage() {
   const [doc, setDoc] = useState<CvDocument | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [fileName, setFileName] = useState("cv.pdf");
+  const [pdfBlob,setPdfBlob] = useState<Blob | null>(null);
 
   useEffect(() => {
     if (!cvId) return;
@@ -21,6 +24,7 @@ export default function PreviewPage() {
     setDoc(found);
     if (found) {
       const blob = generateCvPdf(found);
+      setPdfBlob(blob);
       const url = URL.createObjectURL(blob);
       setPdfUrl(url);
       setFileName(suggestedFileName(found));
@@ -54,9 +58,10 @@ export default function PreviewPage() {
       <main className="container" style={{ padding: "32px 24px" }}>
         <h1 style={{ font: "var(--text-display)", fontSize: "1.6rem", marginBottom: 16 }}>Preview</h1>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: 20, alignItems: "start" }}>
-          <div className="card" style={{ height: "70vh", overflow: "hidden" }}>
-            <iframe src={pdfUrl} title="CV preview" width="100%" height="100%" style={{ border: "none" }} />
+        <div className="preview-actions"><button className="btn btn-primary" onClick={()=>{markFinal();if(pdfBlob) void downloadPdf(pdfBlob,fileName);}}>Download PDF</button><button className="btn btn-secondary" onClick={()=>navigate(`/template/${cvId}`)}>Change template</button></div>
+        <div className="preview-grid">
+          <div>
+            {pdfBlob && <PdfPages blob={pdfBlob}/>}
           </div>
 
           <div className="card" style={{ padding: 20 }}>
@@ -93,9 +98,9 @@ export default function PreviewPage() {
         <AdSlot placement="preview" />
 
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 20 }}>
-          <a className="btn btn-primary" href={pdfUrl} download={fileName} onClick={markFinal}>
+          <button className="btn btn-primary" onClick={()=>{markFinal();if(pdfBlob) void downloadPdf(pdfBlob,fileName);}}>
             Download PDF
-          </a>
+          </button>
           <button className="btn btn-secondary" onClick={() => navigate(`/editor/${cvId}`)}>
             Edit Again
           </button>

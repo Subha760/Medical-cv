@@ -38,6 +38,7 @@ export interface PersonalInfo {
   professionalSummary: string;
   /** A local object URL or data URL only — never uploaded anywhere. */
   profilePhotoDataUrl: string | null;
+  photoShape?: "round" | "square";
   linkedInUrl: string;
   professionalWebsite: string;
   dateOfBirth: string;

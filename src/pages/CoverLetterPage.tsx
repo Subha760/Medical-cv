@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import NavBar from "../components/NavBar";
+import { createId } from '../utils/id';
+import { downloadPdf } from '../utils/download';
 import { coverLetterStorage } from "../storage/coverLetterStorage";
 import { generateCoverLetterPdf, suggestedCoverLetterFileName } from "../pdf/coverLetterPdfGenerator";
 import { COVER_LETTER_TEMPLATES, CoverLetter, newCoverLetter } from "../types/coverLetter";
 
 export default function CoverLetterPage() {
-  const idRef = useRef(crypto.randomUUID());
+  const idRef = useRef(createId());
   const [letter, setLetter] = useState<CoverLetter>(() => newCoverLetter(idRef.current));
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const saveTimer = useRef<number | null>(null);
@@ -26,6 +28,7 @@ export default function CoverLetterPage() {
   }
 
   function generate() {
+    if(saveTimer.current) window.clearTimeout(saveTimer.current);
     coverLetterStorage.save(letter, false);
     const blob = generateCoverLetterPdf(letter);
     if (pdfUrl) URL.revokeObjectURL(pdfUrl);
@@ -101,9 +104,9 @@ export default function CoverLetterPage() {
             Generate PDF
           </button>
           {pdfUrl && (
-            <a className="btn btn-secondary" href={pdfUrl} download={suggestedCoverLetterFileName(letter)}>
+            <button className="btn btn-secondary" onClick={()=>void downloadPdf(generateCoverLetterPdf(letter),suggestedCoverLetterFileName(letter))}>
               Download
-            </a>
+            </button>
           )}
         </div>
       </main>

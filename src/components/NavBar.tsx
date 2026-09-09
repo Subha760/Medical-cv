@@ -7,6 +7,7 @@ export default function NavBar() {
       <div className="container nav-bar__inner">
         <Link to="/" className="nav-bar__brand">
           <span className="nav-bar__mark" aria-hidden="true">
+            <img src={`${import.meta.env.BASE_URL}medcv-logo.png`} width="40" height="40" alt=""/>
             <svg viewBox="0 0 24 24" width="22" height="22">
               <rect x="4" y="3" width="13" height="18" rx="1.5" fill="var(--color-paper-raised)" stroke="var(--color-teal)" strokeWidth="1.6" />
               <line x1="7" y1="8" x2="14" y2="8" stroke="var(--color-teal)" strokeWidth="1.6" />
@@ -25,6 +26,7 @@ export default function NavBar() {
           <Link to="/new" className="nav-bar__cta">Build my CV</Link>
         </nav>
       </div>
+      <nav className="mobile-links" aria-label="Quick navigation"><Link to="/new">Templates</Link><Link to="/saved">Saved CVs</Link><Link to="/cover-letter">Cover letter</Link></nav>
     </header>
   );
 }

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import NavBar from "../components/NavBar";
 import AdSlot from "../components/AdSlot";
+import { createId } from "../utils/id";
 import { cvStorage } from "../storage/cvStorage";
 import {
   CertificationEntry,
@@ -38,7 +39,7 @@ const STEPS = [
 ] as const;
 
 function uid() {
-  return crypto.randomUUID();
+  return createId();
 }
 
 export default function EditorPage() {
@@ -48,6 +49,16 @@ export default function EditorPage() {
   const [stepIndex, setStepIndex] = useState(0);
   const [autopilotMessage, setAutopilotMessage] = useState<string | null>(null);
   const saveTimer = useRef<number | null>(null);
+  const pendingDoc = useRef<CvDocument | null>(null);
+  const [saveError, setSaveError] = useState("");
+  function persist(next: CvDocument, draft: boolean) {
+    try { cvStorage.save(next, draft); setSaveError(""); return true; }
+    catch { setSaveError("Unable to save on this device. Free some storage or remove a large image, then try again."); return false; }
+  }
+  useEffect(() => () => {
+    if (saveTimer.current) window.clearTimeout(saveTimer.current);
+    if (pendingDoc.current) { try { cvStorage.save(pendingDoc.current, true); } catch { /* error already surfaced while editing */ } }
+  }, []);
 
   useEffect(() => {
     if (!cvId) return;
@@ -59,8 +70,9 @@ export default function EditorPage() {
     setDoc((prev) => {
       if (!prev) return prev;
       const next = mutator(prev);
+      pendingDoc.current = next;
       if (saveTimer.current) window.clearTimeout(saveTimer.current);
-      saveTimer.current = window.setTimeout(() => cvStorage.save(next, true), 500);
+      saveTimer.current = window.setTimeout(() => { if (persist(next, true)) pendingDoc.current = null; }, 500);
       return next;
     });
   }
@@ -70,8 +82,10 @@ export default function EditorPage() {
   const isLastStep = stepIndex === STEPS.length - 1;
 
   function goNext() {
+    if (saveTimer.current) window.clearTimeout(saveTimer.current);
+    if (doc && !persist(doc, !isLastStep)) return;
+    pendingDoc.current = null;
     if (isLastStep) {
-      if (doc) cvStorage.save(doc, false);
       navigate(`/preview/${cvId}`);
     } else {
       setStepIndex((i) => i + 1);
@@ -139,11 +153,13 @@ export default function EditorPage() {
         {step === "Personal Details" && (
           <div>
             <ProfilePhotoField
+              shape={doc.personalInfo.photoShape || "square"}
               photoDataUrl={doc.personalInfo.profilePhotoDataUrl}
               onChange={(profilePhotoDataUrl) =>
                 update((d) => ({ ...d, personalInfo: { ...d.personalInfo, profilePhotoDataUrl } }))
               }
             />
+            <div className="field"><label htmlFor="photo-shape">Photo shape</label><select id="photo-shape" value={doc.personalInfo.photoShape || "square"} onChange={e => update(d => ({...d, personalInfo:{...d.personalInfo, photoShape:e.target.value as "round" | "square"}}))}><option value="square">Square</option><option value="round">Round</option></select></div>
             <div className="field">
               <label>Full Name</label>
               <input
@@ -318,6 +334,7 @@ export default function EditorPage() {
           </div>
         )}
 
+        {saveError && <p role="alert">{saveError}</p>}
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: 32 }}>
           <button className="btn btn-ghost" onClick={goBack}>
             Back
@@ -560,14 +577,14 @@ function LanguagesStep({
   return (
     <div>
       {entries.map((entry) => (
-        <div key={entry.id} className="card" style={{ padding: 16, marginBottom: 12, display: "flex", gap: 12, alignItems: "flex-end" }}>
+        <div key={entry.id} className="card language-row" style={{ padding: 16, marginBottom: 12 }}>
           <div className="field" style={{ flex: 1, marginBottom: 0 }}>
             <label>Language</label>
-            <input value={entry.language} onChange={(e) => updateEntry(entry.id, { language: e.target.value })} />
+            <select aria-label="Language" value={entry.language} onChange={(e) => updateEntry(entry.id, { language: e.target.value })}><option value="">Select language</option>{Array.from(new Set(["English", "Hindi", "Bengali", "Kannada", "Tamil", "Telugu", "Malayalam", "Marathi", "Gujarati", "Punjabi", "Odia", "Assamese", "Urdu", "Arabic", "French", "German", "Spanish", ...(entry.language ? [entry.language] : [])])).map(l => <option key={l}>{l}</option>)}</select>
           </div>
           <div className="field" style={{ flex: 1, marginBottom: 0 }}>
             <label>Proficiency</label>
-            <input value={entry.proficiency} onChange={(e) => updateEntry(entry.id, { proficiency: e.target.value })} />
+            <select aria-label="Proficiency" value={entry.proficiency} onChange={(e) => updateEntry(entry.id, { proficiency: e.target.value })}><option value="">Select proficiency</option>{Array.from(new Set(["Native / Bilingual", "Fluent", "Professional working", "Intermediate", "Basic", ...(entry.proficiency ? [entry.proficiency] : [])])).map(l => <option key={l}>{l}</option>)}</select>
           </div>
           <button className="btn btn-ghost" onClick={() => removeEntry(entry.id)}>
             Remove
@@ -733,9 +750,11 @@ function SignatureField({ value, onChange }: { value: string | null; onChange: (
 }
 
 function ProfilePhotoField({
+  shape,
   photoDataUrl,
   onChange,
 }: {
+  shape: "round" | "square";
   photoDataUrl: string | null;
   onChange: (dataUrl: string | null) => void;
 }) {
@@ -783,7 +802,7 @@ function ProfilePhotoField({
           <img
             src={photoDataUrl}
             alt="Profile"
-            style={{ width: 64, height: 64, borderRadius: "50%", objectFit: "cover", border: "1px solid var(--color-line)" }}
+            style={{ width: 64, height: 64, borderRadius: shape === "round" ? "50%" : "4px", objectFit: "cover", border: "1px solid var(--color-line)" }}
           />
           <button className="btn btn-ghost" onClick={() => onChange(null)}>
             Remove

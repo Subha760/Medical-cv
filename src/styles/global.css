@@ -117,6 +117,7 @@ button, input, textarea, select {
 }
 
 .field {
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
@@ -135,12 +136,30 @@ button, input, textarea, select {
 .signature-preview { display:flex; align-items:center; gap:14px; }.signature-preview img{width:150px;height:58px;object-fit:contain;background:#fff;border:1px solid var(--color-line);border-radius:8px}
 
 .field input,
-.field textarea {
+.field textarea,
+.field select {
+  width: 100%;
+  min-width: 0;
   padding: var(--space-3);
   border: 1px solid var(--color-line-strong);
   border-radius: var(--radius-sm);
   background: var(--color-paper-raised);
 }
+
+.language-row { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto; gap:12px; align-items:end; }
+.preview-grid { display:grid; grid-template-columns:minmax(0,1fr) 290px; gap:20px; align-items:start; }
+.pdf-pages { width:100%; min-width:0; }
+.pdf-pages canvas { display:block; width:100%; height:auto; background:white; margin-bottom:12px; box-shadow:0 2px 8px #14223818; }
+.pdf-pages--thumbnail { aspect-ratio:210/297; overflow:hidden; pointer-events:none; }
+.pdf-pages--thumbnail canvas { margin:0; box-shadow:none; }
+.template-card { min-width:0; }
+.template-card .pdf-pages { border:1px solid #e2e8ef; }
+.preview-actions { display:flex; flex-wrap:wrap; gap:12px; margin:16px 0; }
+@keyframes enter-page { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+main { animation:enter-page .3s ease-out; }
+@media (hover:hover) { .btn:hover, .template-card:hover { transform:translateY(-2px); } .card { transition:box-shadow .2s, border-color .2s; } .card:hover { border-color:#a9c6cf; } }
+@media (max-width:720px) { .preview-grid { grid-template-columns:minmax(0,1fr); } .language-row { grid-template-columns:minmax(0,1fr); } .form-grid { grid-template-columns:minmax(0,1fr); } .field { overflow-wrap:anywhere; } }
+@media (prefers-reduced-motion:reduce) { *, *::before, *::after { animation:none!important; transition:none!important; } }
 
 .field input:focus,
 .field textarea:focus {

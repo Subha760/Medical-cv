@@ -1,10 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import NavBar from "../components/NavBar";
 import AdSlot from "../components/AdSlot";
-import { PROFESSION_LABELS, Profession } from "../types/cv";
 import "./HomePage.css";
 
-const SHORTCUT_PROFESSIONS: Profession[] = ["DOCTOR", "NURSE", "NURSING_STUDENT", "MEDICAL_STUDENT", "PHARMACIST", "HEALTHCARE_ASSISTANT"];
+const DESIGN_STYLES = ['Classic & clean', 'Modern colour', 'Academic detail', 'Compact layout', 'Photo CV', 'Timeline'];
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -30,8 +29,8 @@ export default function HomePage() {
                 <div className="cv-mini">
                   <div className="cv-mini__header"><div className="cv-mini__avatar">AM</div><div><b>Alex Morgan, RN</b><small>Registered Nurse</small></div></div>
                   <div className="cv-mini__rule" />
-                  <strong>PROFESSIONAL SUMMARY</strong><p /><p className="short" />
-                  <strong>CLINICAL EXPERIENCE</strong><div className="cv-mini__row"><i /><div><p /><p className="short" /></div></div>
+                  <strong>PROFESSIONAL SUMMARY</strong><p className="cv-mini__text">Compassionate nurse delivering safe care and clear patient communication.</p>
+                  <strong>CLINICAL EXPERIENCE</strong><p className="cv-mini__text">Staff Nurse · City General Hospital<br/>Coordinated care and accurate clinical handovers.</p>
                   <strong>CORE SKILLS</strong><div className="cv-mini__chips"><span>Patient care</span><span>Critical care</span><span>EMR</span></div>
                 </div>
                 <div className="ai-float"><span>✦</span><div><b>CV Autopilot</b><small>Summary improved locally</small></div><em>✓</em></div>
@@ -41,12 +40,12 @@ export default function HomePage() {
         </section>
         <section className="stats"><div className="container stats__grid"><div><b>126+</b><span>CV templates</span></div><div><b>100%</b><span>private & local</span></div><div><b>ATS</b><span>friendly layouts</span></div><div><b>PDF</b><span>instant export</span></div></div></section>
         <section className="section container">
-          <div className="section__heading"><span className="section__kicker">Choose your path</span><h2>Made for every healthcare role</h2><p>Start with the right sections and wording for your profession.</p></div>
+          <div className="section__heading"><span className="section__kicker">Make it your own</span><h2>A style for your next opportunity</h2><p>Choose a template, add your experience, and see the finished CV before downloading.</p></div>
           <div className="profession-grid">
-            {SHORTCUT_PROFESSIONS.map((profession, index) => <button key={profession} className="profession-card" onClick={() => navigate("/new", { state: { profession } })}><span className="profession-card__icon">{["✚","♡","N","M","Rx","H"][index]}</span><strong>{PROFESSION_LABELS[profession]}</strong><small>View tailored templates</small><i>→</i></button>)}
+            {DESIGN_STYLES.map((style,index) => <button key={style} className="profession-card" onClick={() => navigate('/new')}><span className="profession-card__icon">{String(index+1).padStart(2,'0')}</span><strong>{style}</strong><small>Explore templates</small><i>→</i></button>)}
           </div>
         </section>
-        <section className="how"><div className="container"><div className="section__heading"><span className="section__kicker">Simple and guided</span><h2>Your strongest CV in three steps</h2></div><div className="steps"><article><span>1</span><h3>Pick your profession</h3><p>Get the right sections and prompts for your healthcare role.</p></article><article><span>2</span><h3>Let AI strengthen it</h3><p>Improve summaries, achievements and skills without uploading your data.</p></article><article><span>3</span><h3>Download your PDF</h3><p>Choose from 126 templates and export a polished, ATS-ready CV.</p></article></div></div></section>
+        <section className="how"><div className="container"><div className="section__heading"><span className="section__kicker">Simple and guided</span><h2>Your strongest CV in three steps</h2></div><div className="steps"><article><span>1</span><h3>Choose your template</h3><p>See a complete sample CV and choose your accent colour.</p></article><article><span>2</span><h3>Make it yours</h3><p>Add your experience, photo and custom sections. Use the offline assistant to refine your writing.</p></article><article><span>3</span><h3>Preview and download</h3><p>Check every page, then save your finished PDF.</p></article></div></div></section>
         <div className="container ad-wrap"><AdSlot placement="home" /></div>
         <section className="final-cta"><div className="container"><h2>Ready for your next healthcare role?</h2><p>Build a professional CV in minutes. Your information stays yours.</p><button className="btn btn-primary" onClick={() => navigate("/new")}>Start building for free →</button></div></section>
       </main>

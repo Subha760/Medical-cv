@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['android/**', 'src/**', 'package.json', 'package-lock.json', 'vite.config.ts']
+    paths: ['android/**', 'src/**', 'public/**', 'index.html', '.github/workflows/build-apk.yml', 'package.json', 'package-lock.json', 'vite.config.ts']
 
 jobs:
   build:
@@ -25,6 +25,16 @@ jobs:
         with:
           gradle-version: '8.9'
       - run: gradle -p android assembleDebug
+      - name: Enable emulator acceleration
+        run: |
+          sudo chmod 666 /dev/kvm
+      - name: Test offline app on Android 10
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          arch: x86_64
+          disable-animations: true
+          script: gradle -p android connectedDebugAndroidTest
       - uses: actions/upload-artifact@v4
         with:
           name: MedCV-Maker-APK

@@ -6,6 +6,10 @@
   top: 0;
   z-index: 20;
 }
+.nav-bar__mark { display:flex; }
+.nav-bar__mark svg { display:none; }
+.mobile-links { display:none; }
+@media(max-width:720px) { .mobile-links { display:flex; justify-content:center; gap:24px; padding:8px 12px; border-top:1px solid #edf1f5; } .mobile-links a { font-size:13px; text-decoration:none; } }
 
 .nav-bar__inner {
   display: flex;

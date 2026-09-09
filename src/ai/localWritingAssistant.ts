@@ -76,7 +76,7 @@ export function writingTips(doc: CvDocument): string[] {
 export function generateAchievements(doc: CvDocument): string {
   const role = doc.personalInfo.professionalTitle || PROFESSION_LABELS[doc.profession] || "Healthcare professional";
   const area = doc.experience[0]?.department || doc.experience[0]?.specialty || "clinical care";
-  return `Recognised as a dependable ${role.toLowerCase()} supporting safe, patient-centred ${area}. Contributed to accurate documentation, timely handovers, infection-prevention practices and effective multidisciplinary teamwork. Add a truthful number or award here to make this achievement stronger.`;
+  return `Supported safe, patient-centred ${area} as a ${role.toLowerCase()}.\nContributed to accurate documentation and timely multidisciplinary handovers.`;
 }
 
 const ROLE_SKILLS: Partial<Record<CvDocument["profession"], string[]>> = {

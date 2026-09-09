@@ -1,4 +1,8 @@
 .home { overflow: hidden; }
+.cv-mini p.cv-mini__text { height:auto; background:none; line-height:1.6; font-size:10px; }
+@keyframes gentle-float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-6px); } }
+.ai-float { animation:gentle-float 5s ease-in-out infinite; }
+@media(hover:hover) { .product-preview { transition:transform .3s; } .product-preview:hover { transform:rotate(0); } .steps article { transition:background .2s,transform .2s; } .steps article:hover { background:#24405d; transform:translateY(-4px); } }
 .hero { padding: 76px 0 82px; background: radial-gradient(circle at 80% 20%, #dff5f3 0, transparent 34%), linear-gradient(180deg,#fff 0,#f4f9fc 100%); }
 .hero__grid { display:grid; grid-template-columns:1.03fr .97fr; gap:70px; align-items:center; }
 .hero__eyebrow { display:inline-flex; gap:8px; align-items:center; padding:7px 12px; border:1px solid #bfe4e5; border-radius:999px; background:#ebfaf8; color:var(--color-teal-dark); font-weight:700; font-size:.78rem; text-transform:uppercase; letter-spacing:.06em; }

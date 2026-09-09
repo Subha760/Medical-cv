@@ -1,4 +1,6 @@
-import { useMemo, useState, type CSSProperties } from "react";
+import { useMemo, useState } from "react";
+import TemplatePreview from '../components/TemplatePreview';
+import { createId } from '../utils/id';
 import { useNavigate, useParams } from "react-router-dom";
 import NavBar from "../components/NavBar";
 import { cvStorage } from "../storage/cvStorage";
@@ -34,7 +36,7 @@ export default function TemplateSelectPage() {
 
   function confirm() {
     if (!selectedTemplateId) return;
-    const activeId = cvId || (typeof crypto.randomUUID === "function" ? crypto.randomUUID() : `cv-${Date.now()}`);
+    const activeId = cvId || createId();
     const doc = cvStorage.getById(activeId) || newCvDocument(activeId, "NURSE");
     cvStorage.save({ ...doc, templateId: selectedTemplateId, colorId: selectedColorId }, true);
     navigate("/editor/" + activeId);
@@ -46,7 +48,7 @@ export default function TemplateSelectPage() {
       <main className="container selection-page template-page">
         <div className="template-header">
           <div>
-            <p className="selection-step">Step 2 of 3 · {TEMPLATE_CATALOG.length} designs</p>
+            <p className="selection-step">Choose a design · {TEMPLATE_CATALOG.length} templates</p>
             <h1 className="selection-title">Choose a CV template</h1>
             <p className="selection-subtitle">Every design is editable, print-ready and built for healthcare applications.</p>
           </div>
@@ -76,18 +78,7 @@ export default function TemplateSelectPage() {
               className={`card template-card ${template.id === selectedTemplateId ? "is-selected" : ""}`}
               onClick={() => pickTemplate(template.id)}
             >
-              <div className="template-sheet" style={{ "--template-color": COLOR_HEX[template.defaultColorId] } as CSSProperties}>
-                <div className="demo-sidebar"><b>SKILLS</b><span>Patient care</span><span>Medication</span><span>EMR</span></div>
-                <div className={`demo-main demo-main--${template.header}`}>
-                  <div className="demo-head">
-                    <span className="template-avatar">{template.supportsPhoto ? "PHOTO" : "AM"}</span>
-                    <div><h4>Alex Morgan, RN</h4><p>REGISTERED NURSE</p><small>Bengaluru · alex@example.com · +91 98765 43210</small></div>
-                  </div>
-                  <section><b>PROFESSIONAL SUMMARY</b><p>Compassionate registered nurse with 5+ years of clinical experience delivering safe, patient-centred care.</p></section>
-                  <section><b>CLINICAL EXPERIENCE</b><h5>Staff Nurse · City General Hospital</h5><small>2021 — Present</small><ul><li>Managed care for 20+ patients per shift.</li><li>Improved documentation and handover quality.</li></ul></section>
-                  <section className="demo-education"><b>EDUCATION</b><h5>B.Sc. Nursing</h5><small>Rajiv Gandhi University · 2020</small></section>
-                </div>
-              </div>
+              <TemplatePreview id={template.id} color={template.id === selectedTemplateId ? selectedColorId : template.defaultColorId}/>
               <strong>{template.displayName}</strong>
               <span className="mono-label">{template.layout} · {template.density}</span>
               <span className="template-badges">

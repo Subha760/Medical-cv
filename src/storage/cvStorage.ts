@@ -1,4 +1,5 @@
 import { CvDocument } from "../types/cv";
+import { createId } from "../utils/id";
 
 /**
  * Everything here reads/writes ONLY window.localStorage. There is no fetch(),
@@ -14,7 +15,8 @@ function readAll(): CvDocument[] {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
-    return JSON.parse(raw) as CvDocument[];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter(d => d && typeof d.id === 'string' && d.personalInfo) : [];
   } catch {
     // Corrupted local storage shouldn't crash the app — treat as empty,
     // matching the Android app's "Corrupted saved CV" error-handling case.
@@ -70,7 +72,7 @@ export const cvStorage = {
     if (!original) return null;
     const copy: CvDocument = {
       ...original,
-      id: crypto.randomUUID(),
+      id: createId(),
       label: newLabel,
       isDraft: false,
       createdAt: Date.now(),
