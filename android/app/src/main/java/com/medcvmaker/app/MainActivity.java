@@ -67,6 +67,10 @@ public class MainActivity extends Activity {
             }
         }, "MedCVAndroid");
         webView.setWebChromeClient(new WebChromeClient() {
+            @Override public boolean onConsoleMessage(android.webkit.ConsoleMessage message) {
+                android.util.Log.d("MedCV", message.message() + " at " + message.sourceId() + ":" + message.lineNumber());
+                return true;
+            }
             @Override public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> callback, FileChooserParams params) {
                 if (fileCallback != null) fileCallback.onReceiveValue(null);
                 fileCallback = callback;

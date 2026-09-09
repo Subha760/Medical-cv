@@ -1,6 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import type { PDFDocumentLoadingTask } from 'pdfjs-dist';
-import workerUrl from 'pdfjs-dist/legacy/build/pdf.worker.min.mjs?url';
+import PdfWorker from 'pdfjs-dist/legacy/build/pdf.worker.mjs?worker';
+
+let sharedWorker: Worker | undefined;
+function readPdf(blob: Blob): Promise<ArrayBuffer> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as ArrayBuffer);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsArrayBuffer(blob);
+  });
+}
 
 // Render the actual exported PDF, including on mobile browsers without a PDF plugin.
 export default function PdfPages({ blob, thumbnail=false }: { blob: Blob; thumbnail?: boolean }) {
@@ -11,14 +21,15 @@ export default function PdfPages({ blob, thumbnail=false }: { blob: Blob; thumbn
     let cancelled=false;
     let task: PDFDocumentLoadingTask | undefined;
     let started=false;
-    node.replaceChildren(); setError('');
+    node.textContent=''; setError('');
     async function render() {
       if(started) return; started=true;
       try {
         const pdfjs=await import('pdfjs-dist/legacy/build/pdf.mjs');
         if(cancelled) return;
-        pdfjs.GlobalWorkerOptions.workerSrc=workerUrl;
-        task=pdfjs.getDocument({data:new Uint8Array(await blob.arrayBuffer()), useSystemFonts:true});
+        sharedWorker ??= new PdfWorker();
+        pdfjs.GlobalWorkerOptions.workerPort=sharedWorker;
+        task=pdfjs.getDocument({data:new Uint8Array(await readPdf(blob)), useSystemFonts:true, isEvalSupported:false});
         const pdf=await task.promise;
         for(let i=1;i<=(thumbnail ? 1 : pdf.numPages);i++) {
           if(cancelled) break;

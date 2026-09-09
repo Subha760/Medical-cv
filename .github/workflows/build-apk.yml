@@ -34,7 +34,7 @@ jobs:
           api-level: 29
           arch: x86_64
           disable-animations: true
-          script: gradle -p android connectedDebugAndroidTest
+          script: gradle -p android connectedDebugAndroidTest || { adb logcat -d -s chromium MedCV; exit 1; }
       - uses: actions/upload-artifact@v4
         with:
           name: MedCV-Maker-APK
