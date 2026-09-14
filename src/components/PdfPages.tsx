@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { PDFDocumentLoadingTask } from 'pdfjs-dist';
-import PdfWorker from 'pdfjs-dist/legacy/build/pdf.worker.mjs?worker';
+import PdfWorker from '../workers/pdf.worker?worker';
 
 let sharedWorker: Worker | undefined;
 function readPdf(blob: Blob): Promise<ArrayBuffer> {
@@ -30,14 +30,14 @@ export default function PdfPages({ blob, thumbnail=false }: { blob: Blob; thumbn
         sharedWorker ??= new PdfWorker();
         pdfjs.GlobalWorkerOptions.workerPort=sharedWorker;
         task=pdfjs.getDocument({data:new Uint8Array(await readPdf(blob)), useSystemFonts:true, isEvalSupported:false});
-        const pdf=await task.promise;
-        for(let i=1;i<=(thumbnail ? 1 : pdf.numPages);i++) {
+        const doc=await task.promise;
+        for(let i=1;i<=(thumbnail ? 1 : doc.numPages);i++) {
           if(cancelled) break;
-          const page=await pdf.getPage(i);
+          const page=await doc.getPage(i);
           const canvas=document.createElement('canvas');
           const viewport=page.getViewport({scale:thumbnail ? .8 : 1.5});
           canvas.width=Math.ceil(viewport.width); canvas.height=Math.ceil(viewport.height);
-          canvas.setAttribute('role','img'); canvas.setAttribute('aria-label',`CV page ${i} of ${pdf.numPages}`);
+          canvas.setAttribute('role','img'); canvas.setAttribute('aria-label',`CV page ${i} of ${doc.numPages}`);
           await page.render({canvasContext:canvas.getContext('2d')!, viewport}).promise;
           if(!cancelled) node.appendChild(canvas);
           page.cleanup();
