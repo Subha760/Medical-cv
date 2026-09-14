@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { PDFDocumentLoadingTask } from 'pdfjs-dist';
-import PdfWorker from '../workers/pdf.worker?worker';
+import PdfWorker from 'pdfjs-dist/legacy/build/pdf.worker.mjs?worker';
 
 let sharedWorker: Worker | undefined;
 function readPdf(blob: Blob): Promise<ArrayBuffer> {
@@ -12,7 +12,6 @@ function readPdf(blob: Blob): Promise<ArrayBuffer> {
   });
 }
 
-// Render the actual exported PDF, including on mobile browsers without a PDF plugin.
 export default function PdfPages({ blob, thumbnail=false }: { blob: Blob; thumbnail?: boolean }) {
   const host = useRef<HTMLDivElement>(null);
   const [error,setError] = useState('');
