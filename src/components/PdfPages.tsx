@@ -41,7 +41,7 @@ export default function PdfPages({ blob, thumbnail=false }: { blob: Blob; thumbn
           if(!cancelled) node.appendChild(canvas);
           page.cleanup();
         }
-      } catch (cause) { console.error('PDF preview failed', cause); if(!cancelled) setError('Preview could not load. You can still download the PDF.'); }
+      } catch (cause) { console.error('PDF preview failed: '+(cause instanceof Error ? cause.name+': '+cause.message+' '+cause.stack : String(cause))); if(!cancelled) setError('Preview could not load. You can still download the PDF.'); }
     }
     const observer=new IntersectionObserver(entries => { if(entries.some(e=>e.isIntersecting)) { observer.disconnect(); void render(); } },{rootMargin:'150px'});
     observer.observe(node);
