@@ -19,6 +19,7 @@ import { colorRgb } from "../data/colorPalette";
 export function generateCvPdf(doc: CvDocument): Blob {
   const pdf = new jsPDF({ unit: "pt", format: "a4", compress: true });
   const template = templateById(doc.templateId);
+  const photo = template.supportsPhoto ? doc.personalInfo.profilePhotoDataUrl : null;
   const marginX = template.layout === "compact" ? 38 : template.layout === "sidebar" ? 88 : 48;
   const pageHeight = pdf.internal.pageSize.getHeight();
   const pageWidth = pdf.internal.pageSize.getWidth();
@@ -43,7 +44,7 @@ export function generateCvPdf(doc: CvDocument): Blob {
   }
   decoratePage();
 
-  if (doc.personalInfo.profilePhotoDataUrl) {
+  if (photo) {
     // Top-right headshot — starter placement, same single-column simplicity
     // as the rest of this generator (and a step ahead of the Android app's
     // PdfGenerator.kt, which doesn't embed a photo yet either).
@@ -51,11 +52,11 @@ export function generateCvPdf(doc: CvDocument): Blob {
     try {
       pdf.saveGraphicsState();
       if (doc.personalInfo.photoShape === "round") { pdf.circle(pageWidth-marginX-photoSize/2, 40+photoSize/2, photoSize/2, null); pdf.clip(); pdf.discardPath(); }
-      const props = pdf.getImageProperties(doc.personalInfo.profilePhotoDataUrl);
+      const props = pdf.getImageProperties(photo);
       const scale = Math.max(photoSize / props.width, photoSize / props.height);
       if (doc.personalInfo.photoShape !== "round") { pdf.rect(pageWidth-marginX-photoSize,40,photoSize,photoSize,null); pdf.clip(); pdf.discardPath(); }
       pdf.addImage(
-        doc.personalInfo.profilePhotoDataUrl,
+        photo,
         props.fileType,
         pageWidth - marginX - photoSize + (photoSize-props.width*scale)/2,
         40 + (photoSize-props.height*scale)/2,
@@ -133,10 +134,10 @@ export function generateCvPdf(doc: CvDocument): Blob {
 
   // Header block always comes first, regardless of section order.
   const headerName = doc.personalInfo.fullName || "Untitled CV";
-  const headerWidth = pageWidth-marginX*2-(doc.personalInfo.profilePhotoDataUrl ? 92 : 0);
+  const headerWidth = pageWidth-marginX*2-(photo ? 92 : 0);
   pdf.setFont(fontName,'bold'); pdf.setFontSize(20);
   const nameLines = pdf.splitTextToSize(headerName,headerWidth) as string[];
-  if (template.header === "center" && !doc.personalInfo.profilePhotoDataUrl) {
+  if (template.header === "center" && !photo) {
     pdf.setFont(fontName, "bold");
     pdf.setFontSize(20);
     pdf.setTextColor(accentR, accentG, accentB);
@@ -144,7 +145,7 @@ export function generateCvPdf(doc: CvDocument): Blob {
   } else {
     nameLines.forEach(name => line(name, 20, true, 26, [accentR, accentG, accentB]));
   }
-  if (doc.personalInfo.profilePhotoDataUrl) y = Math.max(y, 126);
+  if (photo) y = Math.max(y, 126);
   if (doc.personalInfo.professionalTitle) {
     line(doc.personalInfo.professionalTitle, 12, false, 18);
   }
@@ -170,9 +171,9 @@ export function generateCvPdf(doc: CvDocument): Blob {
       bullets(doc.skills);
     },
     registration: () => {
-      if (!doc.registrationInfo.registrationNumber) return;
+      if (!Object.values(doc.registrationInfo).some(Boolean)) return;
       heading("Registration & License");
-      paragraph(`${doc.registrationInfo.councilOrBoard}   •   Reg. No: ${doc.registrationInfo.registrationNumber}`);
+      paragraph([doc.registrationInfo.councilOrBoard, doc.registrationInfo.registrationNumber ? `Reg. No: ${doc.registrationInfo.registrationNumber}` : "", doc.registrationInfo.registrationRegion, doc.registrationInfo.licenseExpiry ? `Expiry: ${doc.registrationInfo.licenseExpiry}` : "", doc.registrationInfo.specialization, doc.registrationInfo.currentPosition, doc.registrationInfo.yearsOfExperience ? `${doc.registrationInfo.yearsOfExperience} years of experience` : ""].filter(Boolean).join("   •   "));
     },
     experience: () => {
       if (doc.experience.length === 0) return;
@@ -197,7 +198,7 @@ export function generateCvPdf(doc: CvDocument): Blob {
       }
       doc.education.forEach((edu) => {
         line(`${edu.degree} — ${edu.institution}`, 11, false, 14);
-        const meta = [`${edu.startYear} - ${edu.graduationYear}`, edu.grade].filter(Boolean).join("   •   ");
+        const meta = [`${edu.startYear} - ${edu.graduationYear}`, edu.grade, edu.location].filter(Boolean).join("   •   ");
         line(meta, 10, false, 16);
       });
     },
@@ -211,6 +212,8 @@ export function generateCvPdf(doc: CvDocument): Blob {
       heading("Certifications");
       doc.certifications.forEach((cert) => {
         line(`${cert.name}${cert.issuingBody ? " — " + cert.issuingBody : ""}`, 11, false, 15);
+        const dates = [cert.issueDate ? `Issued: ${cert.issueDate}` : "", cert.expiryDate ? `Expires: ${cert.expiryDate}` : ""].filter(Boolean).join(" • ");
+        if (dates) line(dates, 10, false, 15);
       });
     },
     achievements: () => {
@@ -279,7 +282,7 @@ export function generateCvPdf(doc: CvDocument): Blob {
     },
   };
 
-  const order = doc.sectionOrder.length > 0 ? doc.sectionOrder : Object.keys(sectionRenderers);
+  const order = [...new Set([...doc.sectionOrder, ...Object.keys(sectionRenderers)])];
   order.forEach((key) => sectionRenderers[key]?.());
 
   return pdf.output("blob");

@@ -16,6 +16,7 @@ export default function PreviewPage() {
   const [doc, setDoc] = useState<CvDocument | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [fileName, setFileName] = useState("cv.pdf");
+  const [exportError,setExportError] = useState("");
   const [pdfBlob,setPdfBlob] = useState<Blob | null>(null);
 
   useEffect(() => {
@@ -32,9 +33,10 @@ export default function PreviewPage() {
     }
   }, [cvId]);
 
-  function markFinal() {
-    if (!doc) return;
-    cvStorage.save(doc, false);
+  async function exportPdf() {
+    if (!doc || !pdfBlob) return;
+    try { cvStorage.save(doc, false); await downloadPdf(pdfBlob,fileName); setExportError(""); }
+    catch { setExportError("Unable to save or export. Download a backup in Settings and check device storage."); }
   }
 
   if (!doc || !pdfUrl) {
@@ -58,19 +60,20 @@ export default function PreviewPage() {
       <main className="container" style={{ padding: "32px 24px" }}>
         <h1 style={{ font: "var(--text-display)", fontSize: "1.6rem", marginBottom: 16 }}>Preview</h1>
 
-        <div className="preview-actions"><button className="btn btn-primary" onClick={()=>{markFinal();if(pdfBlob) void downloadPdf(pdfBlob,fileName);}}>Download PDF</button><button className="btn btn-secondary" onClick={()=>navigate(`/template/${cvId}`)}>Change template</button></div>
+        {exportError && <p role="alert">{exportError}</p>}
+        <div className="preview-actions"><button className="btn btn-primary" onClick={()=>void exportPdf()}>Download PDF</button><button className="btn btn-secondary" onClick={()=>navigate(`/template/${cvId}`)}>Change template</button></div>
         <div className="preview-grid">
           <div>
             {pdfBlob && <PdfPages blob={pdfBlob}/>}
           </div>
 
           <div className="card" style={{ padding: 20 }}>
-            <p className="mono-label" style={{ marginBottom: 4 }}>Estimated ATS compatibility</p>
+            <p className="mono-label" style={{ marginBottom: 4 }}>CV structure checklist</p>
             <p style={{ font: "var(--text-display)", fontSize: "2.2rem", marginBottom: 12, color: scoreColor(ats.score) }}>
               {ats.score}<span style={{ fontSize: "1rem", color: "var(--color-muted)" }}>/100</span>
             </p>
             {ats.notes.length === 0 ? (
-              <p style={{ color: "var(--color-muted)", fontSize: "0.9rem" }}>Looks solid for automated parsing.</p>
+              <p style={{ color: "var(--color-muted)", fontSize: "0.9rem" }}>The basic structure checks pass. Parsing varies between employers.</p>
             ) : (
               <ul style={{ paddingLeft: 18, margin: 0, color: "var(--color-muted)", fontSize: "0.9rem" }}>
                 {ats.notes.map((note, i) => (
@@ -98,7 +101,7 @@ export default function PreviewPage() {
         <AdSlot placement="preview" />
 
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 20 }}>
-          <button className="btn btn-primary" onClick={()=>{markFinal();if(pdfBlob) void downloadPdf(pdfBlob,fileName);}}>
+          <button className="btn btn-primary" onClick={()=>void exportPdf()}>
             Download PDF
           </button>
           <button className="btn btn-secondary" onClick={() => navigate(`/editor/${cvId}`)}>

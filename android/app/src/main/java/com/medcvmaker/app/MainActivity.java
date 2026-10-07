@@ -51,15 +51,17 @@ public class MainActivity extends Activity {
             }
         });
         webView.addJavascriptInterface(new Object() {
-            @JavascriptInterface public void savePdf(String base64, String filename) {
-                if (base64 == null || base64.length() > 28000000) return;
+            @JavascriptInterface public void savePdf(String base64, String filename) { saveFile(base64,filename,"application/pdf"); }
+            @JavascriptInterface public void saveFile(String base64, String filename, String mime) {
+                if (base64 == null || filename == null || base64.length() > 28000000) return;
+                final String safeMime = java.util.Arrays.asList("application/pdf","application/json","text/calendar","text/csv").contains(mime) ? mime : "application/octet-stream";
                 runOnUiThread(() -> {
-                    if(pendingPdf != null) return;
+                    if(pendingPdf != null) { Toast.makeText(MainActivity.this,"Finish the current export first",Toast.LENGTH_SHORT).show(); return; }
                     try {
                         pendingPdf=Base64.decode(base64,Base64.DEFAULT);
                         Intent intent=new Intent(Intent.ACTION_CREATE_DOCUMENT);
                         intent.addCategory(Intent.CATEGORY_OPENABLE);
-                        intent.setType("application/pdf");
+                        intent.setType(safeMime);
                         intent.putExtra(Intent.EXTRA_TITLE,filename.replaceAll("[^A-Za-z0-9._-]","_"));
                         startActivityForResult(intent,SAVE_REQUEST);
                     } catch(Exception error) { pendingPdf=null; Toast.makeText(MainActivity.this,"Could not open file picker",Toast.LENGTH_LONG).show(); }
@@ -89,8 +91,8 @@ public class MainActivity extends Activity {
                 try (OutputStream stream=getContentResolver().openOutputStream(data.getData())) {
                     if(stream == null) throw new java.io.IOException();
                     stream.write(pendingPdf);
-                    Toast.makeText(this,"PDF saved",Toast.LENGTH_SHORT).show();
-                } catch(Exception error) { Toast.makeText(this,"Unable to save PDF. Try another folder.",Toast.LENGTH_LONG).show(); }
+                    Toast.makeText(this,"File saved",Toast.LENGTH_SHORT).show();
+                } catch(Exception error) { Toast.makeText(this,"Unable to save file. Try another folder.",Toast.LENGTH_LONG).show(); }
             }
             pendingPdf=null;
         }

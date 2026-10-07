@@ -101,6 +101,7 @@ export default function EditorPage() {
     if (!doc) return;
     try {
       const result = runCvAutopilot(doc);
+      if (!window.confirm("Apply a draft summary based on your entered facts and a recommended template? Review the result for accuracy.")) return;
       update(() => result.doc);
       const completed = result.completed.length ? result.completed.join(", ") + "." : "Your existing writing was preserved.";
       setAutopilotMessage(completed + " Still needed: " + result.needsInput.join(", ") + ".");
@@ -129,7 +130,7 @@ export default function EditorPage() {
         <div className="card ai-panel">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
             <div>
-              <strong>AI CV Coach & Autopilot</strong>
+              <strong>Local CV Coach & Autopilot</strong>
               <p style={{ color: "var(--color-muted)", fontSize: ".9rem" }}>Checks missing sections, writes drafts, adds role keywords and improves ATS readability locally.</p>
             </div>
             <button className="btn btn-primary" onClick={autoCompleteCv}>✦ Analyse & improve my CV</button>
@@ -271,7 +272,7 @@ export default function EditorPage() {
 
         {step === "Core Skills" && (
           <div>
-            <div className="card ai-panel"><strong>AI skills assistant</strong><p>Adds healthcare keywords suitable for your selected profession. Remove anything you cannot personally demonstrate.</p><button className="btn btn-secondary" onClick={() => update((d) => ({...d, skills: suggestedSkillsFor(d).join("\n")}))}>✦ Suggest role skills</button></div>
+            <div className="card ai-panel"><strong>Skills suggestions</strong><p>Adds healthcare keywords suitable for your selected profession. Remove anything you cannot personally demonstrate.</p><button className="btn btn-secondary" onClick={() => update((d) => ({...d, skills: suggestedSkillsFor(d).join("\n")}))}>✦ Suggest role skills</button></div>
             <div className="field"><label>Core Skills (one per line)</label><textarea rows={9} placeholder="Patient care and monitoring&#10;Medication administration&#10;Emergency response" value={doc.skills || ""} onChange={(e)=>update((d)=>({...d,skills:e.target.value}))}/></div>
           </div>
         )}
@@ -292,7 +293,7 @@ export default function EditorPage() {
 
         {step === "Achievements" && (
           <div>
-            <div className="card ai-panel"><strong>AI achievement writer</strong><p>Creates a strong starting point from your role and experience. Review it and add only truthful outcomes.</p><button className="btn btn-secondary" onClick={() => update((d) => ({...d, achievements: generateAchievements(d)}))}>✦ Suggest achievements</button></div>
+            <div className="card ai-panel"><strong>Achievement organiser</strong><p>Collects achievements you already entered in your experience. Add truthful outcomes and measurements.</p><button className="btn btn-secondary" onClick={() => update((d) => ({...d, achievements: generateAchievements(d)}))}>✦ Suggest achievements</button></div>
             <div className="field">
               <label>Achievements (awards, recognitions, notable outcomes)</label>
               <textarea

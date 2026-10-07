@@ -41,4 +41,15 @@ public class AppSmokeTest {
         assertEquals("true",js("document.body.innerText.includes('Photo shape')"));
         assertEquals("true",js("document.documentElement.scrollWidth<=window.innerWidth+1"));
     }
+    @Test public void nursingWorkspaceAndFileExportsAvailableOffline() throws Exception {
+        waitFor("document.body.innerText.includes('Create my CV')");
+        assertEquals("true",js("typeof window.MedCVAndroid.saveFile === 'function'"));
+        js("location.hash='/workspace'");
+        waitFor("document.body.innerText.includes('Your daily workspace')");
+        assertEquals("true",js("document.documentElement.scrollWidth<=window.innerWidth+1"));
+        js("Array.from(document.querySelectorAll('.workspace-tabs button')).find(b=>b.textContent==='Study').click()");
+        waitFor("document.body.innerText.includes('Notes-to-cards assistant')");
+        assertEquals("true",js("document.documentElement.scrollWidth<=window.innerWidth+1"));
+    }
+
 }

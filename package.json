@@ -5,8 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "build": "tsc -b && vite build && node scripts/build-offline.mjs",
+    "preview": "vite preview",
+    "test": "node --import tsx tests/core.test.ts",
+    "test:pdf": "node --import tsx scripts/validate-pdfs.ts",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "jspdf": "^4.2.1",
@@ -16,9 +19,11 @@
     "react-router-dom": "^7.18.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
+    "tsx": "^4.23.15",
     "typescript": "^5.5.4",
     "vite": "^5.4.6"
   }

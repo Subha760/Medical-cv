@@ -20,13 +20,14 @@ export default function NavBar() {
           <span className="nav-bar__wordmark">MedCV Maker</span>
         </Link>
         <nav className="nav-bar__links">
+          <Link to="/workspace">Daily workspace</Link>
           <Link to="/new">Templates</Link>
           <Link to="/saved">My Saved CVs</Link>
           <Link to="/cover-letter">Cover Letter</Link>
-          <Link to="/new" className="nav-bar__cta">Build my CV</Link>
+          <Link to="/settings">Settings</Link><Link to="/new" className="nav-bar__cta">Build my CV</Link>
         </nav>
       </div>
-      <nav className="mobile-links" aria-label="Quick navigation"><Link to="/new">Templates</Link><Link to="/saved">Saved CVs</Link><Link to="/cover-letter">Cover letter</Link></nav>
+      <nav className="mobile-links" aria-label="Quick navigation"><Link to="/workspace">Workspace</Link><Link to="/settings">Settings</Link><Link to="/new">Templates</Link><Link to="/saved">Saved CVs</Link><Link to="/cover-letter">Cover letter</Link></nav>
     </header>
   );
 }

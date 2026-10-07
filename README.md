@@ -1,102 +1,56 @@
-# MedCV Maker — Web
+# MedCV Nursing Workspace 2.0
 
-The browser-based sibling of the [MedCV Maker Android app](../medcv-maker):
-same product, same privacy model, built with React + TypeScript + Vite
-instead of Kotlin + Compose. Nothing you type is ever sent to a server —
-everything lives in this browser's `localStorage`, and PDFs are generated
-entirely client-side with [jsPDF](https://github.com/parallax/jsPDF).
+A private CV builder and daily companion for nurses and nursing students. React + TypeScript + Vite power the website and an offline Android WebView app.
 
-## Design
+## Features
 
-The visual identity is a "clinical chart" concept, not a generic template:
-cool paper background (not the common warm-cream default), the same brand
-teal as the Android app for real continuity across platforms, and an ochre
-accent standing in for a manila-folder tab color. Fraunces (display) + IBM
-Plex Sans (body) + IBM Plex Mono (chart-like data — reg numbers, dates,
-metadata) carry the type system. See `src/styles/tokens.css` for the full
-token set and the reasoning behind each choice.
+- Guided healthcare CVs, 126 template variations, photos, section ordering, PDF preview/download, saved CVs, and cover letters.
+- Shift planning with overnight durations and local-calendar ICS export.
+- Professional tasks with priorities, due dates, completion, and overdue indicators.
+- Registration/certification expiry tracker and import from saved CVs.
+- CPD/placement learning log, reflections, learning-hour totals, and CSV export.
+- Local notes-to-study-cards assistant with scheduled review.
+- Nursing job keyword matching, STAR interview practice feedback, and application status tracker.
+- Personal shift checklist and reflection prompts.
+- Full editable JSON backup/restore, previous-revision recovery, and visible storage failures.
+- Installable web app with offline caching after its first successful online load. Android bundles the same tools offline.
 
-## Architecture
+## Local assistants and privacy
 
-```
-src/
-  types/        CvDocument and friends — mirrors the Android app's Kotlin models
-  data/         Template catalog (mirrors TemplateCatalog.kt)
-  storage/      localStorage-backed repository — the web equivalent of Room
-  pdf/          Client-side PDF generation (jsPDF) — no server round trip
-  pages/        One file per route (Home, ProfessionSelect, TemplateSelect,
-                Editor, Preview, SavedCvs, Settings)
-  components/   Shared UI (NavBar)
-  styles/       Design tokens + global base styles
-```
+Assistants use deterministic local rules, not a remote generative model. They organise supplied notes and CV facts without sending them to an AI provider. CV Autopilot requires confirmation and no longer inserts unverified duties or skills. Suggested skills must still be reviewed by the user.
 
-## Privacy model
+Daily tools are for personal professional planning and education; they do not diagnose, recommend treatment, or store patient records. In-app renewal/review reminders are visible when opening the app; no background push notifications are promised. Learning hours are personal records, not accredited credits. Job matching and the CV completeness estimate do not reproduce an employer's ATS scoring.
 
-Every read/write in `src/storage/cvStorage.ts` touches only
-`window.localStorage`. There is no `fetch()`, no `XMLHttpRequest`, nothing
-that leaves the browser anywhere in the CV data path. PDF generation
-(`src/pdf/pdfGenerator.ts`) runs entirely client-side via jsPDF and returns a
-Blob — the file never touches a server either.
+Data stays in localStorage. Export backups regularly, especially before clearing browser data or uninstalling the Android app. Backups include personal data and should be stored securely. Corrupted collections are preserved and saving is blocked until recovery; Settings can download raw backup data and restore the previous valid local revision.
 
-## Running it
+## Run and verify
 
-```
-npm install
+```sh
+npm ci
 npm run dev
+npm test
+npm run build
+npm run test:pdf
+npx playwright install --with-deps chromium
+npm run test:e2e
 ```
 
-**Note:** `npm install` needs network access, which this scaffolding
-environment doesn't have — dependencies in `package.json` are declared but
-never actually installed/verified here. Run `npm install` on your own
-machine to pull them down and confirm everything resolves.
+`npm run build` creates `dist/` and a versioned offline service worker. Serve the output over HTTPS (localhost also works). The worker precaches only app resources, never advertisements. Updated versions prompt the user to finish editing before activating. Google fonts were removed so font delivery no longer requires third-party access.
 
-## What's implemented vs. stubbed
+Playwright covers desktop and 390px phone layouts, daily tools, persistence, calendar/PDF downloads, backup recovery and offline reopening. `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` can select a system Chromium. PDF checks exercise all 126 variants and a long multipage fixture.
 
-**Implemented:** full routing (Home → Profession → Template → Editor →
-Preview → Saved CVs → Cover Letter → Settings), localStorage persistence
-with autosave, client-side PDF generation and download, a designed Home page
-(not a generic template — see "Design" above), all 8 CV editor wizard steps
-plus a Reorder Sections step (Personal Details, Professional
-Summary+Registration, Education, Experience, Certifications with quick-add
-chips, Achievements, Languages, Additional Sections covering
-Publications/Conferences/Memberships/References plus fully custom
-user-defined sections, and Reorder Sections with up/down controls), template
-accent-color picker on the Template Select screen, a full cover letter
-builder (6 templates, its own PDF generator, own localStorage-backed
-repository), profile photo upload (client-side downscale via `<canvas>`
-before storing, since localStorage has a small per-origin quota — never
-uploaded, and the CV export embeds it for photo-supporting templates only),
-an ATS/completeness checker (`src/validation/cvChecks.ts`) surfaced on the
-Preview page, a Settings page with a privacy dashboard and a delete-all that
-covers both CVs and cover letters, and a PDF generator that honors the
-chosen accent color, the user's chosen section order, and renders every
-field collected.
+## Google AdSense
 
-**Stubbed / not yet built:** true per-template *layout* differentiation
-(distinct multi-column/type treatments per template category — what exists
-now is color + section-order differentiation, not yet structurally
-different layouts); drag-and-drop for section reordering (shipped as
-up/down buttons instead, which needed no extra library and is arguably more
-accessible — genuine drag-and-drop would need a dependency this sandbox
-can't verify installs cleanly). Both are reasonable stopping points rather
-than gaps.
+Monetag integration has been removed. Copy `.env.example` to `.env` and set your real `VITE_ADSENSE_CLIENT_ID` and `VITE_ADSENSE_SLOT_ID` when ready. Both are intentionally empty by default. Without valid values, no ad script, placeholder, or ad network request is made.
 
-**Where the web app is ahead of the Android app:** profile photo embedding
-in the PDF, and section-order-aware rendering — `PdfGenerator.kt` doesn't do
-either yet.
+AdSense is web-only on the home screen after opting in; it is excluded from editors, previews and the offline Android app. Settings can reset advertising consent. Production advertising also requires your approved AdSense site, applicable regional consent configuration (including a Google-certified CMP where required), and the ads.txt entry supplied by your account. These account-specific steps cannot be completed with empty IDs.
 
-**A note on verification:** `npm install` can't run here (no network — see
-above), but the source was still type-checked against hand-written stand-in
-type declarations for React/React Router/jsPDF (not the real packages) using
-the `tsc` binary available in this sandbox. That caught zero real bugs
-across every pass, including this one — one flagged line (`navigate(-1)`)
-was a false positive from an oversimplified stub, not an actual issue. It's
-not a substitute for a real `npm install && npm run build` on your machine,
-but it's more than an unverified guess.
+## Android
 
-## Relationship to the Android app
+The app uses WebViewAssetLoader and blocks remote asset requests. PDFs, JSON backups, calendars and CSV exports use the Android system file picker. The web build is copied into the APK by `.github/workflows/build-apk.yml`. The workflow builds a debug APK and runs Android 10 emulator smoke tests, including the nursing workspace. A production Play Store release requires your signing configuration; signing credentials are not included.
 
-This is a separate, independent client — not a shared codebase. Both read
-the same conceptual data model and both promise the same thing (nothing
-uploaded, ever), but a CV created in one won't currently transfer to the
-other (no export/import format between them yet).
+Web CI runs logic checks, real production builds, PDF checks and desktop/phone browser tests. See `.github/workflows/verify.yml`.
+
+## Limits
+
+The 126 templates are variations across six layout families. PDF fonts currently use jsPDF's built-in Latin fonts; full multilingual script support needs bundled Unicode fonts. No cloud sync, external LLM, background reminders, or clinical decision support is enabled. A signed release and live advertising are separate account-specific steps.

@@ -15,11 +15,11 @@ export default function HomePage() {
           <div className="container hero__grid">
             <div className="hero__copy">
               <div className="hero__eyebrow"><span>✦</span> Built for healthcare careers</div>
-              <h1>Build a medical CV that gets you noticed.</h1>
-              <p className="hero__sub">Create an ATS-ready CV with guided sections, professional healthcare templates and private, offline AI writing help.</p>
+              <h1>Your nursing career. Your daily companion.</h1>
+              <p className="hero__sub">Build a professional healthcare CV, plan shifts, track credentials, and study smarter. Your work stays on your device.</p>
               <div className="hero__ctas">
                 <button className="btn btn-primary hero__primary" onClick={() => navigate("/new")}>Create my CV <span aria-hidden="true">→</span></button>
-                <button className="btn btn-secondary" onClick={() => navigate("/saved")}>Open saved CV</button>
+                <button className="btn btn-secondary" onClick={() => navigate("/workspace")}>Open daily workspace</button>
               </div>
               <div className="hero__proof"><span>✓ No sign-up</span><span>✓ Works offline</span><span>✓ Private on your device</span></div>
             </div>
