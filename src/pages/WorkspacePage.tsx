@@ -1,79 +1,910 @@
-import { FormEvent, useState } from 'react';
-import { Link } from 'react-router-dom';
-import NavBar from '../components/NavBar';
-import { Workspace, readWorkspace, emptyWorkspace, today, daysUntil, shiftHours, calendarFor, WORKSPACE_KEY, localDate } from '../workspace/model';
-import { writeCollection } from '../storage/safeStorage';
-import { createId } from '../utils/id';
-import { cvStorage } from '../storage/cvStorage';
-import { studyCards, matchJob, interviewFeedback, INTERVIEW_QUESTIONS } from '../workspace/assistants';
-import { downloadFile } from '../utils/download';
-import '../styles/workspace.css';
-const TABS = ['Overview','Shifts','Tasks','Credentials','Learning','Study','Career','Wellbeing'] as const;
-type Tab = typeof TABS[number];
+import { FormEvent, useState } from "react";
+import { Link } from "react-router-dom";
+import NavBar from "../components/NavBar";
+import {
+  Workspace,
+  readWorkspace,
+  emptyWorkspace,
+  today,
+  daysUntil,
+  shiftHours,
+  calendarFor,
+  WORKSPACE_KEY,
+  localDate,
+} from "../workspace/model";
+import { writeCollection } from "../storage/safeStorage";
+import { createId } from "../utils/id";
+import { cvStorage } from "../storage/cvStorage";
+import {
+  studyCards,
+  matchJob,
+  interviewFeedback,
+  INTERVIEW_QUESTIONS,
+} from "../workspace/assistants";
+import { downloadFile } from "../utils/download";
+import "../styles/workspace.css";
+const TABS = [
+  "Overview",
+  "Shifts",
+  "Tasks",
+  "Credentials",
+  "Learning",
+  "Study",
+  "Career",
+  "Wellbeing",
+] as const;
+type Tab = (typeof TABS)[number];
 export default function WorkspacePage() {
-  const [initial] = useState(() => { try { return {data:readWorkspace(),error:''}; } catch(e) { return {data:emptyWorkspace(),error:String(e)}; } });
-  const [data,setData] = useState<Workspace>(initial.data);
-  const [tab,setTab] = useState<Tab>('Overview');
-  const [error,setError] = useState(initial.error);
-  const [message,setMessage] = useState('');
-  const [revealed,setRevealed] = useState(false);
-  const [notes,setNotes] = useState('');
-  const [answer,setAnswer] = useState('');
-  const [question,setQuestion] = useState(0);
-  const [feedback,setFeedback] = useState<string[]>([]);
-  const [job,setJob] = useState('');
-  const [cvId,setCvId] = useState('');
-  const [matches,setMatches] = useState<ReturnType<typeof matchJob> | null>(null);
-  const [cvs] = useState(() => { try { return cvStorage.listSaved(); } catch { return []; } });
+  const [initial] = useState(() => {
+    try {
+      return { data: readWorkspace(), error: "" };
+    } catch (e) {
+      return { data: emptyWorkspace(), error: String(e) };
+    }
+  });
+  const [data, setData] = useState<Workspace>(initial.data);
+  const [tab, setTab] = useState<Tab>("Overview");
+  const [error, setError] = useState(initial.error);
+  const [message, setMessage] = useState("");
+  const [revealed, setRevealed] = useState(false);
+  const [notes, setNotes] = useState("");
+  const [answer, setAnswer] = useState("");
+  const [question, setQuestion] = useState(0);
+  const [feedback, setFeedback] = useState<string[]>([]);
+  const [job, setJob] = useState("");
+  const [cvId, setCvId] = useState("");
+  const [matches, setMatches] = useState<ReturnType<typeof matchJob> | null>(
+    null,
+  );
+  const [cvs] = useState(() => {
+    try {
+      return cvStorage.listSaved();
+    } catch {
+      return [];
+    }
+  });
   function save(next: Workspace) {
-    if(initial.error) {setError('Restore your workspace in Settings before saving.');return false;}
-    try { writeCollection(WORKSPACE_KEY,next);setData(next);setError('');setMessage('Saved on this device.');return true; } catch {setError('Unable to save. Export a backup and free device storage.');return false;}
+    if (initial.error) {
+      setError("Restore your workspace in Settings before saving.");
+      return false;
+    }
+    try {
+      writeCollection(WORKSPACE_KEY, next);
+      setData(next);
+      setError("");
+      setMessage("Saved on this device.");
+      return true;
+    } catch {
+      setError("Unable to save. Export a backup and free device storage.");
+      return false;
+    }
   }
-  function add(e:FormEvent<HTMLFormElement>, section:'shifts'|'tasks'|'credentials'|'learning'|'applications') {
-    e.preventDefault(); const form=e.currentTarget; const values=Object.fromEntries(new FormData(form).entries());
-    const entry:any={...values,id:createId()};
-    if(section==='learning') entry.hours=Number(values.hours);
-    if(section==='tasks') entry.done=false;
-    if(section==='shifts' && entry.start===entry.end) {setError('Choose different shift start and end times.');return;}
-    if(save({...data,[section]:[...data[section],entry]}))form.reset();
+  function add(
+    e: FormEvent<HTMLFormElement>,
+    section: "shifts" | "tasks" | "credentials" | "learning" | "applications",
+  ) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const values = Object.fromEntries(new FormData(form).entries());
+    const entry: any = { ...values, id: createId() };
+    if (section === "learning") entry.hours = Number(values.hours);
+    if (section === "tasks") entry.done = false;
+    if (section === "shifts" && entry.start === entry.end) {
+      setError("Choose different shift start and end times.");
+      return;
+    }
+    if (save({ ...data, [section]: [...data[section], entry] })) form.reset();
   }
-  function remove(section:keyof Omit<Workspace,'version'>,id:string) { if(window.confirm('Remove this entry?')) save({...data,[section]:data[section].filter(e=>e.id!==id)}); }
-  const upcoming=data.shifts.filter(s=>s.date>=today()).sort((a,b)=>(a.date+a.start).localeCompare(b.date+b.start));
-  const due=data.tasks.filter(t=>!t.done).sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999') || Number(b.priority==='High')-Number(a.priority==='High'));
-  const credentials=[...data.credentials].sort((a,b)=>a.expiry.localeCompare(b.expiry));
-  const cards=data.cards.filter(c=>c.due<=today());const card=cards[0];
-  const hours=data.learning.reduce((total,l)=>total+l.hours,0);
-  return <><NavBar/><main className="container workspace">
-    <div className="workspace-heading"><div><span className="section__kicker">Nurses & nursing students</span><h1>Your daily workspace</h1><p>Plan your shifts, keep credentials current, and build your next opportunity.</p></div><Link className="btn btn-secondary" to="/settings">Backup & settings</Link></div>
-    <p className="workspace-note">For your own professional planning and learning. Keep patient names, identifiers, and clinical records in your organisation’s approved systems. Reminders appear here when you open the app.</p>
-    <nav className="workspace-tabs" aria-label="Workspace sections">{TABS.map(t=><button key={t} aria-current={tab===t?'page':undefined} onClick={()=>{setTab(t);setMessage('');}}>{t}</button>)}</nav>
-    {error && <p role="alert" className="workspace-error">{error} <Link to="/settings">Open recovery settings</Link></p>}
-    {message && <p role="status" className="workspace-status">{message}</p>}
-    {tab==='Overview' && <>
-      <div className="metric-grid"><Metric value={String(due.length)} label="Open tasks"/><Metric value={String(upcoming.length)} label="Upcoming shifts"/><Metric value={String(credentials.filter(c=>daysUntil(c.expiry)<=30).length)} label="Credentials due within 30 days"/><Metric value={String(hours)} label="Learning hours logged"/></div>
-      <div className="workspace-grid"><section className="tool-card"><h2>Next shift</h2>{upcoming[0]?<><h3>{upcoming[0].label}</h3><p>{upcoming[0].date} · {upcoming[0].start}–{upcoming[0].end} · {shiftHours(upcoming[0])} hours</p></>:<p>Add your roster and export it to your calendar.</p>}<button className="btn btn-primary" onClick={()=>setTab('Shifts')}>Plan shifts</button></section>
-      <section className="tool-card"><h2>Focus today</h2>{due.slice(0,3).map(t=><p key={t.id}>{t.priority==='High'?'● ':''}{t.title} {t.due && `· ${t.due}`}</p>)}{!due.length && <p>Your task list is clear. Add a learning goal or renewal reminder.</p>}<button className="btn btn-secondary" onClick={()=>setTab('Tasks')}>Manage tasks</button></section>
-      <section className="tool-card"><h2>Credential watch</h2>{credentials.filter(c=>daysUntil(c.expiry)<=30).map(c=><p key={c.id}>{c.name} · {expiryLabel(c.expiry)}</p>)}{!credentials.some(c=>daysUntil(c.expiry)<=30)&&<p>No tracked credentials expire within 30 days.</p>}<button className="btn btn-secondary" onClick={()=>setTab('Credentials')}>Track credentials</button></section>
-      <section className="tool-card"><h2>Career & study coach</h2><p>Match a saved CV to a role, practice STAR interview answers, and turn your own notes into study cards. All processing stays on your device.</p><button className="btn btn-secondary" onClick={()=>setTab('Career')}>Open career coach</button></section></div>
-    </>}
-    {tab==='Shifts' && <section className="tool-card"><h2>Shift planner</h2><p>Overnight shifts carry into the following day. Calendar times use your local timezone.</p><form className="tool-form" onSubmit={e=>add(e,'shifts')}><Field label="Shift label" name="label" placeholder="Ward / placement / night shift"/><Field label="Date" name="date" type="date"/><Field label="Starts" name="start" type="time"/><Field label="Ends" name="end" type="time"/><button className="btn btn-primary">Add shift</button></form>
-      <button disabled={!data.shifts.length} className="btn btn-secondary" onClick={()=>downloadFile(new Blob([calendarFor(data.shifts)],{type:'text/calendar'}),'MedCV-shifts.ics')}>Export calendar (.ics)</button>
-      <div className="entry-list">{[...data.shifts].sort((a,b)=>b.date.localeCompare(a.date)).map(s=><article key={s.id}><div><strong>{s.label}</strong><p>{s.date} · {s.start}–{s.end} {s.end<s.start?'(overnight)':''} · {shiftHours(s)} hours</p></div><Remove onClick={()=>remove('shifts',s.id)}/></article>)}</div><Empty count={data.shifts.length}/></section>}
-    {tab==='Tasks' && <section className="tool-card"><h2>Professional task planner</h2><form className="tool-form" onSubmit={e=>add(e,'tasks')}><Field label="Task" name="title" placeholder="Prepare placement portfolio"/><Field label="Due date (optional)" name="due" type="date" optional/><label>Priority<select name="priority"><option>Normal</option><option>High</option></select></label><button className="btn btn-primary">Add task</button></form><div className="entry-list">{[...data.tasks].sort((a,b)=>Number(a.done)-Number(b.done)).map(t=><article key={t.id}><label className="task-label"><input type="checkbox" checked={t.done} onChange={()=>save({...data,tasks:data.tasks.map(x=>x.id===t.id?{...x,done:!x.done}:x)})}/><span className={t.done?'completed':''}>{t.title}<small>{t.priority} priority {t.due && `· ${t.due}`} {!t.done&&t.due&&daysUntil(t.due)<0?'· Overdue':''}</small></span></label><Remove onClick={()=>remove('tasks',t.id)}/></article>)}</div><Empty count={data.tasks.length}/></section>}
-    {tab==='Credentials' && <section className="tool-card"><h2>Registration & certification reminders</h2><p>Track registration, BLS, ACLS, mandatory training, and other renewal dates. Confirm requirements with your council and employer.</p><form className="tool-form" onSubmit={e=>add(e,'credentials')}><Field label="Credential" name="name" placeholder="BLS / nursing registration"/><Field label="Expiry date" name="expiry" type="date"/><button className="btn btn-primary">Add credential</button></form><button className="btn btn-secondary" disabled={!cvs.length} onClick={()=>{const additions=cvs.flatMap(cv=>[...(cv.registrationInfo.licenseExpiry && /^\d{4}-\d{2}-\d{2}$/.test(cv.registrationInfo.licenseExpiry)?[{id:createId(),name:cv.registrationInfo.councilOrBoard||'Registration',expiry:cv.registrationInfo.licenseExpiry}]:[]),...cv.certifications.filter(c=>/^\d{4}-\d{2}-\d{2}$/.test(c.expiryDate)).map(c=>({id:createId(),name:c.name,expiry:c.expiryDate}))]).filter((c,i,all)=>!data.credentials.some(d=>d.name===c.name&&d.expiry===c.expiry)&&all.findIndex(d=>d.name===c.name&&d.expiry===c.expiry)===i);save({...data,credentials:[...data.credentials,...additions]});setMessage(`Imported ${additions.length} dated credentials from saved CVs.`);}}>Import dates from saved CVs</button><div className="entry-list">{credentials.map(c=><article key={c.id}><div><strong>{c.name}</strong><p className={daysUntil(c.expiry)<=30?'due-soon':''}>{c.expiry} · {expiryLabel(c.expiry)}</p></div><Remove onClick={()=>remove('credentials',c.id)}/></article>)}</div><Empty count={credentials.length}/></section>}
-    {tab==='Learning' && <section className="tool-card"><h2>CPD & placement learning log</h2><p>Record your own learning and reflections. These hours are a personal log, not accredited credits.</p><form className="tool-form" onSubmit={e=>add(e,'learning')}><Field label="Topic or activity" name="topic"/><Field label="Date" name="date" type="date"/><Field label="Hours" name="hours" type="number" min="0.25" step="0.25" max="24"/><label className="wide">Reflection<textarea name="reflection" required maxLength={5000} placeholder="What did I learn? How will I apply it? What should I study next?"/></label><button className="btn btn-primary">Log learning</button></form><p><strong>{hours} hours</strong> across {data.learning.length} activities</p><button disabled={!data.learning.length} className="btn btn-secondary" onClick={()=>{const quote=(s:string)=>'"'+s.replace(/"/g,'""')+'"';const csv=[['Date','Topic','Hours','Reflection'],...data.learning.map(l=>[l.date,l.topic,String(l.hours),l.reflection])].map(row=>row.map(s=>quote(/^[=+@-]/.test(s)?"'"+s:s)).join(',')).join('\r\n');downloadFile(new Blob([csv],{type:'text/csv'}),'MedCV-learning.csv');}}>Export learning log</button><div className="entry-list">{[...data.learning].reverse().map(l=><article key={l.id}><div><strong>{l.topic}</strong><p>{l.date} · {l.hours} hours</p><p className="preserve-lines">{l.reflection}</p></div><Remove onClick={()=>remove('learning',l.id)}/></article>)}</div><Empty count={data.learning.length}/></section>}
-    {tab==='Study' && <div className="workspace-grid"><section className="tool-card"><h2>Notes-to-cards assistant</h2><p>Enter one fact per line as “Topic: explanation”. The local assistant structures your notes; it does not verify clinical accuracy. Use approved learning materials.</p><label>Study notes<textarea rows={6} value={notes} onChange={e=>setNotes(e.target.value)} maxLength={12000} placeholder="SBAR: Situation, Background, Assessment, Recommendation"/></label><button className="btn btn-primary" disabled={!notes.trim()} onClick={()=>{const generated=studyCards(notes).map(c=>({...c,id:createId(),due:today()}));if(save({...data,cards:[...data.cards,...generated]})){setNotes('');setMessage(`Created ${generated.length} study cards from your notes.`);}}}>Create study cards</button></section>
-      <section className="tool-card"><h2>Review queue</h2><p>{cards.length} due · {data.cards.length} total</p>{card?<><h3>{card.question}</h3>{revealed?<><p className="preserve-lines">{card.answer}</p><div className="button-row">{[1,3,7].map(days=><button key={days} className="btn btn-secondary" onClick={()=>{const d=new Date();d.setDate(d.getDate()+days);save({...data,cards:data.cards.map(c=>c.id===card.id?{...c,due:localDate(d)}:c)});setRevealed(false);}}>Review in {days} days</button>)}</div><Remove onClick={()=>{remove('cards',card.id);setRevealed(false);}}/></>:<button className="btn btn-primary" onClick={()=>setRevealed(true)}>Show answer</button>}</>:<p>No cards due. Add notes or return on your next review date.</p>}</section></div>}
-    {tab==='Career' && <>
-      <div className="workspace-grid"><section className="tool-card"><h2>Job-description matcher</h2><p>A keyword comparison, not an employer ATS score. Add missing skills only if you can demonstrate them.</p><label>Saved CV<select value={cvId} onChange={e=>setCvId(e.target.value)}><option value="">Choose a CV</option>{cvs.map(c=><option key={c.id} value={c.id}>{c.label||c.personalInfo.fullName}</option>)}</select></label>{!cvs.length&&<p><Link to="/new">Create and save a CV first</Link>.</p>}<label>Job description<textarea rows={5} value={job} onChange={e=>setJob(e.target.value)} maxLength={20000}/></label><button className="btn btn-primary" disabled={!cvId||!job.trim()} onClick={()=>{const cv=cvs.find(c=>c.id===cvId);if(cv)setMatches(matchJob(cv,job));}}>Compare keywords</button>{matches&&<div role="status"><p><strong>Present:</strong> {matches.matched.join(', ')||'No recognised matching keywords'}</p><p><strong>Review:</strong> {matches.missing.join(', ')||'No missing recognised keywords'}</p>{!matches.matched.length&&!matches.missing.length&&<p>No supported nursing phrases were found. Review the job requirements manually.</p>}</div>}</section>
-      <section className="tool-card"><h2>Interview practice coach</h2><label>Practice question<select value={question} onChange={e=>{setQuestion(Number(e.target.value));setFeedback([]);}}>{INTERVIEW_QUESTIONS.map((q,i)=><option key={q} value={i}>{q}</option>)}</select></label><label>Your STAR answer<textarea rows={6} value={answer} onChange={e=>setAnswer(e.target.value)} maxLength={10000} placeholder="Situation → Task → Action → Result / learning"/></label><button className="btn btn-primary" disabled={!answer.trim()} onClick={()=>setFeedback(interviewFeedback(answer))}>Review answer structure</button><ul aria-live="polite">{feedback.map(t=><li key={t}>{t}</li>)}</ul><p className="field-help">Local rules check structure, not professional competence. This answer is not saved.</p></section></div>
-      <section className="tool-card"><h2>Application tracker</h2><form className="tool-form" onSubmit={e=>add(e,'applications')}><Field label="Role" name="role"/><Field label="Employer" name="employer"/><label>Status<select name="status"><option>Preparing</option><option>Applied</option><option>Interview</option><option>Offer</option><option>Closed</option></select></label><Field label="Next action date (optional)" name="next" type="date" optional/><button className="btn btn-primary">Track application</button></form><div className="entry-list">{data.applications.map(a=><article key={a.id}><div><strong>{a.role} · {a.employer}</strong><p>{a.next&&`Next: ${a.next}`}</p><label>Status<select value={a.status} onChange={e=>save({...data,applications:data.applications.map(x=>x.id===a.id?{...x,status:e.target.value}:x)})}>{['Preparing','Applied','Interview','Offer','Closed'].map(v=><option key={v}>{v}</option>)}</select></label></div><Remove onClick={()=>remove('applications',a.id)}/></article>)}</div><Empty count={data.applications.length}/></section>
-    </>}
-    {tab==='Wellbeing' && <div className="workspace-grid"><section className="tool-card"><h2>Personal shift preparation</h2><p>A reusable personal checklist. Follow your workplace’s clinical policies separately.</p>{['Confirm roster and commute','Prepare uniform, ID and essentials','Plan meals and access to drinking water','Know who to contact for support','Arrange rest after your shift'].map(t=><label className="checklist" key={t}><input type="checkbox"/>{t}</label>)}</section><section className="tool-card"><h2>End-of-shift reflection</h2><p>Take a moment to reflect without recording patient information.</p><ul><li>What went well today?</li><li>What support or supervision would help?</li><li>What learning should I log?</li><li>What is one manageable priority for tomorrow?</li></ul><button className="btn btn-secondary" onClick={()=>setTab('Learning')}>Log a learning reflection</button><p>If work feels overwhelming, reach out to your supervisor, occupational health team, or a trusted colleague.</p></section></div>}
-  </main></>;
+  function remove(section: keyof Omit<Workspace, "version">, id: string) {
+    if (window.confirm("Remove this entry?"))
+      save({ ...data, [section]: data[section].filter((e) => e.id !== id) });
+  }
+  const upcoming = data.shifts
+    .filter((s) => s.date >= today())
+    .sort((a, b) => (a.date + a.start).localeCompare(b.date + b.start));
+  const due = data.tasks
+    .filter((t) => !t.done)
+    .sort(
+      (a, b) =>
+        (a.due || "9999").localeCompare(b.due || "9999") ||
+        Number(b.priority === "High") - Number(a.priority === "High"),
+    );
+  const credentials = [...data.credentials].sort((a, b) =>
+    a.expiry.localeCompare(b.expiry),
+  );
+  const cards = data.cards.filter((c) => c.due <= today());
+  const card = cards[0];
+  const hours = data.learning.reduce((total, l) => total + l.hours, 0);
+  return (
+    <>
+      <NavBar />
+      <main className="container workspace">
+        <div className="workspace-heading">
+          <div>
+            <span className="section__kicker">Nurses & nursing students</span>
+            <h1>Your daily workspace</h1>
+            <p>
+              Plan your shifts, keep credentials current, and build your next
+              opportunity.
+            </p>
+          </div>
+          <Link className="btn btn-secondary" to="/settings">
+            Backup & settings
+          </Link>
+        </div>
+        <p className="workspace-note">
+          For your own professional planning and learning. Keep patient names,
+          identifiers, and clinical records in your organisation’s approved
+          systems. Reminders appear here when you open the app.
+        </p>
+        <nav className="workspace-tabs" aria-label="Workspace sections">
+          {TABS.map((t) => (
+            <button
+              key={t}
+              aria-current={tab === t ? "page" : undefined}
+              onClick={() => {
+                setTab(t);
+                setMessage("");
+              }}
+            >
+              {t}
+            </button>
+          ))}
+        </nav>
+        {error && (
+          <p role="alert" className="workspace-error">
+            {error} <Link to="/settings">Open recovery settings</Link>
+          </p>
+        )}
+        {message && (
+          <p role="status" className="workspace-status">
+            {message}
+          </p>
+        )}
+        {tab === "Overview" && (
+          <>
+            <div className="metric-grid">
+              <Metric value={String(due.length)} label="Open tasks" />
+              <Metric value={String(upcoming.length)} label="Upcoming shifts" />
+              <Metric
+                value={String(
+                  credentials.filter((c) => daysUntil(c.expiry) <= 30).length,
+                )}
+                label="Credentials due within 30 days"
+              />
+              <Metric value={String(hours)} label="Learning hours logged" />
+            </div>
+            <div className="workspace-grid">
+              <section className="tool-card">
+                <h2>Next shift</h2>
+                {upcoming[0] ? (
+                  <>
+                    <h3>{upcoming[0].label}</h3>
+                    <p>
+                      {upcoming[0].date} · {upcoming[0].start}–{upcoming[0].end}{" "}
+                      · {shiftHours(upcoming[0])} hours
+                    </p>
+                  </>
+                ) : (
+                  <p>Add your roster and export it to your calendar.</p>
+                )}
+                <button
+                  className="btn btn-primary"
+                  onClick={() => setTab("Shifts")}
+                >
+                  Plan shifts
+                </button>
+              </section>
+              <section className="tool-card">
+                <h2>Focus today</h2>
+                {due.slice(0, 3).map((t) => (
+                  <p key={t.id}>
+                    {t.priority === "High" ? "● " : ""}
+                    {t.title} {t.due && `· ${t.due}`}
+                  </p>
+                ))}
+                {!due.length && (
+                  <p>
+                    Your task list is clear. Add a learning goal or renewal
+                    reminder.
+                  </p>
+                )}
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setTab("Tasks")}
+                >
+                  Manage tasks
+                </button>
+              </section>
+              <section className="tool-card">
+                <h2>Credential watch</h2>
+                {credentials
+                  .filter((c) => daysUntil(c.expiry) <= 30)
+                  .map((c) => (
+                    <p key={c.id}>
+                      {c.name} · {expiryLabel(c.expiry)}
+                    </p>
+                  ))}
+                {!credentials.some((c) => daysUntil(c.expiry) <= 30) && (
+                  <p>No tracked credentials expire within 30 days.</p>
+                )}
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setTab("Credentials")}
+                >
+                  Track credentials
+                </button>
+              </section>
+              <section className="tool-card">
+                <h2>Career & study coach</h2>
+                <p>
+                  Match a saved CV to a role, practice STAR interview answers,
+                  and turn your own notes into study cards. All processing stays
+                  on your device.
+                </p>
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setTab("Career")}
+                >
+                  Open career coach
+                </button>
+              </section>
+            </div>
+          </>
+        )}
+        {tab === "Shifts" && (
+          <section className="tool-card">
+            <h2>Shift planner</h2>
+            <p>
+              Overnight shifts carry into the following day. Calendar times use
+              your local timezone.
+            </p>
+            <form className="tool-form" onSubmit={(e) => add(e, "shifts")}>
+              <Field
+                label="Shift label"
+                name="label"
+                placeholder="Ward / placement / night shift"
+              />
+              <Field label="Date" name="date" type="date" />
+              <Field label="Starts" name="start" type="time" />
+              <Field label="Ends" name="end" type="time" />
+              <button className="btn btn-primary">Add shift</button>
+            </form>
+            <button
+              disabled={!data.shifts.length}
+              className="btn btn-secondary"
+              onClick={() =>
+                downloadFile(
+                  new Blob([calendarFor(data.shifts)], {
+                    type: "text/calendar",
+                  }),
+                  "MedCV-shifts.ics",
+                )
+              }
+            >
+              Export calendar (.ics)
+            </button>
+            <div className="entry-list">
+              {[...data.shifts]
+                .sort((a, b) => b.date.localeCompare(a.date))
+                .map((s) => (
+                  <article key={s.id}>
+                    <div>
+                      <strong>{s.label}</strong>
+                      <p>
+                        {s.date} · {s.start}–{s.end}{" "}
+                        {s.end < s.start ? "(overnight)" : ""} · {shiftHours(s)}{" "}
+                        hours
+                      </p>
+                    </div>
+                    <Remove onClick={() => remove("shifts", s.id)} />
+                  </article>
+                ))}
+            </div>
+            <Empty count={data.shifts.length} />
+          </section>
+        )}
+        {tab === "Tasks" && (
+          <section className="tool-card">
+            <h2>Professional task planner</h2>
+            <form className="tool-form" onSubmit={(e) => add(e, "tasks")}>
+              <Field
+                label="Task"
+                name="title"
+                placeholder="Prepare placement portfolio"
+              />
+              <Field
+                label="Due date (optional)"
+                name="due"
+                type="date"
+                optional
+              />
+              <label>
+                Priority
+                <select name="priority">
+                  <option>Normal</option>
+                  <option>High</option>
+                </select>
+              </label>
+              <button className="btn btn-primary">Add task</button>
+            </form>
+            <div className="entry-list">
+              {[...data.tasks]
+                .sort((a, b) => Number(a.done) - Number(b.done))
+                .map((t) => (
+                  <article key={t.id}>
+                    <label className="task-label">
+                      <input
+                        type="checkbox"
+                        checked={t.done}
+                        onChange={() =>
+                          save({
+                            ...data,
+                            tasks: data.tasks.map((x) =>
+                              x.id === t.id ? { ...x, done: !x.done } : x,
+                            ),
+                          })
+                        }
+                      />
+                      <span className={t.done ? "completed" : ""}>
+                        {t.title}
+                        <small>
+                          {t.priority} priority {t.due && `· ${t.due}`}{" "}
+                          {!t.done && t.due && daysUntil(t.due) < 0
+                            ? "· Overdue"
+                            : ""}
+                        </small>
+                      </span>
+                    </label>
+                    <Remove onClick={() => remove("tasks", t.id)} />
+                  </article>
+                ))}
+            </div>
+            <Empty count={data.tasks.length} />
+          </section>
+        )}
+        {tab === "Credentials" && (
+          <section className="tool-card">
+            <h2>Registration & certification reminders</h2>
+            <p>
+              Track registration, BLS, ACLS, mandatory training, and other
+              renewal dates. Confirm requirements with your council and
+              employer.
+            </p>
+            <form className="tool-form" onSubmit={(e) => add(e, "credentials")}>
+              <Field
+                label="Credential"
+                name="name"
+                placeholder="BLS / nursing registration"
+              />
+              <Field label="Expiry date" name="expiry" type="date" />
+              <button className="btn btn-primary">Add credential</button>
+            </form>
+            <button
+              className="btn btn-secondary"
+              disabled={!cvs.length}
+              onClick={() => {
+                const additions = cvs
+                  .flatMap((cv) => [
+                    ...(cv.registrationInfo.licenseExpiry &&
+                    /^\d{4}-\d{2}-\d{2}$/.test(
+                      cv.registrationInfo.licenseExpiry,
+                    )
+                      ? [
+                          {
+                            id: createId(),
+                            name:
+                              cv.registrationInfo.councilOrBoard ||
+                              "Registration",
+                            expiry: cv.registrationInfo.licenseExpiry,
+                          },
+                        ]
+                      : []),
+                    ...cv.certifications
+                      .filter((c) => /^\d{4}-\d{2}-\d{2}$/.test(c.expiryDate))
+                      .map((c) => ({
+                        id: createId(),
+                        name: c.name,
+                        expiry: c.expiryDate,
+                      })),
+                  ])
+                  .filter(
+                    (c, i, all) =>
+                      !data.credentials.some(
+                        (d) => d.name === c.name && d.expiry === c.expiry,
+                      ) &&
+                      all.findIndex(
+                        (d) => d.name === c.name && d.expiry === c.expiry,
+                      ) === i,
+                  );
+                save({
+                  ...data,
+                  credentials: [...data.credentials, ...additions],
+                });
+                setMessage(
+                  `Imported ${additions.length} dated credentials from saved CVs.`,
+                );
+              }}
+            >
+              Import dates from saved CVs
+            </button>
+            <div className="entry-list">
+              {credentials.map((c) => (
+                <article key={c.id}>
+                  <div>
+                    <strong>{c.name}</strong>
+                    <p className={daysUntil(c.expiry) <= 30 ? "due-soon" : ""}>
+                      {c.expiry} · {expiryLabel(c.expiry)}
+                    </p>
+                  </div>
+                  <Remove onClick={() => remove("credentials", c.id)} />
+                </article>
+              ))}
+            </div>
+            <Empty count={credentials.length} />
+          </section>
+        )}
+        {tab === "Learning" && (
+          <section className="tool-card">
+            <h2>CPD & placement learning log</h2>
+            <p>
+              Record your own learning and reflections. These hours are a
+              personal log, not accredited credits.
+            </p>
+            <form className="tool-form" onSubmit={(e) => add(e, "learning")}>
+              <Field label="Topic or activity" name="topic" />
+              <Field label="Date" name="date" type="date" />
+              <Field
+                label="Hours"
+                name="hours"
+                type="number"
+                min="0.25"
+                step="0.25"
+                max="24"
+              />
+              <label className="wide">
+                Reflection
+                <textarea
+                  name="reflection"
+                  required
+                  maxLength={5000}
+                  placeholder="What did I learn? How will I apply it? What should I study next?"
+                />
+              </label>
+              <button className="btn btn-primary">Log learning</button>
+            </form>
+            <p>
+              <strong>{hours} hours</strong> across {data.learning.length}{" "}
+              activities
+            </p>
+            <button
+              disabled={!data.learning.length}
+              className="btn btn-secondary"
+              onClick={() => {
+                const quote = (s: string) => '"' + s.replace(/"/g, '""') + '"';
+                const csv = [
+                  ["Date", "Topic", "Hours", "Reflection"],
+                  ...data.learning.map((l) => [
+                    l.date,
+                    l.topic,
+                    String(l.hours),
+                    l.reflection,
+                  ]),
+                ]
+                  .map((row) =>
+                    row
+                      .map((s) => quote(/^[=+@-]/.test(s) ? "'" + s : s))
+                      .join(","),
+                  )
+                  .join("\r\n");
+                downloadFile(
+                  new Blob([csv], { type: "text/csv" }),
+                  "MedCV-learning.csv",
+                );
+              }}
+            >
+              Export learning log
+            </button>
+            <div className="entry-list">
+              {[...data.learning].reverse().map((l) => (
+                <article key={l.id}>
+                  <div>
+                    <strong>{l.topic}</strong>
+                    <p>
+                      {l.date} · {l.hours} hours
+                    </p>
+                    <p className="preserve-lines">{l.reflection}</p>
+                  </div>
+                  <Remove onClick={() => remove("learning", l.id)} />
+                </article>
+              ))}
+            </div>
+            <Empty count={data.learning.length} />
+          </section>
+        )}
+        {tab === "Study" && (
+          <div className="workspace-grid">
+            <section className="tool-card">
+              <h2>Notes-to-cards assistant</h2>
+              <p>
+                Enter one fact per line as “Topic: explanation”. The local
+                assistant structures your notes; it does not verify clinical
+                accuracy. Use approved learning materials.
+              </p>
+              <label>
+                Study notes
+                <textarea
+                  rows={6}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  maxLength={12000}
+                  placeholder="SBAR: Situation, Background, Assessment, Recommendation"
+                />
+              </label>
+              <button
+                className="btn btn-primary"
+                disabled={!notes.trim()}
+                onClick={() => {
+                  const generated = studyCards(notes).map((c) => ({
+                    ...c,
+                    id: createId(),
+                    due: today(),
+                  }));
+                  if (save({ ...data, cards: [...data.cards, ...generated] })) {
+                    setNotes("");
+                    setMessage(
+                      `Created ${generated.length} study cards from your notes.`,
+                    );
+                  }
+                }}
+              >
+                Create study cards
+              </button>
+            </section>
+            <section className="tool-card">
+              <h2>Review queue</h2>
+              <p>
+                {cards.length} due · {data.cards.length} total
+              </p>
+              {card ? (
+                <>
+                  <h3>{card.question}</h3>
+                  {revealed ? (
+                    <>
+                      <p className="preserve-lines">{card.answer}</p>
+                      <div className="button-row">
+                        {[1, 3, 7].map((days) => (
+                          <button
+                            key={days}
+                            className="btn btn-secondary"
+                            onClick={() => {
+                              const d = new Date();
+                              d.setDate(d.getDate() + days);
+                              save({
+                                ...data,
+                                cards: data.cards.map((c) =>
+                                  c.id === card.id
+                                    ? { ...c, due: localDate(d) }
+                                    : c,
+                                ),
+                              });
+                              setRevealed(false);
+                            }}
+                          >
+                            Review in {days} days
+                          </button>
+                        ))}
+                      </div>
+                      <Remove
+                        onClick={() => {
+                          remove("cards", card.id);
+                          setRevealed(false);
+                        }}
+                      />
+                    </>
+                  ) : (
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => setRevealed(true)}
+                    >
+                      Show answer
+                    </button>
+                  )}
+                </>
+              ) : (
+                <p>
+                  No cards due. Add notes or return on your next review date.
+                </p>
+              )}
+            </section>
+          </div>
+        )}
+        {tab === "Career" && (
+          <>
+            <div className="workspace-grid">
+              <section className="tool-card">
+                <h2>Job-description matcher</h2>
+                <p>
+                  A keyword comparison, not an employer ATS score. Add missing
+                  skills only if you can demonstrate them.
+                </p>
+                <label>
+                  Saved CV
+                  <select
+                    value={cvId}
+                    onChange={(e) => setCvId(e.target.value)}
+                  >
+                    <option value="">Choose a CV</option>
+                    {cvs.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.label || c.personalInfo.fullName}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                {!cvs.length && (
+                  <p>
+                    <Link to="/new">Create and save a CV first</Link>.
+                  </p>
+                )}
+                <label>
+                  Job description
+                  <textarea
+                    rows={5}
+                    value={job}
+                    onChange={(e) => setJob(e.target.value)}
+                    maxLength={20000}
+                  />
+                </label>
+                <button
+                  className="btn btn-primary"
+                  disabled={!cvId || !job.trim()}
+                  onClick={() => {
+                    const cv = cvs.find((c) => c.id === cvId);
+                    if (cv) setMatches(matchJob(cv, job));
+                  }}
+                >
+                  Compare keywords
+                </button>
+                {matches && (
+                  <div role="status">
+                    <p>
+                      <strong>Present:</strong>{" "}
+                      {matches.matched.join(", ") ||
+                        "No recognised matching keywords"}
+                    </p>
+                    <p>
+                      <strong>Review:</strong>{" "}
+                      {matches.missing.join(", ") ||
+                        "No missing recognised keywords"}
+                    </p>
+                    {!matches.matched.length && !matches.missing.length && (
+                      <p>
+                        No supported nursing phrases were found. Review the job
+                        requirements manually.
+                      </p>
+                    )}
+                  </div>
+                )}
+              </section>
+              <section className="tool-card">
+                <h2>Interview practice coach</h2>
+                <label>
+                  Practice question
+                  <select
+                    value={question}
+                    onChange={(e) => {
+                      setQuestion(Number(e.target.value));
+                      setFeedback([]);
+                    }}
+                  >
+                    {INTERVIEW_QUESTIONS.map((q, i) => (
+                      <option key={q} value={i}>
+                        {q}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Your STAR answer
+                  <textarea
+                    rows={6}
+                    value={answer}
+                    onChange={(e) => setAnswer(e.target.value)}
+                    maxLength={10000}
+                    placeholder="Situation → Task → Action → Result / learning"
+                  />
+                </label>
+                <button
+                  className="btn btn-primary"
+                  disabled={!answer.trim()}
+                  onClick={() => setFeedback(interviewFeedback(answer))}
+                >
+                  Review answer structure
+                </button>
+                <ul aria-live="polite">
+                  {feedback.map((t) => (
+                    <li key={t}>{t}</li>
+                  ))}
+                </ul>
+                <p className="field-help">
+                  Local rules check structure, not professional competence. This
+                  answer is not saved.
+                </p>
+              </section>
+            </div>
+            <section className="tool-card">
+              <h2>Application tracker</h2>
+              <form
+                className="tool-form"
+                onSubmit={(e) => add(e, "applications")}
+              >
+                <Field label="Role" name="role" />
+                <Field label="Employer" name="employer" />
+                <label>
+                  Status
+                  <select name="status">
+                    <option>Preparing</option>
+                    <option>Applied</option>
+                    <option>Interview</option>
+                    <option>Offer</option>
+                    <option>Closed</option>
+                  </select>
+                </label>
+                <Field
+                  label="Next action date (optional)"
+                  name="next"
+                  type="date"
+                  optional
+                />
+                <button className="btn btn-primary">Track application</button>
+              </form>
+              <div className="entry-list">
+                {data.applications.map((a) => (
+                  <article key={a.id}>
+                    <div>
+                      <strong>
+                        {a.role} · {a.employer}
+                      </strong>
+                      <p>{a.next && `Next: ${a.next}`}</p>
+                      <label>
+                        Status
+                        <select
+                          value={a.status}
+                          onChange={(e) =>
+                            save({
+                              ...data,
+                              applications: data.applications.map((x) =>
+                                x.id === a.id
+                                  ? { ...x, status: e.target.value }
+                                  : x,
+                              ),
+                            })
+                          }
+                        >
+                          {[
+                            "Preparing",
+                            "Applied",
+                            "Interview",
+                            "Offer",
+                            "Closed",
+                          ].map((v) => (
+                            <option key={v}>{v}</option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+                    <Remove onClick={() => remove("applications", a.id)} />
+                  </article>
+                ))}
+              </div>
+              <Empty count={data.applications.length} />
+            </section>
+          </>
+        )}
+        {tab === "Wellbeing" && (
+          <div className="workspace-grid">
+            <section className="tool-card">
+              <h2>Personal shift preparation</h2>
+              <p>
+                A reusable personal checklist. Follow your workplace’s clinical
+                policies separately.
+              </p>
+              {[
+                "Confirm roster and commute",
+                "Prepare uniform, ID and essentials",
+                "Plan meals and access to drinking water",
+                "Know who to contact for support",
+                "Arrange rest after your shift",
+              ].map((t) => (
+                <label className="checklist" key={t}>
+                  <input type="checkbox" />
+                  {t}
+                </label>
+              ))}
+            </section>
+            <section className="tool-card">
+              <h2>End-of-shift reflection</h2>
+              <p>
+                Take a moment to reflect without recording patient information.
+              </p>
+              <ul>
+                <li>What went well today?</li>
+                <li>What support or supervision would help?</li>
+                <li>What learning should I log?</li>
+                <li>What is one manageable priority for tomorrow?</li>
+              </ul>
+              <button
+                className="btn btn-secondary"
+                onClick={() => setTab("Learning")}
+              >
+                Log a learning reflection
+              </button>
+              <p>
+                If work feels overwhelming, reach out to your supervisor,
+                occupational health team, or a trusted colleague.
+              </p>
+            </section>
+          </div>
+        )}
+      </main>
+    </>
+  );
 }
-function Field({label,name,type='text',optional=false,...rest}:{label:string;name:string;type?:string;optional?:boolean;placeholder?:string;min?:string;max?:string;step?:string}) {return <label>{label}<input name={name} type={type} required={!optional} maxLength={300} {...rest}/></label>;}
-function Metric({value,label}:{value:string;label:string}) {return <div className="metric"><strong>{value}</strong><span>{label}</span></div>;}
-function Remove({onClick}:{onClick:()=>void}) {return <button type="button" className="btn btn-ghost" onClick={onClick}>Remove</button>;}
-function Empty({count}:{count:number}) {return count?null:<p className="empty-state">No entries yet. Add your first entry above.</p>;}
-function expiryLabel(date:string) {const days=daysUntil(date);return days<0?`Expired ${-days} days ago`:days===0?'Expires today':`Expires in ${days} days`;}
+function Field({
+  label,
+  name,
+  type = "text",
+  optional = false,
+  ...rest
+}: {
+  label: string;
+  name: string;
+  type?: string;
+  optional?: boolean;
+  placeholder?: string;
+  min?: string;
+  max?: string;
+  step?: string;
+}) {
+  return (
+    <label>
+      {label}
+      <input
+        name={name}
+        type={type}
+        required={!optional}
+        maxLength={300}
+        {...rest}
+      />
+    </label>
+  );
+}
+function Metric({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="metric">
+      <strong>{value}</strong>
+      <span>{label}</span>
+    </div>
+  );
+}
+function Remove({ onClick }: { onClick: () => void }) {
+  return (
+    <button type="button" className="btn btn-ghost" onClick={onClick}>
+      Remove
+    </button>
+  );
+}
+function Empty({ count }: { count: number }) {
+  return count ? null : (
+    <p className="empty-state">No entries yet. Add your first entry above.</p>
+  );
+}
+function expiryLabel(date: string) {
+  const days = daysUntil(date);
+  return days < 0
+    ? `Expired ${-days} days ago`
+    : days === 0
+      ? "Expires today"
+      : `Expires in ${days} days`;
+}

@@ -1,7 +1,7 @@
 {
   "name": "medcv-web",
   "private": true,
-  "version": "0.1.0",
+  "version": "2.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test": "node --import tsx tests/core.test.ts",
     "test:pdf": "node --import tsx scripts/validate-pdfs.ts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "format": "prettier --write src tests scripts playwright.config.ts"
   },
   "dependencies": {
     "jspdf": "^4.2.1",
@@ -23,6 +24,7 @@
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
+    "prettier": "^3.9.9",
     "tsx": "^4.23.15",
     "typescript": "^5.5.4",
     "vite": "^5.4.6"

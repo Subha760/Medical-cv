@@ -162,9 +162,9 @@ export default function EditorPage() {
             />
             <div className="field"><label htmlFor="photo-shape">Photo shape</label><select id="photo-shape" value={doc.personalInfo.photoShape || "square"} onChange={e => update(d => ({...d, personalInfo:{...d.personalInfo, photoShape:e.target.value as "round" | "square"}}))}><option value="square">Square</option><option value="round">Round</option></select></div>
             <div className="field">
-              <label>Full Name</label>
+              <label htmlFor="cv-name">Full Name</label>
               <input
-                value={doc.personalInfo.fullName}
+                id="cv-name" value={doc.personalInfo.fullName}
                 onChange={(e) => update((d) => ({ ...d, personalInfo: { ...d.personalInfo, fullName: e.target.value } }))}
               />
             </div>
@@ -272,7 +272,7 @@ export default function EditorPage() {
 
         {step === "Core Skills" && (
           <div>
-            <div className="card ai-panel"><strong>Skills suggestions</strong><p>Adds healthcare keywords suitable for your selected profession. Remove anything you cannot personally demonstrate.</p><button className="btn btn-secondary" onClick={() => update((d) => ({...d, skills: suggestedSkillsFor(d).join("\n")}))}>✦ Suggest role skills</button></div>
+            <div className="card ai-panel"><strong>Skills suggestions</strong><p>Adds healthcare keywords suitable for your selected profession. Remove anything you cannot personally demonstrate.</p><button className="btn btn-secondary" onClick={() => update((d) => ({...d, skills: [...new Set([...d.skills.split("\n").filter(Boolean), ...suggestedSkillsFor(d)])].join("\n")}))}>✦ Suggest role skills</button></div>
             <div className="field"><label>Core Skills (one per line)</label><textarea rows={9} placeholder="Patient care and monitoring&#10;Medication administration&#10;Emergency response" value={doc.skills || ""} onChange={(e)=>update((d)=>({...d,skills:e.target.value}))}/></div>
           </div>
         )}
