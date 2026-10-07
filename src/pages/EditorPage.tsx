@@ -52,12 +52,39 @@ export default function EditorPage() {
   const pendingDoc = useRef<CvDocument | null>(null);
   const [saveError, setSaveError] = useState("");
   function persist(next: CvDocument, draft: boolean) {
-    try { cvStorage.save(next, draft); setSaveError(""); return true; }
-    catch { setSaveError("Unable to save on this device. Free some storage or remove a large image, then try again."); return false; }
+    try {
+      cvStorage.save(next, draft);
+      setSaveError("");
+      return true;
+    } catch {
+      setSaveError(
+        "Unable to save on this device. Free some storage or remove a large image, then try again.",
+      );
+      return false;
+    }
   }
-  useEffect(() => () => {
-    if (saveTimer.current) window.clearTimeout(saveTimer.current);
-    if (pendingDoc.current) { try { cvStorage.save(pendingDoc.current, true); } catch { /* error already surfaced while editing */ } }
+  useEffect(() => {
+    const flush = () => {
+      if (saveTimer.current) window.clearTimeout(saveTimer.current);
+      if (pendingDoc.current) {
+        try {
+          cvStorage.save(pendingDoc.current, true);
+          pendingDoc.current = null;
+        } catch {
+          /* Preserve current records if storage is unavailable. */
+        }
+      }
+    };
+    const hidden = () => {
+      if (document.visibilityState === "hidden") flush();
+    };
+    window.addEventListener("pagehide", flush);
+    document.addEventListener("visibilitychange", hidden);
+    return () => {
+      flush();
+      window.removeEventListener("pagehide", flush);
+      document.removeEventListener("visibilitychange", hidden);
+    };
   }, []);
 
   useEffect(() => {
@@ -72,7 +99,9 @@ export default function EditorPage() {
       const next = mutator(prev);
       pendingDoc.current = next;
       if (saveTimer.current) window.clearTimeout(saveTimer.current);
-      saveTimer.current = window.setTimeout(() => { if (persist(next, true)) pendingDoc.current = null; }, 500);
+      saveTimer.current = window.setTimeout(() => {
+        if (persist(next, true)) pendingDoc.current = null;
+      }, 500);
       return next;
     });
   }
@@ -101,16 +130,30 @@ export default function EditorPage() {
     if (!doc) return;
     try {
       const result = runCvAutopilot(doc);
-      if (!window.confirm("Apply a draft summary based on your entered facts and a recommended template? Review the result for accuracy.")) return;
+      if (
+        !window.confirm(
+          "Apply a draft summary based on your entered facts and a recommended template? Review the result for accuracy.",
+        )
+      )
+        return;
       update(() => result.doc);
-      const completed = result.completed.length ? result.completed.join(", ") + "." : "Your existing writing was preserved.";
-      setAutopilotMessage(completed + " Still needed: " + result.needsInput.join(", ") + ".");
+      const completed = result.completed.length
+        ? result.completed.join(", ") + "."
+        : "Your existing writing was preserved.";
+      setAutopilotMessage(
+        completed + " Still needed: " + result.needsInput.join(", ") + ".",
+      );
     } catch {
-      setAutopilotMessage("Autopilot could not finish this pass. Your CV was not changed; continue manually and try again.");
+      setAutopilotMessage(
+        "Autopilot could not finish this pass. Your CV was not changed; continue manually and try again.",
+      );
     }
   }
 
-  const progressPct = useMemo(() => ((stepIndex + 1) / STEPS.length) * 100, [stepIndex]);
+  const progressPct = useMemo(
+    () => ((stepIndex + 1) / STEPS.length) * 100,
+    [stepIndex],
+  );
 
   if (!doc) {
     return (
@@ -126,19 +169,49 @@ export default function EditorPage() {
   return (
     <>
       <NavBar />
-      <main className="container" style={{ padding: "32px 24px", maxWidth: 760 }}>
+      <main
+        className="container"
+        style={{ padding: "32px 24px", maxWidth: 760 }}
+      >
         <div className="card ai-panel">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: 12,
+              flexWrap: "wrap",
+            }}
+          >
             <div>
               <strong>Local CV Coach & Autopilot</strong>
-              <p style={{ color: "var(--color-muted)", fontSize: ".9rem" }}>Checks missing sections, writes drafts, adds role keywords and improves ATS readability locally.</p>
+              <p style={{ color: "var(--color-muted)", fontSize: ".9rem" }}>
+                Checks missing sections, writes drafts, adds role keywords and
+                improves ATS readability locally.
+              </p>
             </div>
-            <button className="btn btn-primary" onClick={autoCompleteCv}>✦ Analyse & improve my CV</button>
+            <button className="btn btn-primary" onClick={autoCompleteCv}>
+              ✦ Analyse & improve my CV
+            </button>
           </div>
-          {autopilotMessage && <p role="status" style={{ marginTop: 12, color: "var(--color-muted)" }}>{autopilotMessage}</p>}
+          {autopilotMessage && (
+            <p
+              role="status"
+              style={{ marginTop: 12, color: "var(--color-muted)" }}
+            >
+              {autopilotMessage}
+            </p>
+          )}
         </div>
         <AdSlot placement="editor" />
-        <div style={{ height: 4, background: "var(--color-line)", borderRadius: 2, marginBottom: 16 }}>
+        <div
+          style={{
+            height: 4,
+            background: "var(--color-line)",
+            borderRadius: 2,
+            marginBottom: 16,
+          }}
+        >
           <div
             style={{
               height: "100%",
@@ -149,7 +222,15 @@ export default function EditorPage() {
             }}
           />
         </div>
-        <h2 style={{ font: "var(--text-display)", fontSize: "1.6rem", marginBottom: 20 }}>{step}</h2>
+        <h2
+          style={{
+            font: "var(--text-display)",
+            fontSize: "1.6rem",
+            marginBottom: 20,
+          }}
+        >
+          {step}
+        </h2>
 
         {step === "Personal Details" && (
           <div>
@@ -157,47 +238,198 @@ export default function EditorPage() {
               shape={doc.personalInfo.photoShape || "square"}
               photoDataUrl={doc.personalInfo.profilePhotoDataUrl}
               onChange={(profilePhotoDataUrl) =>
-                update((d) => ({ ...d, personalInfo: { ...d.personalInfo, profilePhotoDataUrl } }))
+                update((d) => ({
+                  ...d,
+                  personalInfo: { ...d.personalInfo, profilePhotoDataUrl },
+                }))
               }
             />
-            <div className="field"><label htmlFor="photo-shape">Photo shape</label><select id="photo-shape" value={doc.personalInfo.photoShape || "square"} onChange={e => update(d => ({...d, personalInfo:{...d.personalInfo, photoShape:e.target.value as "round" | "square"}}))}><option value="square">Square</option><option value="round">Round</option></select></div>
+            <div className="field">
+              <label htmlFor="photo-shape">Photo shape</label>
+              <select
+                id="photo-shape"
+                value={doc.personalInfo.photoShape || "square"}
+                onChange={(e) =>
+                  update((d) => ({
+                    ...d,
+                    personalInfo: {
+                      ...d.personalInfo,
+                      photoShape: e.target.value as "round" | "square",
+                    },
+                  }))
+                }
+              >
+                <option value="square">Square</option>
+                <option value="round">Round</option>
+              </select>
+            </div>
             <div className="field">
               <label htmlFor="cv-name">Full Name</label>
               <input
-                id="cv-name" value={doc.personalInfo.fullName}
-                onChange={(e) => update((d) => ({ ...d, personalInfo: { ...d.personalInfo, fullName: e.target.value } }))}
+                id="cv-name"
+                value={doc.personalInfo.fullName}
+                onChange={(e) =>
+                  update((d) => ({
+                    ...d,
+                    personalInfo: {
+                      ...d.personalInfo,
+                      fullName: e.target.value,
+                    },
+                  }))
+                }
               />
             </div>
             <div className="form-grid">
-              <div className="field"><label>Date of Birth (optional)</label><input type="date" value={doc.personalInfo.dateOfBirth || ""} onChange={(e) => update((d) => ({...d, personalInfo:{...d.personalInfo,dateOfBirth:e.target.value}}))}/></div>
-              <div className="field"><label>Nationality (optional)</label><input value={doc.personalInfo.nationality || ""} onChange={(e) => update((d) => ({...d, personalInfo:{...d.personalInfo,nationality:e.target.value}}))}/></div>
-              <div className="field"><label>Marital Status (optional)</label><input value={doc.personalInfo.maritalStatus || ""} onChange={(e) => update((d) => ({...d, personalInfo:{...d.personalInfo,maritalStatus:e.target.value}}))}/></div>
-              <div className="field"><label>Full Address</label><input value={doc.personalInfo.fullAddress || ""} onChange={(e) => update((d) => ({...d, personalInfo:{...d.personalInfo,fullAddress:e.target.value}}))}/></div>
-              <div className="field"><label>Caste / Category (optional)</label><input value={doc.personalInfo.caste || ""} onChange={(e) => update((d) => ({...d, personalInfo:{...d.personalInfo,caste:e.target.value}}))}/></div>
-              <div className="field"><label>Religion (optional)</label><input value={doc.personalInfo.religion || ""} onChange={(e) => update((d) => ({...d, personalInfo:{...d.personalInfo,religion:e.target.value}}))}/></div>
+              <div className="field">
+                <label>Date of Birth (optional)</label>
+                <input
+                  type="date"
+                  value={doc.personalInfo.dateOfBirth || ""}
+                  onChange={(e) =>
+                    update((d) => ({
+                      ...d,
+                      personalInfo: {
+                        ...d.personalInfo,
+                        dateOfBirth: e.target.value,
+                      },
+                    }))
+                  }
+                />
+              </div>
+              <div className="field">
+                <label>Nationality (optional)</label>
+                <input
+                  value={doc.personalInfo.nationality || ""}
+                  onChange={(e) =>
+                    update((d) => ({
+                      ...d,
+                      personalInfo: {
+                        ...d.personalInfo,
+                        nationality: e.target.value,
+                      },
+                    }))
+                  }
+                />
+              </div>
+              <div className="field">
+                <label>Marital Status (optional)</label>
+                <input
+                  value={doc.personalInfo.maritalStatus || ""}
+                  onChange={(e) =>
+                    update((d) => ({
+                      ...d,
+                      personalInfo: {
+                        ...d.personalInfo,
+                        maritalStatus: e.target.value,
+                      },
+                    }))
+                  }
+                />
+              </div>
+              <div className="field">
+                <label>Full Address</label>
+                <input
+                  value={doc.personalInfo.fullAddress || ""}
+                  onChange={(e) =>
+                    update((d) => ({
+                      ...d,
+                      personalInfo: {
+                        ...d.personalInfo,
+                        fullAddress: e.target.value,
+                      },
+                    }))
+                  }
+                />
+              </div>
+              <div className="field">
+                <label>Caste / Category (optional)</label>
+                <input
+                  value={doc.personalInfo.caste || ""}
+                  onChange={(e) =>
+                    update((d) => ({
+                      ...d,
+                      personalInfo: {
+                        ...d.personalInfo,
+                        caste: e.target.value,
+                      },
+                    }))
+                  }
+                />
+              </div>
+              <div className="field">
+                <label>Religion (optional)</label>
+                <input
+                  value={doc.personalInfo.religion || ""}
+                  onChange={(e) =>
+                    update((d) => ({
+                      ...d,
+                      personalInfo: {
+                        ...d.personalInfo,
+                        religion: e.target.value,
+                      },
+                    }))
+                  }
+                />
+              </div>
             </div>
             <div className="field">
               <label>Professional Title (e.g. Staff Nurse, MBBS)</label>
               <input
                 value={doc.personalInfo.professionalTitle}
                 onChange={(e) =>
-                  update((d) => ({ ...d, personalInfo: { ...d.personalInfo, professionalTitle: e.target.value } }))
+                  update((d) => ({
+                    ...d,
+                    personalInfo: {
+                      ...d.personalInfo,
+                      professionalTitle: e.target.value,
+                    },
+                  }))
                 }
               />
-              <div className="suggestion-row">{["Staff Nurse","Registered Nurse","Clinical Nurse"].map((title)=><button key={title} className="suggestion-chip" onClick={()=>update((d)=>({...d,personalInfo:{...d.personalInfo,professionalTitle:title}}))}>✦ {title}</button>)}</div>
+              <div className="suggestion-row">
+                {["Staff Nurse", "Registered Nurse", "Clinical Nurse"].map(
+                  (title) => (
+                    <button
+                      key={title}
+                      className="suggestion-chip"
+                      onClick={() =>
+                        update((d) => ({
+                          ...d,
+                          personalInfo: {
+                            ...d.personalInfo,
+                            professionalTitle: title,
+                          },
+                        }))
+                      }
+                    >
+                      ✦ {title}
+                    </button>
+                  ),
+                )}
+              </div>
             </div>
             <div className="field">
               <label>Phone</label>
               <input
                 value={doc.personalInfo.phone}
-                onChange={(e) => update((d) => ({ ...d, personalInfo: { ...d.personalInfo, phone: e.target.value } }))}
+                onChange={(e) =>
+                  update((d) => ({
+                    ...d,
+                    personalInfo: { ...d.personalInfo, phone: e.target.value },
+                  }))
+                }
               />
             </div>
             <div className="field">
               <label>Email</label>
               <input
                 value={doc.personalInfo.email}
-                onChange={(e) => update((d) => ({ ...d, personalInfo: { ...d.personalInfo, email: e.target.value } }))}
+                onChange={(e) =>
+                  update((d) => ({
+                    ...d,
+                    personalInfo: { ...d.personalInfo, email: e.target.value },
+                  }))
+                }
               />
             </div>
             <div className="field">
@@ -205,7 +437,13 @@ export default function EditorPage() {
               <input
                 value={doc.personalInfo.cityCountry}
                 onChange={(e) =>
-                  update((d) => ({ ...d, personalInfo: { ...d.personalInfo, cityCountry: e.target.value } }))
+                  update((d) => ({
+                    ...d,
+                    personalInfo: {
+                      ...d.personalInfo,
+                      cityCountry: e.target.value,
+                    },
+                  }))
                 }
               />
             </div>
@@ -215,22 +453,41 @@ export default function EditorPage() {
         {step === "Professional Summary" && (
           <div>
             <div className="card ai-panel">
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: 12,
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                }}
+              >
                 <div>
                   <strong>Local writing assistant</strong>
-                  <p style={{ color: "var(--color-muted)", fontSize: ".9rem" }}>Works offline. Your CV never leaves this device.</p>
+                  <p style={{ color: "var(--color-muted)", fontSize: ".9rem" }}>
+                    Works offline. Your CV never leaves this device.
+                  </p>
                 </div>
                 <button
                   className="btn btn-secondary"
-                  onClick={() => update((d) => ({
-                    ...d,
-                    personalInfo: { ...d.personalInfo, professionalSummary: generateProfessionalSummary(d) },
-                  }))}
+                  onClick={() =>
+                    update((d) => ({
+                      ...d,
+                      personalInfo: {
+                        ...d.personalInfo,
+                        professionalSummary: generateProfessionalSummary(d),
+                      },
+                    }))
+                  }
                 >
                   Write my summary
                 </button>
               </div>
-              <ul>{writingTips(doc).map((tip) => <li key={tip}>{tip}</li>)}</ul>
+              <ul>
+                {writingTips(doc).map((tip) => (
+                  <li key={tip}>{tip}</li>
+                ))}
+              </ul>
             </div>
             <div className="field">
               <label>Professional Summary</label>
@@ -238,7 +495,13 @@ export default function EditorPage() {
                 rows={5}
                 value={doc.personalInfo.professionalSummary}
                 onChange={(e) =>
-                  update((d) => ({ ...d, personalInfo: { ...d.personalInfo, professionalSummary: e.target.value } }))
+                  update((d) => ({
+                    ...d,
+                    personalInfo: {
+                      ...d.personalInfo,
+                      professionalSummary: e.target.value,
+                    },
+                  }))
                 }
               />
             </div>
@@ -247,7 +510,13 @@ export default function EditorPage() {
               <input
                 value={doc.registrationInfo.registrationNumber}
                 onChange={(e) =>
-                  update((d) => ({ ...d, registrationInfo: { ...d.registrationInfo, registrationNumber: e.target.value } }))
+                  update((d) => ({
+                    ...d,
+                    registrationInfo: {
+                      ...d.registrationInfo,
+                      registrationNumber: e.target.value,
+                    },
+                  }))
                 }
               />
             </div>
@@ -256,7 +525,13 @@ export default function EditorPage() {
               <input
                 value={doc.registrationInfo.councilOrBoard}
                 onChange={(e) =>
-                  update((d) => ({ ...d, registrationInfo: { ...d.registrationInfo, councilOrBoard: e.target.value } }))
+                  update((d) => ({
+                    ...d,
+                    registrationInfo: {
+                      ...d.registrationInfo,
+                      councilOrBoard: e.target.value,
+                    },
+                  }))
                 }
               />
             </div>
@@ -272,8 +547,40 @@ export default function EditorPage() {
 
         {step === "Core Skills" && (
           <div>
-            <div className="card ai-panel"><strong>Skills suggestions</strong><p>Adds healthcare keywords suitable for your selected profession. Remove anything you cannot personally demonstrate.</p><button className="btn btn-secondary" onClick={() => update((d) => ({...d, skills: [...new Set([...d.skills.split("\n").filter(Boolean), ...suggestedSkillsFor(d)])].join("\n")}))}>✦ Suggest role skills</button></div>
-            <div className="field"><label>Core Skills (one per line)</label><textarea rows={9} placeholder="Patient care and monitoring&#10;Medication administration&#10;Emergency response" value={doc.skills || ""} onChange={(e)=>update((d)=>({...d,skills:e.target.value}))}/></div>
+            <div className="card ai-panel">
+              <strong>Skills suggestions</strong>
+              <p>
+                Adds healthcare keywords suitable for your selected profession.
+                Remove anything you cannot personally demonstrate.
+              </p>
+              <button
+                className="btn btn-secondary"
+                onClick={() =>
+                  update((d) => ({
+                    ...d,
+                    skills: [
+                      ...new Set([
+                        ...d.skills.split("\n").filter(Boolean),
+                        ...suggestedSkillsFor(d),
+                      ]),
+                    ].join("\n"),
+                  }))
+                }
+              >
+                ✦ Suggest role skills
+              </button>
+            </div>
+            <div className="field">
+              <label>Core Skills (one per line)</label>
+              <textarea
+                rows={9}
+                placeholder="Patient care and monitoring&#10;Medication administration&#10;Emergency response"
+                value={doc.skills || ""}
+                onChange={(e) =>
+                  update((d) => ({ ...d, skills: e.target.value }))
+                }
+              />
+            </div>
           </div>
         )}
 
@@ -287,19 +594,42 @@ export default function EditorPage() {
         {step === "Certifications" && (
           <CertificationsStep
             entries={doc.certifications}
-            onChange={(certifications) => update((d) => ({ ...d, certifications }))}
+            onChange={(certifications) =>
+              update((d) => ({ ...d, certifications }))
+            }
           />
         )}
 
         {step === "Achievements" && (
           <div>
-            <div className="card ai-panel"><strong>Achievement organiser</strong><p>Collects achievements you already entered in your experience. Add truthful outcomes and measurements.</p><button className="btn btn-secondary" onClick={() => update((d) => ({...d, achievements: generateAchievements(d)}))}>✦ Suggest achievements</button></div>
+            <div className="card ai-panel">
+              <strong>Achievement organiser</strong>
+              <p>
+                Collects achievements you already entered in your experience.
+                Add truthful outcomes and measurements.
+              </p>
+              <button
+                className="btn btn-secondary"
+                onClick={() =>
+                  update((d) => ({
+                    ...d,
+                    achievements: generateAchievements(d),
+                  }))
+                }
+              >
+                ✦ Suggest achievements
+              </button>
+            </div>
             <div className="field">
-              <label>Achievements (awards, recognitions, notable outcomes)</label>
+              <label>
+                Achievements (awards, recognitions, notable outcomes)
+              </label>
               <textarea
                 rows={5}
                 value={doc.achievements}
-                onChange={(e) => update((d) => ({ ...d, achievements: e.target.value }))}
+                onChange={(e) =>
+                  update((d) => ({ ...d, achievements: e.target.value }))
+                }
               />
             </div>
           </div>
@@ -328,15 +658,64 @@ export default function EditorPage() {
 
         {step === "Declaration & Signature" && (
           <div>
-            <div className="field"><label>Declaration</label><textarea rows={4} value={doc.declaration || ""} onChange={(e)=>update((d)=>({...d,declaration:e.target.value}))}/></div>
-            <div className="form-grid"><div className="field"><label>Date</label><input type="date" value={doc.declarationDate || ""} onChange={(e)=>update((d)=>({...d,declarationDate:e.target.value}))}/></div><div className="field"><label>Place</label><input value={doc.declarationPlace || ""} onChange={(e)=>update((d)=>({...d,declarationPlace:e.target.value}))}/></div></div>
-            <div className="field"><label>Signature Name</label><input placeholder="Type your full name" value={doc.signatureName || ""} onChange={(e)=>update((d)=>({...d,signatureName:e.target.value}))}/></div>
-            <SignatureField value={doc.signatureDataUrl || null} onChange={(signatureDataUrl)=>update((d)=>({...d,signatureDataUrl}))}/>
+            <div className="field">
+              <label>Declaration</label>
+              <textarea
+                rows={4}
+                value={doc.declaration || ""}
+                onChange={(e) =>
+                  update((d) => ({ ...d, declaration: e.target.value }))
+                }
+              />
+            </div>
+            <div className="form-grid">
+              <div className="field">
+                <label>Date</label>
+                <input
+                  type="date"
+                  value={doc.declarationDate || ""}
+                  onChange={(e) =>
+                    update((d) => ({ ...d, declarationDate: e.target.value }))
+                  }
+                />
+              </div>
+              <div className="field">
+                <label>Place</label>
+                <input
+                  value={doc.declarationPlace || ""}
+                  onChange={(e) =>
+                    update((d) => ({ ...d, declarationPlace: e.target.value }))
+                  }
+                />
+              </div>
+            </div>
+            <div className="field">
+              <label>Signature Name</label>
+              <input
+                placeholder="Type your full name"
+                value={doc.signatureName || ""}
+                onChange={(e) =>
+                  update((d) => ({ ...d, signatureName: e.target.value }))
+                }
+              />
+            </div>
+            <SignatureField
+              value={doc.signatureDataUrl || null}
+              onChange={(signatureDataUrl) =>
+                update((d) => ({ ...d, signatureDataUrl }))
+              }
+            />
           </div>
         )}
 
         {saveError && <p role="alert">{saveError}</p>}
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 32 }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginTop: 32,
+          }}
+        >
           <button className="btn btn-ghost" onClick={goBack}>
             Back
           </button>
@@ -359,7 +738,15 @@ function EducationStep({
   function addEntry() {
     onChange([
       ...entries,
-      { id: uid(), degree: "", institution: "", location: "", startYear: "", graduationYear: "", grade: "" },
+      {
+        id: uid(),
+        degree: "",
+        institution: "",
+        location: "",
+        startYear: "",
+        graduationYear: "",
+        grade: "",
+      },
     ]);
   }
 
@@ -374,29 +761,53 @@ function EducationStep({
   return (
     <div>
       {entries.map((entry) => (
-        <div key={entry.id} className="card" style={{ padding: 16, marginBottom: 12 }}>
+        <div
+          key={entry.id}
+          className="card"
+          style={{ padding: 16, marginBottom: 12 }}
+        >
           <div className="field">
             <label>Degree</label>
-            <input value={entry.degree} onChange={(e) => updateEntry(entry.id, { degree: e.target.value })} />
+            <input
+              value={entry.degree}
+              onChange={(e) =>
+                updateEntry(entry.id, { degree: e.target.value })
+              }
+            />
           </div>
           <div className="field">
             <label>Institution</label>
-            <input value={entry.institution} onChange={(e) => updateEntry(entry.id, { institution: e.target.value })} />
+            <input
+              value={entry.institution}
+              onChange={(e) =>
+                updateEntry(entry.id, { institution: e.target.value })
+              }
+            />
           </div>
           <div style={{ display: "flex", gap: 12 }}>
             <div className="field" style={{ flex: 1 }}>
               <label>Start Year</label>
-              <input value={entry.startYear} onChange={(e) => updateEntry(entry.id, { startYear: e.target.value })} />
+              <input
+                value={entry.startYear}
+                onChange={(e) =>
+                  updateEntry(entry.id, { startYear: e.target.value })
+                }
+              />
             </div>
             <div className="field" style={{ flex: 1 }}>
               <label>Graduation Year</label>
               <input
                 value={entry.graduationYear}
-                onChange={(e) => updateEntry(entry.id, { graduationYear: e.target.value })}
+                onChange={(e) =>
+                  updateEntry(entry.id, { graduationYear: e.target.value })
+                }
               />
             </div>
           </div>
-          <button className="btn btn-ghost" onClick={() => removeEntry(entry.id)}>
+          <button
+            className="btn btn-ghost"
+            onClick={() => removeEntry(entry.id)}
+          >
             Delete
           </button>
         </div>
@@ -444,23 +855,47 @@ function ExperienceStep({
   return (
     <div>
       {entries.map((entry) => (
-        <div key={entry.id} className="card" style={{ padding: 16, marginBottom: 12 }}>
+        <div
+          key={entry.id}
+          className="card"
+          style={{ padding: 16, marginBottom: 12 }}
+        >
           <div className="field">
             <label>Hospital / Facility</label>
-            <input value={entry.hospital} onChange={(e) => updateEntry(entry.id, { hospital: e.target.value })} />
+            <input
+              value={entry.hospital}
+              onChange={(e) =>
+                updateEntry(entry.id, { hospital: e.target.value })
+              }
+            />
           </div>
           <div className="field">
             <label>Position</label>
-            <input value={entry.position} onChange={(e) => updateEntry(entry.id, { position: e.target.value })} />
+            <input
+              value={entry.position}
+              onChange={(e) =>
+                updateEntry(entry.id, { position: e.target.value })
+              }
+            />
           </div>
           <div style={{ display: "flex", gap: 12 }}>
             <div className="field" style={{ flex: 1 }}>
               <label>Start Date</label>
-              <input value={entry.startDate} onChange={(e) => updateEntry(entry.id, { startDate: e.target.value })} />
+              <input
+                value={entry.startDate}
+                onChange={(e) =>
+                  updateEntry(entry.id, { startDate: e.target.value })
+                }
+              />
             </div>
             <div className="field" style={{ flex: 1 }}>
               <label>End Date (or Present)</label>
-              <input value={entry.endDate} onChange={(e) => updateEntry(entry.id, { endDate: e.target.value })} />
+              <input
+                value={entry.endDate}
+                onChange={(e) =>
+                  updateEntry(entry.id, { endDate: e.target.value })
+                }
+              />
             </div>
           </div>
           <div className="field">
@@ -468,19 +903,29 @@ function ExperienceStep({
             <textarea
               rows={3}
               value={entry.responsibilities}
-              onChange={(e) => updateEntry(entry.id, { responsibilities: e.target.value })}
+              onChange={(e) =>
+                updateEntry(entry.id, { responsibilities: e.target.value })
+              }
             />
             <button
               className="btn btn-secondary"
               style={{ alignSelf: "flex-start" }}
-              onClick={() => updateEntry(entry.id, {
-                responsibilities: improveResponsibilities(entry.responsibilities, entry),
-              })}
+              onClick={() =>
+                updateEntry(entry.id, {
+                  responsibilities: improveResponsibilities(
+                    entry.responsibilities,
+                    entry,
+                  ),
+                })
+              }
             >
               Improve with local assistant
             </button>
           </div>
-          <button className="btn btn-ghost" onClick={() => removeEntry(entry.id)}>
+          <button
+            className="btn btn-ghost"
+            onClick={() => removeEntry(entry.id)}
+          >
             Delete
           </button>
         </div>
@@ -492,7 +937,13 @@ function ExperienceStep({
   );
 }
 
-const COMMON_CERTIFICATIONS = ["BLS", "ACLS", "PALS", "Infection Control", "First Aid"];
+const COMMON_CERTIFICATIONS = [
+  "BLS",
+  "ACLS",
+  "PALS",
+  "Infection Control",
+  "First Aid",
+];
 
 function CertificationsStep({
   entries,
@@ -502,7 +953,10 @@ function CertificationsStep({
   onChange: (entries: CertificationEntry[]) => void;
 }) {
   function addEntry(name = "") {
-    onChange([...entries, { id: uid(), name, issuingBody: "", issueDate: "", expiryDate: "" }]);
+    onChange([
+      ...entries,
+      { id: uid(), name, issuingBody: "", issueDate: "", expiryDate: "" },
+    ]);
   }
 
   function updateEntry(id: string, patch: Partial<CertificationEntry>) {
@@ -516,7 +970,9 @@ function CertificationsStep({
   return (
     <div>
       <p style={{ color: "var(--color-muted)", marginBottom: 8 }}>Quick add</p>
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
+      <div
+        style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}
+      >
         {COMMON_CERTIFICATIONS.map((name) => (
           <button key={name} className="chip" onClick={() => addEntry(name)}>
             {name}
@@ -525,26 +981,51 @@ function CertificationsStep({
       </div>
 
       {entries.map((entry) => (
-        <div key={entry.id} className="card" style={{ padding: 16, marginBottom: 12 }}>
+        <div
+          key={entry.id}
+          className="card"
+          style={{ padding: 16, marginBottom: 12 }}
+        >
           <div className="field">
             <label>Certification Name</label>
-            <input value={entry.name} onChange={(e) => updateEntry(entry.id, { name: e.target.value })} />
+            <input
+              value={entry.name}
+              onChange={(e) => updateEntry(entry.id, { name: e.target.value })}
+            />
           </div>
           <div className="field">
             <label>Issuing Body</label>
-            <input value={entry.issuingBody} onChange={(e) => updateEntry(entry.id, { issuingBody: e.target.value })} />
+            <input
+              value={entry.issuingBody}
+              onChange={(e) =>
+                updateEntry(entry.id, { issuingBody: e.target.value })
+              }
+            />
           </div>
           <div style={{ display: "flex", gap: 12 }}>
             <div className="field" style={{ flex: 1 }}>
               <label>Issue Date</label>
-              <input value={entry.issueDate} onChange={(e) => updateEntry(entry.id, { issueDate: e.target.value })} />
+              <input
+                value={entry.issueDate}
+                onChange={(e) =>
+                  updateEntry(entry.id, { issueDate: e.target.value })
+                }
+              />
             </div>
             <div className="field" style={{ flex: 1 }}>
               <label>Expiry (optional)</label>
-              <input value={entry.expiryDate} onChange={(e) => updateEntry(entry.id, { expiryDate: e.target.value })} />
+              <input
+                value={entry.expiryDate}
+                onChange={(e) =>
+                  updateEntry(entry.id, { expiryDate: e.target.value })
+                }
+              />
             </div>
           </div>
-          <button className="btn btn-ghost" onClick={() => removeEntry(entry.id)}>
+          <button
+            className="btn btn-ghost"
+            onClick={() => removeEntry(entry.id)}
+          >
             Delete
           </button>
         </div>
@@ -578,16 +1059,75 @@ function LanguagesStep({
   return (
     <div>
       {entries.map((entry) => (
-        <div key={entry.id} className="card language-row" style={{ padding: 16, marginBottom: 12 }}>
+        <div
+          key={entry.id}
+          className="card language-row"
+          style={{ padding: 16, marginBottom: 12 }}
+        >
           <div className="field" style={{ flex: 1, marginBottom: 0 }}>
             <label>Language</label>
-            <select aria-label="Language" value={entry.language} onChange={(e) => updateEntry(entry.id, { language: e.target.value })}><option value="">Select language</option>{Array.from(new Set(["English", "Hindi", "Bengali", "Kannada", "Tamil", "Telugu", "Malayalam", "Marathi", "Gujarati", "Punjabi", "Odia", "Assamese", "Urdu", "Arabic", "French", "German", "Spanish", ...(entry.language ? [entry.language] : [])])).map(l => <option key={l}>{l}</option>)}</select>
+            <select
+              aria-label="Language"
+              value={entry.language}
+              onChange={(e) =>
+                updateEntry(entry.id, { language: e.target.value })
+              }
+            >
+              <option value="">Select language</option>
+              {Array.from(
+                new Set([
+                  "English",
+                  "Hindi",
+                  "Bengali",
+                  "Kannada",
+                  "Tamil",
+                  "Telugu",
+                  "Malayalam",
+                  "Marathi",
+                  "Gujarati",
+                  "Punjabi",
+                  "Odia",
+                  "Assamese",
+                  "Urdu",
+                  "Arabic",
+                  "French",
+                  "German",
+                  "Spanish",
+                  ...(entry.language ? [entry.language] : []),
+                ]),
+              ).map((l) => (
+                <option key={l}>{l}</option>
+              ))}
+            </select>
           </div>
           <div className="field" style={{ flex: 1, marginBottom: 0 }}>
             <label>Proficiency</label>
-            <select aria-label="Proficiency" value={entry.proficiency} onChange={(e) => updateEntry(entry.id, { proficiency: e.target.value })}><option value="">Select proficiency</option>{Array.from(new Set(["Native / Bilingual", "Fluent", "Professional working", "Intermediate", "Basic", ...(entry.proficiency ? [entry.proficiency] : [])])).map(l => <option key={l}>{l}</option>)}</select>
+            <select
+              aria-label="Proficiency"
+              value={entry.proficiency}
+              onChange={(e) =>
+                updateEntry(entry.id, { proficiency: e.target.value })
+              }
+            >
+              <option value="">Select proficiency</option>
+              {Array.from(
+                new Set([
+                  "Native / Bilingual",
+                  "Fluent",
+                  "Professional working",
+                  "Intermediate",
+                  "Basic",
+                  ...(entry.proficiency ? [entry.proficiency] : []),
+                ]),
+              ).map((l) => (
+                <option key={l}>{l}</option>
+              ))}
+            </select>
           </div>
-          <button className="btn btn-ghost" onClick={() => removeEntry(entry.id)}>
+          <button
+            className="btn btn-ghost"
+            onClick={() => removeEntry(entry.id)}
+          >
             Remove
           </button>
         </div>
@@ -607,12 +1147,20 @@ function AdditionalSectionsStep({
   onChange: (patch: Partial<CvDocument>) => void;
 }) {
   function addCustomSection() {
-    const section: CustomSection = { id: uid(), title: "New Section", entries: [] };
+    const section: CustomSection = {
+      id: uid(),
+      title: "New Section",
+      entries: [],
+    };
     onChange({ customSections: [...doc.customSections, section] });
   }
 
   function updateSection(id: string, patch: Partial<CustomSection>) {
-    onChange({ customSections: doc.customSections.map((s) => (s.id === id ? { ...s, ...patch } : s)) });
+    onChange({
+      customSections: doc.customSections.map((s) =>
+        s.id === id ? { ...s, ...patch } : s,
+      ),
+    });
   }
 
   function removeSection(id: string) {
@@ -620,109 +1168,209 @@ function AdditionalSectionsStep({
   }
 
   function addSectionEntry(sectionId: string) {
-    const entry: CustomSectionEntry = { id: uid(), heading: "", description: "", date: "", location: "" };
+    const entry: CustomSectionEntry = {
+      id: uid(),
+      heading: "",
+      description: "",
+      date: "",
+      location: "",
+    };
     const section = doc.customSections.find((s) => s.id === sectionId);
     if (!section) return;
     updateSection(sectionId, { entries: [...section.entries, entry] });
   }
 
-  function updateSectionEntry(sectionId: string, entryId: string, patch: Partial<CustomSectionEntry>) {
+  function updateSectionEntry(
+    sectionId: string,
+    entryId: string,
+    patch: Partial<CustomSectionEntry>,
+  ) {
     const section = doc.customSections.find((s) => s.id === sectionId);
     if (!section) return;
     updateSection(sectionId, {
-      entries: section.entries.map((e) => (e.id === entryId ? { ...e, ...patch } : e)),
+      entries: section.entries.map((e) =>
+        e.id === entryId ? { ...e, ...patch } : e,
+      ),
     });
   }
 
   function removeSectionEntry(sectionId: string, entryId: string) {
     const section = doc.customSections.find((s) => s.id === sectionId);
     if (!section) return;
-    updateSection(sectionId, { entries: section.entries.filter((e) => e.id !== entryId) });
+    updateSection(sectionId, {
+      entries: section.entries.filter((e) => e.id !== entryId),
+    });
   }
 
   return (
     <div>
       <div className="field">
         <label>Internship / Clinical Training</label>
-        <textarea rows={3} placeholder="Hospital, department, dates and key clinical rotations" value={doc.internship || ""} onChange={(e) => onChange({ internship: e.target.value })} />
+        <textarea
+          rows={3}
+          placeholder="Hospital, department, dates and key clinical rotations"
+          value={doc.internship || ""}
+          onChange={(e) => onChange({ internship: e.target.value })}
+        />
       </div>
       <div className="field">
         <label>Interests / Hobbies (optional)</label>
-        <textarea rows={2} placeholder="Use only relevant, professional interests" value={doc.hobbies || ""} onChange={(e) => onChange({ hobbies: e.target.value })} />
+        <textarea
+          rows={2}
+          placeholder="Use only relevant, professional interests"
+          value={doc.hobbies || ""}
+          onChange={(e) => onChange({ hobbies: e.target.value })}
+        />
       </div>
       <div className="field">
         <label>Publications</label>
-        <textarea rows={2} value={doc.publications} onChange={(e) => onChange({ publications: e.target.value })} />
+        <textarea
+          rows={2}
+          value={doc.publications}
+          onChange={(e) => onChange({ publications: e.target.value })}
+        />
       </div>
       <div className="field">
         <label>Conferences / Workshops</label>
-        <textarea rows={2} value={doc.conferences} onChange={(e) => onChange({ conferences: e.target.value })} />
+        <textarea
+          rows={2}
+          value={doc.conferences}
+          onChange={(e) => onChange({ conferences: e.target.value })}
+        />
       </div>
       <div className="field">
         <label>Professional Memberships</label>
-        <textarea rows={2} value={doc.memberships} onChange={(e) => onChange({ memberships: e.target.value })} />
+        <textarea
+          rows={2}
+          value={doc.memberships}
+          onChange={(e) => onChange({ memberships: e.target.value })}
+        />
       </div>
       <div className="field">
         <label>References</label>
-        <textarea rows={2} value={doc.references} onChange={(e) => onChange({ references: e.target.value })} />
+        <textarea
+          rows={2}
+          value={doc.references}
+          onChange={(e) => onChange({ references: e.target.value })}
+        />
       </div>
 
-      <div style={{ height: 1, background: "var(--color-line)", margin: "20px 0" }} />
+      <div
+        style={{ height: 1, background: "var(--color-line)", margin: "20px 0" }}
+      />
       <p style={{ fontWeight: 600, marginBottom: 12 }}>Custom Sections</p>
 
       {doc.customSections.map((section) => (
-        <div key={section.id} className="card" style={{ padding: 16, marginBottom: 12 }}>
+        <div
+          key={section.id}
+          className="card"
+          style={{ padding: 16, marginBottom: 12 }}
+        >
           <div className="field">
-            <label>Section Title (e.g. "Clinical Rotations", "Research Experience")</label>
-            <input value={section.title} onChange={(e) => updateSection(section.id, { title: e.target.value })} />
+            <label>
+              Section Title (e.g. "Clinical Rotations", "Research Experience")
+            </label>
+            <input
+              value={section.title}
+              onChange={(e) =>
+                updateSection(section.id, { title: e.target.value })
+              }
+            />
           </div>
 
           {section.entries.map((entry) => (
-            <div key={entry.id} style={{ marginBottom: 12, paddingLeft: 12, borderLeft: "2px solid var(--color-line)" }}>
+            <div
+              key={entry.id}
+              style={{
+                marginBottom: 12,
+                paddingLeft: 12,
+                borderLeft: "2px solid var(--color-line)",
+              }}
+            >
               <div className="field">
                 <label>Heading</label>
-                <input value={entry.heading} onChange={(e) => updateSectionEntry(section.id, entry.id, { heading: e.target.value })} />
+                <input
+                  value={entry.heading}
+                  onChange={(e) =>
+                    updateSectionEntry(section.id, entry.id, {
+                      heading: e.target.value,
+                    })
+                  }
+                />
               </div>
               <div className="field">
                 <label>Description</label>
                 <textarea
                   rows={2}
                   value={entry.description}
-                  onChange={(e) => updateSectionEntry(section.id, entry.id, { description: e.target.value })}
+                  onChange={(e) =>
+                    updateSectionEntry(section.id, entry.id, {
+                      description: e.target.value,
+                    })
+                  }
                 />
               </div>
               <div style={{ display: "flex", gap: 12 }}>
                 <div className="field" style={{ flex: 1 }}>
                   <label>Date</label>
-                  <input value={entry.date} onChange={(e) => updateSectionEntry(section.id, entry.id, { date: e.target.value })} />
+                  <input
+                    value={entry.date}
+                    onChange={(e) =>
+                      updateSectionEntry(section.id, entry.id, {
+                        date: e.target.value,
+                      })
+                    }
+                  />
                 </div>
                 <div className="field" style={{ flex: 1 }}>
                   <label>Location</label>
-                  <input value={entry.location} onChange={(e) => updateSectionEntry(section.id, entry.id, { location: e.target.value })} />
+                  <input
+                    value={entry.location}
+                    onChange={(e) =>
+                      updateSectionEntry(section.id, entry.id, {
+                        location: e.target.value,
+                      })
+                    }
+                  />
                 </div>
               </div>
-              <button className="btn btn-ghost" onClick={() => removeSectionEntry(section.id, entry.id)}>
+              <button
+                className="btn btn-ghost"
+                onClick={() => removeSectionEntry(section.id, entry.id)}
+              >
                 Remove Entry
               </button>
             </div>
           ))}
 
           <div style={{ display: "flex", gap: 8 }}>
-            <button className="btn btn-secondary" onClick={() => addSectionEntry(section.id)}>
+            <button
+              className="btn btn-secondary"
+              onClick={() => addSectionEntry(section.id)}
+            >
               Add Entry
             </button>
-            <button className="btn btn-ghost" onClick={() => removeSection(section.id)}>
+            <button
+              className="btn btn-ghost"
+              onClick={() => removeSection(section.id)}
+            >
               Delete Section
             </button>
           </div>
         </div>
       ))}
 
-      <button className="btn btn-secondary" onClick={addCustomSection} style={{ marginBottom: 24 }}>
+      <button
+        className="btn btn-secondary"
+        onClick={addCustomSection}
+        style={{ marginBottom: 24 }}
+      >
         Add Custom Section
       </button>
 
-      <div style={{ height: 1, background: "var(--color-line)", margin: "20px 0" }} />
+      <div
+        style={{ height: 1, background: "var(--color-line)", margin: "20px 0" }}
+      />
       <div className="field">
         <label>Save this CV as</label>
         <input
@@ -737,17 +1385,51 @@ function AdditionalSectionsStep({
 
 const MAX_PHOTO_DIMENSION = 480;
 
-function SignatureField({ value, onChange }: { value: string | null; onChange: (value: string | null) => void }) {
+function SignatureField({
+  value,
+  onChange,
+}: {
+  value: string | null;
+  onChange: (value: string | null) => void;
+}) {
   const [error, setError] = useState<string | null>(null);
   function load(file: File) {
     setError(null);
-    if (!file.type.startsWith("image/")) { setError("Please choose an image file."); return; }
+    if (!file.type.startsWith("image/")) {
+      setError("Please choose an image file.");
+      return;
+    }
     const reader = new FileReader();
     reader.onload = () => onChange(reader.result as string);
     reader.onerror = () => setError("Couldn't read that signature image.");
     reader.readAsDataURL(file);
   }
-  return <div className="field"><label>Signature Image (optional)</label><p className="field-help">Upload a clear signature on a white background. It stays on this device.</p>{value ? <div className="signature-preview"><img src={value} alt="Signature preview"/><button className="btn btn-ghost" onClick={()=>onChange(null)}>Remove</button></div> : <input type="file" accept="image/*" onChange={(e)=>{const file=e.target.files?.[0];if(file)load(file)}}/>}{error&&<p style={{color:"var(--color-error)"}}>{error}</p>}</div>;
+  return (
+    <div className="field">
+      <label>Signature Image (optional)</label>
+      <p className="field-help">
+        Upload a clear signature on a white background. It stays on this device.
+      </p>
+      {value ? (
+        <div className="signature-preview">
+          <img src={value} alt="Signature preview" />
+          <button className="btn btn-ghost" onClick={() => onChange(null)}>
+            Remove
+          </button>
+        </div>
+      ) : (
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) load(file);
+          }}
+        />
+      )}
+      {error && <p style={{ color: "var(--color-error)" }}>{error}</p>}
+    </div>
+  );
 }
 
 function ProfilePhotoField({
@@ -775,7 +1457,10 @@ function ProfilePhotoField({
     reader.onload = () => {
       const img = new Image();
       img.onload = () => {
-        const scale = Math.min(1, MAX_PHOTO_DIMENSION / Math.max(img.width, img.height));
+        const scale = Math.min(
+          1,
+          MAX_PHOTO_DIMENSION / Math.max(img.width, img.height),
+        );
         const canvas = document.createElement("canvas");
         canvas.width = Math.round(img.width * scale);
         canvas.height = Math.round(img.height * scale);
@@ -797,13 +1482,21 @@ function ProfilePhotoField({
   return (
     <div className="field">
       <label>Profile Photo (optional)</label>
-      <p className="field-help">Upload JPG, PNG or WebP. It is resized and stored only on this device.</p>
+      <p className="field-help">
+        Upload JPG, PNG or WebP. It is resized and stored only on this device.
+      </p>
       {photoDataUrl ? (
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <img
             src={photoDataUrl}
             alt="Profile"
-            style={{ width: 64, height: 64, borderRadius: shape === "round" ? "50%" : "4px", objectFit: "cover", border: "1px solid var(--color-line)" }}
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: shape === "round" ? "50%" : "4px",
+              objectFit: "cover",
+              border: "1px solid var(--color-line)",
+            }}
           />
           <button className="btn btn-ghost" onClick={() => onChange(null)}>
             Remove
@@ -819,7 +1512,17 @@ function ProfilePhotoField({
           }}
         />
       )}
-      {error && <p style={{ color: "var(--color-error)", fontSize: "0.85rem", margin: "4px 0 0" }}>{error}</p>}
+      {error && (
+        <p
+          style={{
+            color: "var(--color-error)",
+            fontSize: "0.85rem",
+            margin: "4px 0 0",
+          }}
+        >
+          {error}
+        </p>
+      )}
     </div>
   );
 }
@@ -842,8 +1545,9 @@ function ReorderSectionsStep({
   return (
     <div>
       <p style={{ color: "var(--color-muted)", marginBottom: 16 }}>
-        Choose the order sections appear in on the exported PDF. Sections with no content are
-        skipped automatically, so it's fine to leave empty ones in whatever position.
+        Choose the order sections appear in on the exported PDF. Sections with
+        no content are skipped automatically, so it's fine to leave empty ones
+        in whatever position.
       </p>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {order.map((key, index) => (

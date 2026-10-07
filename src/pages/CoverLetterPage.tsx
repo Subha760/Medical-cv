@@ -30,19 +30,29 @@ export default function CoverLetterPage() {
     };
   }, [pdfUrl]);
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    const flush = () => {
       if (saveTimer.current) window.clearTimeout(saveTimer.current);
       if (pending.current) {
         try {
           coverLetterStorage.save(pending.current, true);
+          pending.current = null;
         } catch {
-          /* current error remains visible before navigation */
+          /* Preserve current records if storage is unavailable. */
         }
       }
-    },
-    [],
-  );
+    };
+    const hidden = () => {
+      if (document.visibilityState === "hidden") flush();
+    };
+    window.addEventListener("pagehide", flush);
+    document.addEventListener("visibilitychange", hidden);
+    return () => {
+      flush();
+      window.removeEventListener("pagehide", flush);
+      document.removeEventListener("visibilitychange", hidden);
+    };
+  }, []);
   function persist(next: CoverLetter, draft: boolean) {
     try {
       coverLetterStorage.save(next, draft);

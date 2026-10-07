@@ -133,13 +133,11 @@ test("backup import and corrupted collection recovery", async ({ page }) => {
     },
   };
   page.on("dialog", (d) => d.accept());
-  await page
-    .getByLabel("Choose backup file")
-    .setInputFiles({
-      name: "backup.json",
-      mimeType: "application/json",
-      buffer: Buffer.from(JSON.stringify(backup)),
-    });
+  await page.getByLabel("Choose backup file").setInputFiles({
+    name: "backup.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(backup)),
+  });
   await expect(page.getByText(/Backup restored/)).toBeVisible();
   await page.evaluate(() => {
     localStorage.setItem(
@@ -257,4 +255,25 @@ test("Android bridge exports calendar and JSON without browser downloads", async
   await expect
     .poll(() => page.evaluate(() => (window as any).nativeExports.at(-1)?.mime))
     .toBe("application/json");
+});
+
+test("quick reload preserves the latest CV and letter edits", async ({
+  page,
+}) => {
+  await page.goto("/#/new");
+  await page.locator(".template-card").first().click();
+  await page.getByRole("button", { name: "Use this template" }).click();
+  await page.getByLabel("Full Name", { exact: true }).fill("Latest edit");
+  await page.reload();
+  await expect(page.getByLabel("Full Name", { exact: true })).toHaveValue(
+    "Latest edit",
+  );
+  await page.goto("/#/cover-letter");
+  await page
+    .getByLabel("Applicant Name", { exact: true })
+    .fill("Latest letter edit");
+  await page.reload();
+  await expect(page.getByLabel("Applicant Name", { exact: true })).toHaveValue(
+    "Latest letter edit",
+  );
 });
