@@ -145,3 +145,36 @@ test("complete guided interview supports photo, repeated education and custom se
   expect(docs[0].personalInfo.profilePhotoDataUrl).toMatch(/^data:image\/jpeg/);
   expect(docs[0].customSections[0].title).toBe("Volunteering");
 });
+test("first offline install has no false update notice and dark buttons are readable", async ({
+  page,
+}) => {
+  await page.goto("/#/workspace");
+  await page.evaluate(() => navigator.serviceWorker.ready.then(() => true));
+  await page.getByRole("button", { name: "Toggle colour theme" }).click();
+  await page.getByRole("button", { name: "Shifts", exact: true }).click();
+  await expect(
+    page.getByText("An app update is ready. Finish editing first.", {
+      exact: false,
+    }),
+  ).not.toBeVisible();
+  const contrast = await page
+    .getByRole("button", { name: "Review roster import" })
+    .evaluate((el) => {
+      const style = getComputedStyle(el);
+      const luminance = (s: string) => {
+        const a = s
+          .match(/[\d.]+/g)!
+          .slice(0, 3)
+          .map(Number)
+          .map((v) => {
+            v /= 255;
+            return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+          });
+        return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
+      };
+      const a = luminance(style.color),
+        b = luminance(style.backgroundColor);
+      return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+    });
+  expect(contrast).toBeGreaterThanOrEqual(4.5);
+});

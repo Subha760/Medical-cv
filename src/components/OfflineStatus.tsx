@@ -16,7 +16,7 @@ export default function OfflineStatus() {
         .register(`${import.meta.env.BASE_URL}sw.js`)
         .then((reg) => {
           const ready = () => {
-            if (active && reg.waiting) setWorker(reg.waiting);
+            if (active) setWorker(reg.active && reg.waiting ? reg.waiting : null);
           };
           ready();
           reg.addEventListener("updatefound", () =>

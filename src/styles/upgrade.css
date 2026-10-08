@@ -436,3 +436,34 @@ html[data-theme="dark"] .hero__eyebrow {
   content-visibility: auto;
   contain-intrinsic-size: auto 420px;
 }
+.btn-secondary {
+  background: var(--color-paper-raised) !important;
+  color: var(--color-ink) !important;
+  border-color: var(--color-line-strong) !important;
+}
+.nav-bar__links .nav-bar__cta {
+  background: #183343 !important;
+  color: #fff !important;
+}
+html[data-theme="dark"] .nav-bar__links .nav-bar__cta {
+  background: #2c6f67 !important;
+  color: #fff !important;
+}
+html[data-theme="dark"] .btn-primary {
+  background: #5dd9be !important;
+  color: #103431 !important;
+}
+html[data-theme="dark"] .metric,
+html[data-theme="dark"] .photo-filter {
+  background: var(--color-paper-raised);
+  color: var(--color-ink);
+}
+html[data-theme="dark"] .offline-banner {
+  background: #1d443e;
+  color: #b4eadf;
+}
+html[data-theme="dark"] .warning-list {
+  background: #432d22;
+  color: #ffd8b6;
+}
+html[data-theme="dark"]{--color-teal-dark:#7edbc8}html[data-theme="dark"] .workspace-error{background:#432d22;color:#ffd8b6}html[data-theme="dark"] .due-soon{color:#ffd8b6}html[data-theme="dark"] .mobile-links{border-color:var(--color-line)}
