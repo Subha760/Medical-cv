@@ -1,4 +1,5 @@
-import { CvDocument } from "../types/cv";
+import { readCollection, writeCollection, isRecord } from "./safeStorage";
+import { newCvDocument, CvDocument } from "../types/cv";
 import { createId } from "../utils/id";
 
 /**
@@ -11,21 +12,116 @@ import { createId } from "../utils/id";
 
 const STORAGE_KEY = "medcv:documents";
 
-function readAll(): CvDocument[] {
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed.filter(d => d && typeof d.id === 'string' && d.personalInfo) : [];
-  } catch {
-    // Corrupted local storage shouldn't crash the app — treat as empty,
-    // matching the Android app's "Corrupted saved CV" error-handling case.
-    return [];
-  }
+export function isCv(v: unknown): v is CvDocument {
+  if (
+    !isRecord(v) ||
+    typeof v.id !== "string" ||
+    !isRecord(v.personalInfo) ||
+    !isRecord(v.registrationInfo)
+  )
+    return false;
+  const base = newCvDocument(v.id);
+  return (
+    Object.entries(base.personalInfo).every(([key, value]) =>
+      value === null
+        ? v.personalInfo[key] == null || typeof v.personalInfo[key] === "string"
+        : typeof v.personalInfo[key] === "string",
+    ) &&
+    Object.keys(base.registrationInfo).every(
+      (key) => typeof v.registrationInfo[key] === "string",
+    ) &&
+    [
+      "education",
+      "experience",
+      "certifications",
+      "languages",
+      "customSections",
+      "sectionOrder",
+    ].every((key) => Array.isArray(v[key])) &&
+    v.education.every(
+      (e: any) =>
+        isRecord(e) &&
+        [
+          "id",
+          "degree",
+          "institution",
+          "location",
+          "startYear",
+          "graduationYear",
+          "grade",
+        ].every((k) => typeof e[k] === "string"),
+    ) &&
+    v.experience.every(
+      (e: any) =>
+        isRecord(e) &&
+        [
+          "id",
+          "hospital",
+          "department",
+          "position",
+          "specialty",
+          "startDate",
+          "endDate",
+          "responsibilities",
+          "achievements",
+        ].every((k) => typeof e[k] === "string") &&
+        Array.isArray(e.clinicalSkills) &&
+        e.clinicalSkills.every((s: any) => typeof s === "string"),
+    ) &&
+    v.certifications.every(
+      (e: any) =>
+        isRecord(e) &&
+        ["id", "name", "issuingBody", "issueDate", "expiryDate"].every(
+          (k) => typeof e[k] === "string",
+        ),
+    ) &&
+    v.languages.every(
+      (e: any) =>
+        isRecord(e) &&
+        typeof e.language === "string" &&
+        typeof e.proficiency === "string",
+    ) &&
+    v.customSections.every(
+      (e: any) =>
+        isRecord(e) &&
+        typeof e.title === "string" &&
+        Array.isArray(e.entries) &&
+        e.entries.every(
+          (x: any) =>
+            isRecord(x) &&
+            ["id", "heading", "description", "date", "location"].every(
+              (k) => typeof x[k] === "string",
+            ),
+        ),
+    ) &&
+    [
+      "label",
+      "profession",
+      "templateId",
+      "colorId",
+      "skills",
+      "internship",
+      "achievements",
+      "publications",
+      "conferences",
+      "memberships",
+      "references",
+      "hobbies",
+      "declaration",
+      "declarationDate",
+      "declarationPlace",
+      "signatureName",
+    ].every((k) => typeof v[k] === "string") &&
+    v.sectionOrder.every((x: any) => typeof x === "string") &&
+    typeof v.isDraft === "boolean" &&
+    typeof v.updatedAt === "number"
+  );
 }
-
+function readAll(): CvDocument[] {
+  return readCollection(STORAGE_KEY, isCv);
+}
 function writeAll(docs: CvDocument[]): void {
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(docs));
+  writeCollection(STORAGE_KEY, docs);
 }
 
 export const cvStorage = {
@@ -47,7 +143,11 @@ export const cvStorage = {
   },
 
   save(doc: CvDocument, asDraft: boolean): CvDocument {
-    const updated: CvDocument = { ...doc, isDraft: asDraft, updatedAt: Date.now() };
+    const updated: CvDocument = {
+      ...doc,
+      isDraft: asDraft,
+      updatedAt: Date.now(),
+    };
     const all = readAll();
     const idx = all.findIndex((d) => d.id === updated.id);
     if (idx >= 0) {
@@ -65,6 +165,7 @@ export const cvStorage = {
 
   removeAll(): void {
     window.localStorage.removeItem(STORAGE_KEY);
+    window.localStorage.removeItem(`${STORAGE_KEY}:previous`);
   },
 
   duplicate(id: string, newLabel: string): CvDocument | null {

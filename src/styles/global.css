@@ -301,3 +301,5 @@ main { animation:enter-page .3s ease-out; }
     transition-duration: 0.001ms !important;
   }
 }
+
+.offline-banner {background:#e8f3f1;color:#175e53;padding:10px 20px;text-align:center;font-size:.9rem} .offline-banner .btn{padding:6px 12px;margin-left:12px}

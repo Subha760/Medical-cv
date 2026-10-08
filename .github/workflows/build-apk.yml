@@ -2,8 +2,8 @@ name: Build Android APK
 on:
   workflow_dispatch:
   push:
-    branches: [main]
-    paths: ['android/**', 'src/**', 'public/**', 'index.html', '.github/workflows/build-apk.yml', 'package.json', 'package-lock.json', 'vite.config.ts']
+    branches: [main, 'upgrade/**']
+    paths: ['android/**', 'src/**', 'public/**', 'index.html', '.github/workflows/build-apk.yml', 'package.json', 'package-lock.json', 'vite.config.ts', 'scripts/**']
 
 jobs:
   build:
@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
       - run: npm ci
       - run: npm run build

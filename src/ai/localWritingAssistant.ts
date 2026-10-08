@@ -2,38 +2,20 @@ import { CvDocument, ExperienceEntry } from "../types/cv";
 import { PROFESSION_LABELS, defaultSectionOrder } from "../types/cv";
 import { TEMPLATE_CATALOG } from "../data/templateCatalog";
 
-const CLINICAL_PHRASES: Record<string, string[]> = {
-  nurse: ["patient-centred care", "clinical documentation", "medication safety", "multidisciplinary coordination"],
-  psychiatric: ["mental-status assessment", "therapeutic communication", "risk assessment", "de-escalation"],
-  emergency: ["rapid triage", "emergency response", "patient stabilisation", "time-critical care"],
-  icu: ["critical-care monitoring", "ventilator support", "infection prevention", "family communication"],
-  paediatric: ["age-appropriate care", "family education", "medication calculation", "growth monitoring"],
-  surgical: ["perioperative care", "aseptic technique", "post-operative monitoring", "discharge education"],
-};
-
-function roleKey(text: string) {
-  const normalized = text.toLowerCase();
-  return Object.keys(CLINICAL_PHRASES).find((key) => normalized.includes(key)) ?? "nurse";
-}
-
 function compact(items: string[]) {
   return [...new Set(items.map((item) => item.trim()).filter(Boolean))];
 }
 
 export function generateProfessionalSummary(doc: CvDocument): string {
-  const title = doc.personalInfo.professionalTitle.trim() || "Nursing professional";
-  const departments = compact(doc.experience.map((entry) => entry.department || entry.specialty));
-  const key = roleKey(title + " " + departments.join(" "));
+  const title =
+    doc.personalInfo.professionalTitle.trim() ||
+    PROFESSION_LABELS[doc.profession];
+  const areas = compact(doc.experience.map((e) => e.department || e.specialty));
   const skills = compact([
-    ...CLINICAL_PHRASES[key],
-    ...doc.experience.flatMap((entry) => entry.clinicalSkills),
-    ...doc.certifications.map((entry) => entry.name),
+    ...doc.skills.split(/\n|,/),
+    ...doc.experience.flatMap((e) => e.clinicalSkills),
   ]).slice(0, 5);
-  const experience = doc.experience.length
-    ? "with experience across " + (departments.slice(0, 2).join(" and ") || "clinical settings")
-    : "focused on safe, compassionate clinical practice";
-  return title + " " + experience + ". Skilled in " + skills.join(", ") +
-    ". Known for accurate documentation, calm communication, and dependable collaboration with patients, families, and multidisciplinary teams.";
+  return `${title}${areas.length ? " with experience in " + areas.slice(0, 3).join(", ") : ""}.${skills.length ? " Skills include " + skills.join(", ") + "." : ""}`;
 }
 
 const WEAK_STARTS: Array<[RegExp, string]> = [
@@ -45,18 +27,20 @@ const WEAK_STARTS: Array<[RegExp, string]> = [
   [/^was involved in\s+/i, "Contributed to "],
 ];
 
-export function improveResponsibilities(text: string, entry?: ExperienceEntry): string {
+export function improveResponsibilities(
+  text: string,
+  entry?: ExperienceEntry,
+): string {
   const source = text.trim();
   if (!source) {
-    const area = entry?.department || entry?.specialty || "the assigned clinical area";
-    return "Delivered safe, patient-centred care in " + area +
-      "; completed timely assessments and documentation; administered treatment according to protocol; coordinated with the multidisciplinary team; and educated patients and families on ongoing care.";
+    return ""; // Never invent treatment or medication experience.
   }
   return source
     .split(/\n|(?<=[.!?])\s+/)
     .map((sentence) => {
       let improved = sentence.trim();
-      for (const [pattern, replacement] of WEAK_STARTS) improved = improved.replace(pattern, replacement);
+      for (const [pattern, replacement] of WEAK_STARTS)
+        improved = improved.replace(pattern, replacement);
       if (improved && !/[.!?]$/.test(improved)) improved += ".";
       return improved.charAt(0).toUpperCase() + improved.slice(1);
     })
@@ -66,33 +50,109 @@ export function improveResponsibilities(text: string, entry?: ExperienceEntry): 
 
 export function writingTips(doc: CvDocument): string[] {
   const tips: string[] = [];
-  if (doc.personalInfo.professionalSummary.trim().length < 80) tips.push("Build a 2–3 sentence summary with role, specialty, strengths, and outcomes.");
-  if (!doc.experience.some((entry) => /\d/.test(entry.responsibilities))) tips.push("Add truthful numbers where possible, such as patients per shift, team size, or audit results.");
-  if (!doc.experience.some((entry) => entry.clinicalSkills.length)) tips.push("Add role-specific clinical skills so ATS systems can match relevant keywords.");
-  if (!doc.certifications.length) tips.push("List current certifications such as BLS, ACLS, infection control, or specialty training.");
-  return tips.length ? tips : ["Your content has the core information recruiters and ATS systems usually need."];
+  if (doc.personalInfo.professionalSummary.trim().length < 80)
+    tips.push(
+      "Build a 2–3 sentence summary with role, specialty, strengths, and outcomes.",
+    );
+  if (!doc.experience.some((entry) => /\d/.test(entry.responsibilities)))
+    tips.push(
+      "Add truthful numbers where possible, such as patients per shift, team size, or audit results.",
+    );
+  if (!doc.experience.some((entry) => entry.clinicalSkills.length))
+    tips.push(
+      "Add role-specific clinical skills so ATS systems can match relevant keywords.",
+    );
+  if (!doc.certifications.length)
+    tips.push(
+      "List current certifications such as BLS, ACLS, infection control, or specialty training.",
+    );
+  return tips.length
+    ? tips
+    : [
+        "Your content has the core information recruiters and ATS systems usually need.",
+      ];
 }
 
 export function generateAchievements(doc: CvDocument): string {
-  const role = doc.personalInfo.professionalTitle || PROFESSION_LABELS[doc.profession] || "Healthcare professional";
-  const area = doc.experience[0]?.department || doc.experience[0]?.specialty || "clinical care";
-  return `Supported safe, patient-centred ${area} as a ${role.toLowerCase()}.\nContributed to accurate documentation and timely multidisciplinary handovers.`;
+  return compact([
+    doc.achievements,
+    ...doc.experience.map((e) => e.achievements),
+  ]).join("\n");
 }
 
 const ROLE_SKILLS: Partial<Record<CvDocument["profession"], string[]>> = {
-  NURSE: ["Patient assessment", "Medication administration", "Care planning", "Clinical documentation", "Infection prevention"],
-  NURSING_STUDENT: ["Vital signs", "Patient hygiene", "Clinical documentation", "Team communication", "Infection prevention"],
-  DOCTOR: ["Clinical assessment", "Diagnosis", "Treatment planning", "Patient counselling", "Clinical documentation"],
-  MEDICAL_STUDENT: ["History taking", "Physical examination", "Case presentation", "Clinical documentation", "Team communication"],
-  PHARMACIST: ["Medication review", "Dispensing", "Patient counselling", "Drug safety", "Inventory control"],
-  PHYSIOTHERAPIST: ["Functional assessment", "Exercise therapy", "Rehabilitation planning", "Patient education", "Progress documentation"],
-  MEDICAL_LAB_TECHNICIAN: ["Sample processing", "Quality control", "Laboratory safety", "Result documentation", "Equipment maintenance"],
-  RADIOLOGY_TECHNICIAN: ["Patient positioning", "Radiation safety", "Image acquisition", "Equipment operation", "Clinical documentation"],
-  HEALTHCARE_ASSISTANT: ["Personal care", "Vital signs", "Patient mobility", "Infection prevention", "Team communication"],
+  NURSE: [
+    "Patient assessment",
+    "Medication administration",
+    "Care planning",
+    "Clinical documentation",
+    "Infection prevention",
+  ],
+  NURSING_STUDENT: [
+    "Vital signs",
+    "Patient hygiene",
+    "Clinical documentation",
+    "Team communication",
+    "Infection prevention",
+  ],
+  DOCTOR: [
+    "Clinical assessment",
+    "Diagnosis",
+    "Treatment planning",
+    "Patient counselling",
+    "Clinical documentation",
+  ],
+  MEDICAL_STUDENT: [
+    "History taking",
+    "Physical examination",
+    "Case presentation",
+    "Clinical documentation",
+    "Team communication",
+  ],
+  PHARMACIST: [
+    "Medication review",
+    "Dispensing",
+    "Patient counselling",
+    "Drug safety",
+    "Inventory control",
+  ],
+  PHYSIOTHERAPIST: [
+    "Functional assessment",
+    "Exercise therapy",
+    "Rehabilitation planning",
+    "Patient education",
+    "Progress documentation",
+  ],
+  MEDICAL_LAB_TECHNICIAN: [
+    "Sample processing",
+    "Quality control",
+    "Laboratory safety",
+    "Result documentation",
+    "Equipment maintenance",
+  ],
+  RADIOLOGY_TECHNICIAN: [
+    "Patient positioning",
+    "Radiation safety",
+    "Image acquisition",
+    "Equipment operation",
+    "Clinical documentation",
+  ],
+  HEALTHCARE_ASSISTANT: [
+    "Personal care",
+    "Vital signs",
+    "Patient mobility",
+    "Infection prevention",
+    "Team communication",
+  ],
 };
 
 export function suggestedSkillsFor(doc: CvDocument): string[] {
-  return ROLE_SKILLS[doc.profession] ?? ROLE_SKILLS.NURSE ?? [];
+  return (
+    ROLE_SKILLS[doc.profession] ?? [
+      "Team communication",
+      "Professional documentation",
+    ]
+  );
 }
 
 export interface CvAutopilotResult {
@@ -102,14 +162,23 @@ export interface CvAutopilotResult {
 }
 
 export function recommendTemplateId(doc: CvDocument): string {
-  const preferredCategory = doc.profession === "NURSE" || doc.profession === "NURSING_STUDENT"
-    ? "CLINICAL"
-    : doc.profession === "DOCTOR" || doc.profession === "MEDICAL_STUDENT"
-      ? "MODERN_MEDICAL"
-      : "ATS_PROFESSIONAL";
-  return TEMPLATE_CATALOG.find((template) =>
-    template.category === preferredCategory && template.isAtsFriendly && (doc.personalInfo.profilePhotoDataUrl ? template.supportsPhoto : true)
-  )?.id ?? TEMPLATE_CATALOG.find((template) => template.isAtsFriendly)?.id ?? TEMPLATE_CATALOG[0].id;
+  const preferredCategory =
+    doc.profession === "NURSING_STUDENT" || doc.profession === "MEDICAL_STUDENT"
+      ? "STUDENT"
+      : doc.profession === "NURSE"
+        ? "CLINICAL"
+        : doc.profession === "DOCTOR"
+          ? "MODERN_MEDICAL"
+          : "ATS_PROFESSIONAL";
+  return (
+    TEMPLATE_CATALOG.find(
+      (template) =>
+        template.category === preferredCategory &&
+        (doc.personalInfo.profilePhotoDataUrl ? template.supportsPhoto : true),
+    )?.id ??
+    TEMPLATE_CATALOG.find((template) => template.isAtsFriendly)?.id ??
+    TEMPLATE_CATALOG[0].id
+  );
 }
 
 export function runCvAutopilot(source: CvDocument): CvAutopilotResult {
@@ -117,7 +186,10 @@ export function runCvAutopilot(source: CvDocument): CvAutopilotResult {
   const completed: string[] = [];
   const needsInput: string[] = [];
 
-  if (!doc.personalInfo.professionalTitle.trim() && doc.profession !== "OTHER") {
+  if (
+    !doc.personalInfo.professionalTitle.trim() &&
+    doc.profession !== "OTHER"
+  ) {
     doc.personalInfo.professionalTitle = PROFESSION_LABELS[doc.profession];
     completed.push("Added a professional title");
   }
@@ -126,35 +198,38 @@ export function runCvAutopilot(source: CvDocument): CvAutopilotResult {
     completed.push("Drafted the professional summary");
   }
 
-  const suggestedSkills = suggestedSkillsFor(doc);
-  if (!doc.skills?.trim()) {
-    doc.skills = suggestedSkills.join("\n");
-    completed.push("Added role-specific core skills");
-  }
-  doc.experience = doc.experience.map((entry) => {
-    let next = { ...entry };
-    if ((entry.position || entry.hospital || entry.department) && !entry.responsibilities.trim()) {
-      next.responsibilities = improveResponsibilities("", entry);
-      completed.push("Drafted responsibilities for " + (entry.position || entry.hospital || "an experience"));
-    } else if (entry.responsibilities.trim()) {
-      next.responsibilities = improveResponsibilities(entry.responsibilities, entry);
-    }
-    if (!entry.clinicalSkills.length) next.clinicalSkills = suggestedSkills.slice(0, 5);
-    return next;
-  });
-  if (doc.experience.length && doc.experience.some((entry) => entry.clinicalSkills.length)) completed.push("Added role-specific skills");
-
+  if (!doc.skills.trim()) needsInput.push("Confirm your own core skills");
+  if (doc.experience.some((e) => !e.responsibilities.trim()))
+    needsInput.push("Add your actual responsibilities");
   doc.templateId = recommendTemplateId(doc);
-  doc.sectionOrder = defaultSectionOrder();
-  completed.push("Selected an ATS-friendly template", "Optimised the section order");
+  if (!doc.sectionOrder.length) doc.sectionOrder = defaultSectionOrder();
+  completed.push(
+    "Selected an ATS-friendly template",
+    "Optimised the section order",
+  );
 
   if (!doc.personalInfo.fullName.trim()) needsInput.push("Full name");
-  if (!doc.personalInfo.phone.trim() && !doc.personalInfo.email.trim()) needsInput.push("Phone number or email");
-  if (!doc.registrationInfo.registrationNumber.trim() && !["NURSING_STUDENT", "MEDICAL_STUDENT", "HEALTHCARE_ASSISTANT"].includes(doc.profession)) needsInput.push("Registration or licence number");
+  if (!doc.personalInfo.phone.trim() && !doc.personalInfo.email.trim())
+    needsInput.push("Phone number or email");
+  if (
+    !doc.registrationInfo.registrationNumber.trim() &&
+    !["NURSING_STUDENT", "MEDICAL_STUDENT", "HEALTHCARE_ASSISTANT"].includes(
+      doc.profession,
+    )
+  )
+    needsInput.push("Registration or licence number");
   if (!doc.education.length) needsInput.push("Education");
-  if (!doc.experience.length && !["NURSING_STUDENT", "MEDICAL_STUDENT"].includes(doc.profession)) needsInput.push("Clinical experience");
+  if (
+    !doc.experience.length &&
+    !["NURSING_STUDENT", "MEDICAL_STUDENT"].includes(doc.profession)
+  )
+    needsInput.push("Clinical experience");
   if (!doc.languages.length) needsInput.push("Languages");
-  if (!doc.internship?.trim() && ["NURSING_STUDENT", "MEDICAL_STUDENT"].includes(doc.profession)) needsInput.push("Internship or clinical training");
+  if (
+    !doc.internship?.trim() &&
+    ["NURSING_STUDENT", "MEDICAL_STUDENT"].includes(doc.profession)
+  )
+    needsInput.push("Internship or clinical training");
   needsInput.push("Review every generated sentence for accuracy");
 
   return { doc, completed: [...new Set(completed)], needsInput };

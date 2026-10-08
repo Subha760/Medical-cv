@@ -25,7 +25,7 @@ export function validateCv(doc: CvDocument): ValidationIssue[] {
   if (doc.personalInfo.email && !EMAIL_RE.test(doc.personalInfo.email)) {
     issues.push({ message: "Check your email address — it looks incomplete.", isBlocking: false });
   }
-  if (!doc.registrationInfo.registrationNumber.trim()) {
+  if (!["NURSING_STUDENT", "MEDICAL_STUDENT", "HEALTHCARE_ASSISTANT", "OTHER"].includes(doc.profession) && !doc.registrationInfo.registrationNumber.trim()) {
     issues.push({ message: "Add your registration/license number.", isBlocking: false });
   }
   if (doc.education.length === 0) {
@@ -35,6 +35,10 @@ export function validateCv(doc: CvDocument): ValidationIssue[] {
     issues.push({ message: "Your professional summary is quite long — consider trimming it.", isBlocking: false });
   }
 
+  const expired = (date: string) => /^\d{4}-\d{2}-\d{2}$/.test(date) && date < new Date().toLocaleDateString("en-CA");
+  if (expired(doc.registrationInfo.licenseExpiry)) issues.push({message:"Your registration expiry date is in the past. Confirm your current registration status.",isBlocking:false});
+  doc.certifications.forEach(cert => { if (expired(cert.expiryDate)) issues.push({message:`${cert.name || "A certification"} has an expiry date in the past. Confirm whether it is current.`,isBlocking:false}); });
+  doc.experience.forEach(entry => { if (entry.startDate && entry.endDate && /^\d{4}-\d{2}/.test(entry.endDate) && entry.startDate > entry.endDate) issues.push({message:`Check the dates for ${entry.position || "a clinical role"}: the end precedes the start.`,isBlocking:false}); });
   return issues;
 }
 
@@ -65,10 +69,11 @@ export function checkAtsCompatibility(doc: CvDocument, template: CvTemplate): At
   checklist.push(doc.education.length > 0);
   if (doc.education.length === 0) notes.push("No education section detected.");
 
-  checklist.push(doc.experience.length > 0);
-  if (doc.experience.length === 0) notes.push("No clinical experience detected — add at least one role if you have prior experience.");
+  const hasExperience = doc.experience.length > 0 || (["NURSING_STUDENT", "MEDICAL_STUDENT"].includes(doc.profession) && Boolean(doc.internship.trim()));
+  checklist.push(hasExperience);
+  if (!hasExperience) notes.push("No clinical experience detected — add at least one role if you have prior experience.");
 
-  const hasSkillsKeywords = doc.experience.some((e) => e.clinicalSkills.length > 0) || doc.certifications.length > 0;
+  const hasSkillsKeywords = Boolean(doc.skills.trim()) || doc.experience.some((e) => e.clinicalSkills.length > 0) || doc.certifications.length > 0;
   checklist.push(hasSkillsKeywords);
   if (!hasSkillsKeywords) notes.push("Add clinical skills or certifications — these are common ATS keyword targets.");
 
