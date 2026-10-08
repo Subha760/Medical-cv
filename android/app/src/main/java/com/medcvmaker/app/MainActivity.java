@@ -54,7 +54,7 @@ public class MainActivity extends Activity {
             @JavascriptInterface public void savePdf(String base64, String filename) { saveFile(base64,filename,"application/pdf"); }
             @JavascriptInterface public void saveFile(String base64, String filename, String mime) {
                 if (base64 == null || filename == null || base64.length() > 28000000) return;
-                final String safeMime = java.util.Arrays.asList("application/pdf","application/json","text/calendar","text/csv").contains(mime) ? mime : "application/octet-stream";
+                final String safeMime = java.util.Arrays.asList("application/pdf","application/json","text/calendar","text/csv","text/plain").contains(mime) ? mime : "application/octet-stream";
                 runOnUiThread(() -> {
                     if(pendingPdf != null) { Toast.makeText(MainActivity.this,"Finish the current export first",Toast.LENGTH_SHORT).show(); return; }
                     try {

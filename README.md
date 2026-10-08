@@ -4,7 +4,7 @@ A private CV builder and daily companion for nurses and nursing students. React 
 
 ## Features
 
-- Guided healthcare CVs, 126 template variations, photos, section ordering, PDF preview/download, saved CVs, and cover letters.
+- Guided healthcare CVs, 48 original designs in eight categories, photos, section ordering, PDF preview/download, saved CVs, and cover letters.
 - Shift planning with overnight durations and local-calendar ICS export.
 - Professional tasks with priorities, due dates, completion, and overdue indicators.
 - Registration/certification expiry tracker and import from saved CVs.
@@ -37,7 +37,7 @@ npm run test:e2e
 
 `npm run build` creates `dist/` and a versioned offline service worker. Serve the output over HTTPS (localhost also works). The worker precaches only app resources, never advertisements. Updated versions prompt the user to finish editing before activating. Google fonts were removed so font delivery no longer requires third-party access.
 
-Playwright covers desktop and 390px phone layouts, daily tools, persistence, calendar/PDF downloads, backup recovery and offline reopening. `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` can select a system Chromium. PDF checks exercise all 126 variants and a long multipage fixture.
+Playwright covers desktop and 390px phone layouts, daily tools, persistence, calendar/PDF downloads, backup recovery and offline reopening. `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` can select a system Chromium. PDF checks exercise all 48 designs and a long multipage fixture.
 
 ## Google AdSense
 
@@ -53,4 +53,14 @@ Web CI runs logic checks, real production builds, PDF checks and desktop/phone b
 
 ## Limits
 
-The 126 templates are variations across six layout families. PDF fonts currently use jsPDF's built-in Latin fonts; full multilingual script support needs bundled Unicode fonts. No cloud sync, external LLM, background reminders, or clinical decision support is enabled. A signed release and live advertising are separate account-specific steps.
+The 48 templates use ten layout families, eight heading treatments and eight categories; legacy template IDs resolve to a compatible category design. PDF fonts currently use jsPDF's built-in Latin fonts; full multilingual script support needs bundled Unicode fonts. No cloud sync, external LLM, background reminders, or clinical decision support is enabled. A signed release and live advertising are separate account-specific steps.
+
+## Version 3.0
+
+- Animated Mira home interview: answers/skips, photo and signature upload, repeatable education/experience/certifications/languages, custom sections, saved draft and resumable question position.
+- Light/dark appearance, motion-sensitive animation, responsive category navigation, and redesigned cards and hover/focus states.
+- 15 offline assistants: CV bullets, summary, keywords, STAR interviews, flashcards, recall quiz, reflections, SBAR practice, emails, cover letters, study plans, personal task sorting, portfolios, readability and shift preparation. These use local deterministic rules/templates, not neural model weights. They do not diagnose, prescribe, or verify clinical facts.
+- Rota studio: monthly calendar, editable custom shifts, 19 codes, actual split/combined segment durations, OFF/leave days, review-before-save text imports, overlap/rest notices, pay estimates and calendar export. Rota-pro is a reference only and remains unchanged. Imports accept a single staff row of codes, not OCR.
+- AdSense IDs remain blank and ads remain disabled until configured.
+
+Original CV layouts were informed by [RCN CV guidance](https://www.rcn.org.uk/Professional-Development/Your-career/CV-writing), [RCN student guidance](https://www.rcn.org.uk/Professional-Development/Your-career/Student/Student-nurse-CV-writing), [Harvard career templates](https://careerservices.fas.harvard.edu/resources/category/resume-cv-cover-letter-templates/), and [Oxford academic CV guidance](https://www.careers.ox.ac.uk/academic-cvs).

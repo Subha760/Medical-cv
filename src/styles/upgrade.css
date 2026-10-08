@@ -1,0 +1,438 @@
+:root {
+  --color-teal: #167c78;
+  --color-paper: #f5f7fb;
+  --color-paper-raised: #fff;
+  --color-ink: #183343;
+  --color-muted: #617383;
+  --color-line: #e2e9ef;
+  --color-line-strong: #bacbd5;
+  --radius-card: 20px;
+}
+html {
+  scroll-behavior: smooth;
+}
+body {
+  background: var(--color-paper);
+  line-height: 1.6;
+}
+.hero {
+  background:
+    radial-gradient(ellipse at 85% 30%, #bcece375, transparent 50%),
+    radial-gradient(ellipse at 10% 10%, #d9d5ff75, transparent 50%),
+    var(--color-paper) !important;
+}
+.hero h1 {
+  letter-spacing: -0.055em;
+}
+.nav-bar {
+  background: color-mix(
+    in srgb,
+    var(--color-paper-raised) 92%,
+    transparent
+  ) !important;
+  backdrop-filter: blur(18px);
+  box-shadow: 0 4px 30px #17334309;
+}
+.card,
+.workspace .tool-card,
+.copilot-chat {
+  border-radius: 20px !important;
+  box-shadow: 0 8px 32px #163e4c08 !important;
+  border: 1px solid var(--color-line) !important;
+  background: var(--color-paper-raised) !important;
+}
+.btn {
+  border-radius: 12px !important;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s,
+    background 0.2s;
+}
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px #167c7825;
+}
+.btn:disabled {
+  transform: none;
+  box-shadow: none;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid #47b9aa !important;
+  outline-offset: 4px;
+}
+.profession-card,
+.template-card {
+  transition:
+    transform 0.25s,
+    box-shadow 0.25s !important;
+  border-radius: 18px !important;
+}
+.profession-card:hover,
+.template-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 35px #17334315 !important;
+}
+.hero-robot {
+  text-align: center;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  padding: 20px;
+}
+.mira-robot {
+  width: min(100%, 300px);
+  filter: drop-shadow(0 20px 22px #157f7920);
+}
+.robot-float {
+  animation: robot-float 4s ease-in-out infinite;
+}
+.robot-eyes {
+  transform-origin: 130px 100px;
+  animation: robot-blink 5s infinite;
+}
+.robot-wave {
+  transform-origin: 182px 180px;
+  animation: robot-wave 3s ease-in-out infinite;
+}
+.robot-light {
+  animation: robot-glow 2s infinite;
+}
+.robot-caption {
+  font-weight: 700;
+  padding: 12px;
+}
+.copilot {
+  display: grid;
+  grid-template-columns: 0.85fr 1.15fr;
+  gap: 48px;
+  padding-top: 70px;
+  padding-bottom: 70px;
+  align-items: center;
+}
+.copilot-intro h2 {
+  font-size: clamp(1.8rem, 3vw, 2.8rem);
+  letter-spacing: -0.04em;
+}
+.copilot-intro p {
+  color: var(--color-muted);
+}
+.copilot-intro .mira-robot {
+  width: 190px;
+}
+.copilot-chat {
+  padding: 30px;
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+.copilot-chat select,
+.copilot-chat textarea {
+  width: 100%;
+}
+.copilot-chat form {
+  display: grid;
+  gap: 10px;
+}
+.chat-status {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--color-line);
+  padding-bottom: 15px;
+}
+.chat-status span {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: #22a886;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+.chat-bubble {
+  background: var(--color-paper);
+  border-radius: 4px 18px 18px 18px;
+  padding: 18px;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+.chat-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.copilot progress {
+  width: 100%;
+  height: 6px;
+  accent-color: var(--color-teal);
+}
+.category-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 24px 0;
+}
+.category-pills button {
+  border: 1px solid var(--color-line-strong);
+  border-radius: 30px;
+  background: var(--color-paper-raised);
+  color: var(--color-ink);
+  padding: 10px 15px;
+  cursor: pointer;
+}
+.category-pills .active {
+  background: var(--color-teal);
+  color: white;
+  border-color: var(--color-teal);
+}
+.category-pills small {
+  opacity: 0.7;
+  margin-left: 6px;
+}
+.template-category {
+  color: var(--color-teal);
+  font-weight: 700;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.template-description {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  line-height: 1.5;
+}
+.theme-toggle {
+  border: 1px solid var(--color-line);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  padding: 8px 12px;
+  border-radius: 30px;
+  cursor: pointer;
+}
+.assistant-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 10px;
+}
+.assistant-grid button {
+  padding: 15px;
+  border: 1px solid var(--color-line);
+  border-radius: 12px;
+  background: var(--color-paper-raised);
+  color: var(--color-ink);
+  text-align: left;
+  cursor: pointer;
+}
+.assistant-grid button.active {
+  border-color: var(--color-teal);
+  background: var(--color-paper);
+}
+.assistant-output {
+  white-space: pre-wrap;
+  padding: 22px;
+  border-radius: 14px;
+  background: var(--color-paper);
+  line-height: 1.8;
+}
+.rota-codes {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.rota-codes button {
+  padding: 9px 12px;
+  border: 1px solid var(--color-line);
+  border-radius: 10px;
+  background: var(--color-paper-raised);
+  color: var(--color-ink);
+  cursor: pointer;
+}
+.rota-calendar {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  margin: 20px 0;
+}
+.rota-day {
+  padding: 8px;
+  border: 1px solid var(--color-line);
+  border-radius: 10px;
+  min-height: 80px;
+  font-size: 0.8rem;
+  background: var(--color-paper-raised);
+  overflow-wrap: anywhere;
+}
+.rota-day strong {
+  display: block;
+}
+.rota-day span {
+  display: block;
+  color: var(--color-teal);
+}
+html[data-theme="dark"] {
+  --color-paper: #101d2a;
+  --color-paper-raised: #182b3a;
+  --color-ink: #e4f0f5;
+  --color-muted: #a8becb;
+  --color-line: #304757;
+  --color-line-strong: #537080;
+  --color-teal: #5dd9be;
+}
+html[data-theme="dark"] .hero {
+  background:
+    radial-gradient(ellipse at 80% 20%, #16483d, transparent 70%),
+    var(--color-paper) !important;
+}
+html[data-theme="dark"] .how,
+html[data-theme="dark"] .stats,
+html[data-theme="dark"] .final-cta {
+  background: var(--color-paper-raised) !important;
+  color: var(--color-ink);
+}
+html[data-theme="dark"] input,
+html[data-theme="dark"] textarea,
+html[data-theme="dark"] select {
+  background: var(--color-paper-raised);
+  color: var(--color-ink);
+  border-color: var(--color-line-strong);
+}
+html[data-theme="dark"] .workspace-card,
+html[data-theme="dark"] .workspace-panel {
+  background: var(--color-paper-raised) !important;
+  color: var(--color-ink);
+}
+@keyframes robot-float {
+  50% {
+    transform: translateY(-10px);
+  }
+}
+@keyframes robot-blink {
+  0%,
+  44%,
+  48%,
+  100% {
+    transform: scaleY(1);
+  }
+  46% {
+    transform: scaleY(0.08);
+  }
+}
+@keyframes robot-wave {
+  0%,
+  60%,
+  100% {
+    transform: rotate(0);
+  }
+  70%,
+  85% {
+    transform: rotate(15deg);
+  }
+  77%,
+  92% {
+    transform: rotate(-8deg);
+  }
+}
+@keyframes robot-glow {
+  50% {
+    opacity: 0.45;
+  }
+}
+@media (max-width: 700px) {
+  .copilot {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding-top: 35px;
+    padding-bottom: 35px;
+  }
+  .copilot-intro .mira-robot {
+    display: none;
+  }
+  .copilot-chat {
+    padding: 20px;
+  }
+  .hero-robot .mira-robot {
+    width: 220px;
+  }
+  .category-pills {
+    flex-wrap: nowrap;
+    overflow: auto;
+    padding-bottom: 8px;
+  }
+  .category-pills button {
+    flex-shrink: 0;
+  }
+  .rota-day {
+    padding: 5px;
+    min-height: 65px;
+    font-size: 0.7rem;
+  }
+  .nav-bar__inner {
+    flex-wrap: wrap;
+  }
+  .theme-toggle {
+    font-size: 0.75rem;
+  }
+  .assistant-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+html[data-theme="dark"] .workspace-tabs button {
+  background: var(--color-paper-raised);
+  color: var(--color-ink);
+}
+html[data-theme="dark"] .workspace-tabs button[aria-current] {
+  background: #256a63;
+  color: #fff;
+}
+html[data-theme="dark"] .workspace-note {
+  background: #183c39;
+  border-color: #33635b;
+}
+.assistant-grid + .tool-form {
+  grid-template-columns: 1fr;
+}
+.assistant-grid small {
+  color: var(--color-muted);
+}
+.hero-robot + .product-preview[hidden] {
+  display: none;
+}
+.rota-calendar button:hover {
+  border-color: var(--color-teal);
+}
+html[data-theme="dark"] {
+  --color-navy: #b5d8ff;
+  --color-amber-soft: #493521;
+  --color-error: #ffaca3;
+}
+html[data-theme="dark"] .profession-card {
+  background: var(--color-paper-raised);
+  color: var(--color-ink);
+}
+html[data-theme="dark"] .hero__proof {
+  color: var(--color-muted);
+}
+html[data-theme="dark"] .hero__eyebrow {
+  background: #18443e;
+  border-color: #3f756c;
+  color: #8fe0cf;
+}
+.mira-robot {
+  max-height: 300px;
+}
+.template-card {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 420px;
+}

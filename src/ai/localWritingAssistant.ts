@@ -163,16 +163,17 @@ export interface CvAutopilotResult {
 
 export function recommendTemplateId(doc: CvDocument): string {
   const preferredCategory =
-    doc.profession === "NURSE" || doc.profession === "NURSING_STUDENT"
-      ? "CLINICAL"
-      : doc.profession === "DOCTOR" || doc.profession === "MEDICAL_STUDENT"
-        ? "MODERN_MEDICAL"
-        : "ATS_PROFESSIONAL";
+    doc.profession === "NURSING_STUDENT" || doc.profession === "MEDICAL_STUDENT"
+      ? "STUDENT"
+      : doc.profession === "NURSE"
+        ? "CLINICAL"
+        : doc.profession === "DOCTOR"
+          ? "MODERN_MEDICAL"
+          : "ATS_PROFESSIONAL";
   return (
     TEMPLATE_CATALOG.find(
       (template) =>
         template.category === preferredCategory &&
-        template.isAtsFriendly &&
         (doc.personalInfo.profilePhotoDataUrl ? template.supportsPhoto : true),
     )?.id ??
     TEMPLATE_CATALOG.find((template) => template.isAtsFriendly)?.id ??

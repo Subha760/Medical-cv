@@ -5,6 +5,7 @@ export interface Shift {
   start: string;
   end: string;
   label: string;
+  kind?: "off" | "leave";
 }
 export interface Task {
   id: string;
@@ -68,6 +69,7 @@ export function daysUntil(date: string): number {
   );
 }
 export function shiftHours(shift: Shift): number {
+  if (shift.kind) return 0;
   const [a, b] = shift.start.split(":").map(Number);
   const [c, d] = shift.end.split(":").map(Number);
   return ((c * 60 + d - a * 60 - b + 1440) % 1440) / 60;
@@ -110,7 +112,9 @@ export function isWorkspace(v: unknown): v is Workspace {
             (validDate(e.date) &&
               validTime(e.start) &&
               validTime(e.end) &&
-              e.start !== e.end)) &&
+              (e.kind === "off" ||
+                e.kind === "leave" ||
+                (e.kind === undefined && e.start !== e.end)))) &&
           (key !== "credentials" || validDate(e.expiry)) &&
           (key !== "learning" || validDate(e.date)) &&
           (key !== "cards" || validDate(e.due)) &&
@@ -136,24 +140,42 @@ export function calendarFor(shifts: Shift[]): string {
       .replace(/\n/g, "\\n")
       .replace(/,/g, "\\,")
       .replace(/;/g, "\\;");
-  const events = shifts.map((s) => {
-    const end = new Date(`${s.date}T${s.end}:00`);
-    if (s.end <= s.start) end.setDate(end.getDate() + 1);
-    const stamp = (d: string, t: string) =>
-      d.replace(/-/g, "") + "T" + t.replace(":", "") + "00";
-    return [
-      "BEGIN:VEVENT",
-      `UID:${s.id}@medcv.local`,
-      `DTSTAMP:${new Date()
-        .toISOString()
-        .replace(/[-:]/g, "")
-        .replace(/\.\d{3}/, "")}`,
-      `DTSTART:${stamp(s.date, s.start)}`,
-      `DTEND:${stamp(localDate(end), s.end)}`,
-      `SUMMARY:${escape(s.label)}`,
-      "END:VEVENT",
-    ].join("\r\n");
-  });
+  const events = shifts
+    .filter((s) => s.kind !== "off")
+    .map((s) => {
+      if (s.kind === "leave") {
+        const end = new Date(s.date + "T12:00:00");
+        end.setDate(end.getDate() + 1);
+        return [
+          "BEGIN:VEVENT",
+          `UID:${s.id}@medcv.local`,
+          `DTSTAMP:${new Date()
+            .toISOString()
+            .replace(/[-:]/g, "")
+            .replace(/\.\d{3}/, "")}`,
+          `DTSTART;VALUE=DATE:${s.date.replace(/-/g, "")}`,
+          `DTEND;VALUE=DATE:${localDate(end).replace(/-/g, "")}`,
+          `SUMMARY:${escape(s.label)}`,
+          "END:VEVENT",
+        ].join("\r\n");
+      }
+      const end = new Date(`${s.date}T${s.end}:00`);
+      if (s.end <= s.start) end.setDate(end.getDate() + 1);
+      const stamp = (d: string, t: string) =>
+        d.replace(/-/g, "") + "T" + t.replace(":", "") + "00";
+      return [
+        "BEGIN:VEVENT",
+        `UID:${s.id}@medcv.local`,
+        `DTSTAMP:${new Date()
+          .toISOString()
+          .replace(/[-:]/g, "")
+          .replace(/\.\d{3}/, "")}`,
+        `DTSTART:${stamp(s.date, s.start)}`,
+        `DTEND:${stamp(localDate(end), s.end)}`,
+        `SUMMARY:${escape(s.label)}`,
+        "END:VEVENT",
+      ].join("\r\n");
+    });
   return [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",

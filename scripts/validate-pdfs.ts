@@ -61,7 +61,7 @@ writeFileSync(
   Buffer.from(await generateCvPdf(normal).arrayBuffer()),
 );
 console.log(
-  "PASS: all 126 templates export with text inside page bounds; multi-page fixture generated.",
+  `PASS: all ${TEMPLATE_CATALOG.length} templates export with text inside page bounds; multi-page fixture generated.`,
 );
 
 // Verify medically relevant dates survive text extraction from the actual PDF.

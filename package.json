@@ -1,13 +1,13 @@
 {
   "name": "medcv-web",
   "private": true,
-  "version": "2.0.0",
+  "version": "3.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build && node scripts/build-offline.mjs",
     "preview": "vite preview",
-    "test": "node --import tsx tests/core.test.ts",
+    "test": "node --import tsx tests/core.test.ts && node --import tsx tests/upgrade.test.ts",
     "test:pdf": "node --import tsx scripts/validate-pdfs.ts",
     "test:e2e": "playwright test",
     "format": "prettier --write src tests scripts playwright.config.ts"

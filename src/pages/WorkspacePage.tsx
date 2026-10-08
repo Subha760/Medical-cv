@@ -1,3 +1,5 @@
+import RotaPlanner from "../components/RotaPlanner";
+import AssistantStudio from "../components/AssistantStudio";
 import { FormEvent, useState } from "react";
 import { Link } from "react-router-dom";
 import NavBar from "../components/NavBar";
@@ -32,6 +34,7 @@ const TABS = [
   "Study",
   "Career",
   "Wellbeing",
+  "Assistants",
 ] as const;
 type Tab = (typeof TABS)[number];
 export default function WorkspacePage() {
@@ -100,7 +103,7 @@ export default function WorkspacePage() {
       save({ ...data, [section]: data[section].filter((e) => e.id !== id) });
   }
   const upcoming = data.shifts
-    .filter((s) => s.date >= today())
+    .filter((s) => !s.kind && s.date >= today())
     .sort((a, b) => (a.date + a.start).localeCompare(b.date + b.start));
   const due = data.tasks
     .filter((t) => !t.done)
@@ -252,9 +255,14 @@ export default function WorkspacePage() {
             </div>
           </>
         )}
+        {tab === "Assistants" && <AssistantStudio />}
         {tab === "Shifts" && (
           <section className="tool-card">
             <h2>Shift planner</h2>
+            <RotaPlanner
+              shifts={data.shifts}
+              onSave={(shifts) => save({ ...data, shifts })}
+            />
             <p>
               Overnight shifts carry into the following day. Calendar times use
               your local timezone.

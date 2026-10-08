@@ -6,6 +6,7 @@ import NavBar from "../components/NavBar";
 import { cvStorage } from "../storage/cvStorage";
 import { newCvDocument, Profession, PROFESSION_LABELS } from "../types/cv";
 import {
+  CATEGORY_INFO,
   AVAILABLE_COLORS,
   TEMPLATE_CATALOG,
   templateById,
@@ -27,7 +28,7 @@ export default function TemplateSelectPage() {
   const [category, setCategory] = useState("ALL");
   const [query, setQuery] = useState("");
   const [photoOnly, setPhotoOnly] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(24);
+  const [visibleCount, setVisibleCount] = useState(48);
 
   const templates = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -56,7 +57,14 @@ export default function TemplateSelectPage() {
       cvStorage.getById(activeId) || newCvDocument(activeId, profession);
     try {
       cvStorage.save(
-        { ...doc, templateId: selectedTemplateId, colorId: selectedColorId },
+        {
+          ...doc,
+          templateId: selectedTemplateId,
+          colorId: selectedColorId,
+          sectionOrder: cvId
+            ? doc.sectionOrder
+            : templateById(selectedTemplateId).recommendedOrder,
+        },
         true,
       );
     } catch {
@@ -90,7 +98,7 @@ export default function TemplateSelectPage() {
               value={query}
               onChange={(event) => {
                 setQuery(event.target.value);
-                setVisibleCount(24);
+                setVisibleCount(48);
               }}
             />
             <select
@@ -98,12 +106,14 @@ export default function TemplateSelectPage() {
               value={category}
               onChange={(event) => {
                 setCategory(event.target.value);
-                setVisibleCount(24);
+                setVisibleCount(48);
               }}
             >
               {CATEGORIES.map((item) => (
                 <option key={item} value={item}>
-                  {item.replace(/_/g, " ")}
+                  {item === "ALL"
+                    ? "All categories"
+                    : CATEGORY_INFO[item as keyof typeof CATEGORY_INFO].label}
                 </option>
               ))}
             </select>
@@ -113,7 +123,7 @@ export default function TemplateSelectPage() {
                 checked={photoOnly}
                 onChange={(event) => {
                   setPhotoOnly(event.target.checked);
-                  setVisibleCount(24);
+                  setVisibleCount(48);
                 }}
               />{" "}
               Photo templates
@@ -138,6 +148,20 @@ export default function TemplateSelectPage() {
             </select>
           </div>
         )}
+        <div className="category-pills">
+          {CATEGORIES.map((item) => (
+            <button
+              className={category === item ? "active" : ""}
+              key={item}
+              onClick={() => setCategory(item)}
+            >
+              {item === "ALL"
+                ? "All designs"
+                : CATEGORY_INFO[item as keyof typeof CATEGORY_INFO].label}{" "}
+              <small>{item === "ALL" ? 48 : 6}</small>
+            </button>
+          ))}
+        </div>
         <div className="template-grid">
           {templates.slice(0, visibleCount).map((template) => (
             <button
@@ -154,7 +178,13 @@ export default function TemplateSelectPage() {
                     : template.defaultColorId
                 }
               />
+              <small className="template-category">
+                {CATEGORY_INFO[template.category].label}
+              </small>
               <strong>{template.displayName}</strong>
+              <span className="template-description">
+                {template.description}
+              </span>
               <span className="mono-label">
                 {template.layout} · {template.density}
               </span>
