@@ -16,7 +16,7 @@ async function call(
   u: string,
   action: string,
   payload: unknown = {},
-  aal = "aal1",
+  aal: string | null = "aal1",
   role = "authenticated",
 ) {
   const c = await pool.connect();
@@ -59,7 +59,7 @@ async function service(fn: string, args: unknown[]) {
 }
 try {
   await pool.query(
-    "drop schema if exists medcv_private cascade;drop function if exists public.medcv_account(text,jsonb);drop function if exists public.medcv_complete_cv(uuid,uuid,text);drop function if exists public.medcv_finalize_edit(uuid,uuid,uuid,text,text);drop function if exists public.medcv_check_edit(uuid,uuid,uuid,text,text);",
+    "drop schema if exists medcv_private cascade;drop function if exists public.medcv_account(text,jsonb);drop function if exists public.medcv_complete_cv(uuid,uuid,text);drop function if exists public.medcv_finalize_edit(uuid,uuid,uuid,text,text);drop function if exists public.medcv_check_edit(uuid,uuid,uuid,text,text);drop function if exists public.medcv_issue_pulse_session(uuid,uuid,timestamptz);",
   );
   for (const file of readdirSync("supabase/migrations")
     .filter((f) => f.endsWith(".sql"))
@@ -96,6 +96,42 @@ try {
     [owner],
   );
   assert.equal((await call(owner, "admin_report", {}, "aal2")).users, 3);
+  const emailExpiry = new Date(Date.now() + 20 * 60 * 1000).toISOString();
+  await assert.rejects(
+    service("medcv_issue_pulse_session", [ref, sid(ref), emailExpiry]),
+    /Invalid verified owner/,
+  );
+  await assert.rejects(
+    service("medcv_issue_pulse_session", [
+      owner,
+      sid(owner),
+      new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+    ]),
+    /Invalid verified owner/,
+  );
+  await assert.rejects(
+    service("medcv_issue_pulse_session", [owner, sid(ref), emailExpiry]),
+    /Invalid verified owner/,
+  );
+  await service("medcv_issue_pulse_session", [owner, sid(owner), emailExpiry]);
+  assert.equal((await call(owner, "admin_report")).users, 3);
+  await assert.rejects(call(ref, "admin_report"), /Owner MFA/);
+  await pool.query(
+    "update medcv_private.pulse_sessions set expires_at=now()-interval '1 second'",
+  );
+  await assert.rejects(call(owner, "admin_report"), /Owner MFA/);
+  await assert.rejects(call(owner, "admin_report", {}, null), /Owner MFA/);
+  await pool.query("delete from medcv_private.pulse_sessions");
+  assert.equal(
+    (await pool.query("select owner_user_id from medcv_private.config")).rows[0]
+      .owner_user_id,
+    owner,
+  );
+  const grantedReport = await call(owner, "admin_report", {}, "aal2");
+  assert.equal("owner_user_id" in grantedReport.config, false);
+  assert.equal("owner_email" in grantedReport.config, false);
+  assert.equal("identity_pepper" in grantedReport.config, false);
+
   await Promise.all(
     Array.from({ length: 8 }, () =>
       service("medcv_complete_cv", [friend, sid(friend), "a".repeat(64)]),
@@ -236,6 +272,16 @@ try {
         sid(ref),
         "f".repeat(64),
       ]),
+      /permission denied/,
+    );
+    await c.query("rollback");
+    await c.query("begin");
+    await c.query("set local role authenticated");
+    await assert.rejects(
+      c.query(
+        "select public.medcv_issue_pulse_session($1,$2,now()+interval '10 minutes')",
+        [owner, sid(owner)],
+      ),
       /permission denied/,
     );
     await c.query("rollback");

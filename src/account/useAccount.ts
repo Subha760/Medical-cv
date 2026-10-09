@@ -30,6 +30,7 @@ export function useAccount() {
       }
       setError("");
     } catch (e) {
+      setAccount(null);
       setError((e as Error).message);
     } finally {
       setBusy(false);

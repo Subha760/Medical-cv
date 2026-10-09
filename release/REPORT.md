@@ -1,6 +1,6 @@
 # Medico 4.0 delivery report
 
-Prepared 9 October 2026. App: https://subha760.github.io/Medical-cv/ · Pulse: https://subha760.github.io/Medical-cv/pulse/
+Updated 9 October 2026 for 4.1. App: https://medico.choicematrix.in/ · Pulse: https://medico.choicematrix.in/pulse/
 
 ## Delivered
 
@@ -10,7 +10,7 @@ Optional verified accounts provide referral codes, immutable first-enrollment at
 
 One credit buys one permanent premium-template entitlement or one 24-hour imported-document edit session producing one final version. Reference PDFs/DOCX files can be previewed freely. PDF edits preserve reference pages with positioned white covers/text replacements. DOCX imports extract text and rebuild an editable Word document. The server authenticates users, checks the current session/entitlement before processing, bounds request/archive size and fixes the exact final edit intent. Identical retries of a final version are permitted during the reservation; changed versions require a new credit. Unused reservations can be refunded once through Pulse.
 
-Pulse is a separate web entry and separate Android package. Its reports and actions require the configured verified owner plus a verified authenticator and AAL2 session on the server. It provides account/referral/credit/export/unlock statistics, account pauses, audited support adjustments, unused-edit refunds, support replies, feature controls and JSON reports. Reports contain metadata; CV/reference files are not retained as an admin library.
+Pulse is a separate web entry and separate Android package. Its reports and actions require the configured verified owner and either a fresh server-verified Cloudflare email-code session (maximum 30 minutes) or an existing verified authenticator/AAL2 session. The owner email is locked to subhajitsatpathi6@gmail.com and the first verified Auth user ID is pinned. It provides account/referral/credit/export/unlock statistics, account pauses, audited support adjustments, unused-edit refunds, support replies, feature controls and JSON reports. Reports contain metadata; CV/reference files are not retained as an admin library.
 
 ## Verification
 
@@ -25,15 +25,15 @@ Pulse is a separate web entry and separate Android package. Its reports and acti
 
 ## Android and store materials
 
-Medico retains com.medcvmaker.app; Pulse uses com.medcvmaker.app.pulse. Version 4.0.0, versionCode 5, compile/target API 36, minimum API 23. AdMob 24.9.0 is pinned to preserve Android 6 compatibility; UMP 4.0.0 is integrated. Signed release APKs and AABs use the initial private RSA-4096 upload key; its certificate SHA-256 is F8:E9:81:CD:02:67:D4:64:82:F4:D6:A4:DB:86:5E:41:4E:0B:F2:60:66:D3:46:1C:0E:1A:08:33:53:F5:C6:C1. The key/password are not in Git or public deploy files. Back up the private signing package. If an existing store listing uses another certificate, use that existing key or an approved reset rather than this initial key. Export a local backup before replacing a differently signed debug install.
+Medico retains com.medcvmaker.app; Pulse uses com.medcvmaker.app.pulse. Version 4.1.0, versionCode 6, compile/target API 36, minimum API 23. AdMob 24.9.0 is pinned to preserve Android 6 compatibility; UMP 4.0.0 is integrated. Signed release APKs and AABs use the initial private RSA-4096 upload key; its certificate SHA-256 is F8:E9:81:CD:02:67:D4:64:82:F4:D6:A4:DB:86:5E:41:4E:0B:F2:60:66:D3:46:1C:0E:1A:08:33:53:F5:C6:C1. The key/password are not in Git or public deploy files. Back up the private signing package. If an existing store listing uses another certificate, use that existing key or an approved reset rather than this initial key. Export a local backup before replacing a differently signed debug install.
 
 The store kit contains a 512px icon, 1024×500 feature graphic, actual 1170×2532 phone screenshots, descriptions, release notes and a Play/Indus submission/data-safety checklist. These files do not mean a store submission or approval has occurred.
 
 ## Account configuration still required
 
-1. Owner access: create and verify subhajitsatpathi6@gmail.com in the app, then sign in to Pulse and enroll/verify an authenticator. No owner password or authenticator secret is embedded or fabricated.
-2. Production email: configure Supabase SMTP and approved verification redirects. Shared ChoiceMatrix Auth settings were left intact, and no SMTP credentials were supplied. Default Supabase email delivery is limited; general-public referral signup needs this configuration. Email delivery/owner sign-in were not tested with your inbox or credentials.
-3. Custom domain: choicematrix.in is served by Cloudflare nameservers, despite the registrar reference to GoDaddy. DNS/account access was not available. The record in release/dns-record.txt specifies medico CNAME → Subha760.github.io, DNS-only. Activate the GitHub Pages custom domain and HTTPS only after resolution/validation. The existing app URL remains usable.
+1. Owner access is configured: open Pulse, choose Continue with Gmail and verify subhajitsatpathi6@gmail.com using the Cloudflare email code. No public signup or password is required. Inbox verification must be completed by the owner; no successful inbox login was fabricated.
+2. Public signup email: an owner Supabase email request returned HTTP 200, but general-public delivery and inbox receipt were not verified. Auth/SMTP management APIs are unavailable through the connected Supabase tools, and Cloudflare Email Sending returned 2036 Unauthorized. Shared Auth settings are unchanged.
+3. Domain connected: https://medico.choicematrix.in/ is active with Cloudflare managed HTTPS and a dedicated Worker. GitHub Pages remains the build origin; other ChoiceMatrix sites are unchanged. See SECURITY-AND-DOMAIN.md.
 4. Stores: actual Play Console/Indus developer access, declarations, any required closed testing, signing identity confirmation and review are needed. No submission or approval is claimed.
 5. Advertising: web AdSense publisher/slot IDs remain blank. Google-certified CMP configuration and approval flags are also required. Android uses separate AdMob/UMP setup, never web AdSense. SDK initialization/ad requests stay disabled without valid IDs and approval; eligible native home ads also require consent. Referral, workspace, import and Pulse pages are ad-free. No referral award depends on an ad impression/click. Google alone decides approval; policies and original content improve readiness but do not guarantee it.
 
@@ -76,3 +76,7 @@ Signed artifact checksums:
   }
 ]
 ```
+
+## 4.1 security and domain follow-up
+
+See [SECURITY-AND-DOMAIN.md](SECURITY-AND-DOMAIN.md) for the email-code trust boundary, session expiry, pinned owner identity, live domain headers, latest verification and account-access limits. The checksum artifact record above describes the earlier 4.0 binaries; 4.1 builds use the same private signing key.

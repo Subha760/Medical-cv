@@ -97,6 +97,14 @@ test("Pulse discloses no owner reports to signed-out visitors", async ({
   await expect(
     page.getByRole("heading", { name: "Owner sign-in" }),
   ).toBeVisible();
+  await expect(page.getByLabel("Owner Gmail")).toHaveValue(
+    "subhajitsatpathi6@gmail.com",
+  );
+  await expect(page.getByLabel("Owner Gmail")).toHaveAttribute("readonly", "");
+  await expect(page.locator('input[type="password"]')).toHaveCount(0);
+  await expect(
+    page.getByRole("link", { name: "Continue with Gmail" }),
+  ).toHaveAttribute("href", "https://medico.choicematrix.in/pulse/login");
   await expect(
     page.getByRole("heading", { name: "Accounts · newest 200" }),
   ).toHaveCount(0);

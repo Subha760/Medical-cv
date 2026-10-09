@@ -2,8 +2,8 @@
 
 Healthcare CVs and a daily workspace for nurses and nursing students. React, TypeScript and Vite power an offline-capable website and two Android applications.
 
-Live app: https://subha760.github.io/Medical-cv/
-Pulse owner console: https://subha760.github.io/Medical-cv/pulse/
+Live app: https://medico.choicematrix.in/
+Pulse owner console: https://medico.choicematrix.in/pulse/
 
 ## Features
 
@@ -15,7 +15,7 @@ Pulse owner console: https://subha760.github.io/Medical-cv/pulse/
 - Optional verified accounts and a server-authoritative referral ledger. One new verified account completing its first CV earns one credit for its original referrer. Duplicate completions do not earn more credits; installs alone are not counted.
 - One credit permanently unlocks one premium template, or reserves one 24-hour PDF/DOCX edit session producing one final version. Identical retries are allowed; a different version requires a new credit.
 - PDF references with positioned text replacements; DOCX references with extracted text and rebuilt editable Word exports. Limits: 8 MB, 20 PDF pages, 40,000 Word characters. No automatic OCR, secure redaction or exact Word formatting preservation.
-- Separate Pulse entry and Android package with verified-owner/MFA enforcement, reports, credit adjustments, account pauses, unused-edit refunds, support replies, feature flags and an audit trail.
+- Separate Pulse entry and Android package with verified-owner email-code sessions (30 minutes) or verified TOTP/AAL2 enforcement, reports, credit adjustments, account pauses, unused-edit refunds, support replies, feature flags and an audit trail.
 - Public privacy, deletion, support, terms and original career-guide pages; cache/local-storage disclosure.
 
 ## Local development and checks
@@ -59,7 +59,11 @@ CI publishes separate app artifacts and instrumentation reports. Production sign
 
 Web AdSense is disabled until real publisher/slot IDs, approval flags and a Google-certified CMP are configured. Android never loads web AdSense. Native AdMob 24.9.0 and UMP 4.0.0 are integrated with automatic initialization removed; blank IDs/false approval flags prevent ad initialization and requests. A configured eligible home route must also pass consent before loading a banner. Referral, clinical workspace, editing and Pulse screens do not show ads. Gradle properties: `ADMOB_APP_ID`, `ADMOB_BANNER_ID`, `ADS_APPROVED`. Advertising privacy choices appear in Android Settings.
 
-The requested medico.choicematrix.in hostname is not activated until its Cloudflare DNS record resolves and GitHub Pages validates HTTPS. See `release/dns-record.txt`. Production SMTP/verification redirects, owner account and authenticator enrollment, advertising IDs/consent setup and developer-console access remain account-specific configuration.
+The live domain is https://medico.choicematrix.in/ with a dedicated Cloudflare Worker, managed TLS and security headers. GitHub Pages remains the build origin. `cloudflare/medico-domain.mjs` contains the domain Worker; its custom domain is managed by Cloudflare, without changing the other ChoiceMatrix sites.
+
+Pulse’s Continue with Gmail opens Cloudflare Access email verification. The only allowed email is subhajitsatpathi6@gmail.com. A signed Access assertion is verified by `medcv-pulse-access` (RS256/JWKS, fixed issuer/audience, exact email and expiry) before issuing a short-lived owner session. It pins the first verified owner’s Auth user ID. Public/ordinary authenticated roles cannot grant owner sessions. No Gmail password or OAuth inbox access is required. Existing verified TOTP/AAL2 remains supported. Native Pulse’s link opens this secure login in the browser; its packaged offline console does not receive a browser session automatically.
+
+The shared Access organization has an existing team hostname; its name/login design and other Access applications are unchanged. Public signup email still uses Supabase. An owner email request was accepted (HTTP 200); inbox receipt and general-public delivery were not verified. Custom SMTP/auth settings cannot be managed through the connected database tools. Cloudflare Email Sending returned 2036 Unauthorized. Store submission tools/credentials are not connected; developer account declarations, store review and advertising IDs/consent/approval remain external requirements. See `release/SECURITY-AND-DOMAIN.md`.
 
 ## Known limits
 

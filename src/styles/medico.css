@@ -533,3 +533,23 @@ td button {
     gap: 28px;
   }
 }
+
+.pulse-sign-in {
+  max-width: 760px;
+  margin-top: 2rem;
+}
+.pulse-sign-in input[readonly] {
+  font-weight: 600;
+  color: var(--text, #123345);
+}
+.gmail-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #fff;
+  color: #2563eb;
+  font-weight: 800;
+  margin-right: 0.4rem;
+}

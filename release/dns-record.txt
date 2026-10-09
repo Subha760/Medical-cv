@@ -1,9 +1,9 @@
-Authoritative DNS provider: Cloudflare
-Type: CNAME
-Name: medico
-Target: Subha760.github.io
-Proxy: DNS only
-TTL: Auto
-
-After DNS resolves, configure medico.choicematrix.in in GitHub Pages and enable HTTPS.
-The existing https://subha760.github.io/Medical-cv/ URL has not been redirected to an unresolved hostname.
+ACTIVE: https://medico.choicematrix.in/
+Authoritative DNS: Cloudflare (cora.ns.cloudflare.com, skip.ns.cloudflare.com)
+Registrar: GoDaddy; do not change the existing nameservers.
+A dedicated Cloudflare Worker custom domain medico.choicematrix.in serves GitHub Pages /Medical-cv/ at the root URL and manages TLS.
+Worker: medico-domain
+Account: 112da2f92ad121c9c15f2e1de3089908
+Zone: 65ddb1fa47ebeedc5976ccaf6a8eafa0
+Other ChoiceMatrix DNS records and Workers were not changed.
+No separate CNAME to GitHub Pages is required for this Worker configuration.
