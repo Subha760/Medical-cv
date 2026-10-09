@@ -1,0 +1,22 @@
+[
+  {
+    "file": "Medico-4.0.apk",
+    "bytes": 8529760,
+    "sha256": "91eb60f9caeadf234df046e49cd7edcbeed30ad0019bfbe5799a1998f89709cb"
+  },
+  {
+    "file": "Pulse-4.0.apk",
+    "bytes": 8529760,
+    "sha256": "d2f52e50ed1ecf663bae90e93feac20b849964f77502df683b834d3995568bb6"
+  },
+  {
+    "file": "Medico-4.0.aab",
+    "bytes": 8270622,
+    "sha256": "dd5916f403e9f56fe7bbe635b8ffe4c79c70d8f747f4c9097f4d771315a216b8"
+  },
+  {
+    "file": "Pulse-4.0.aab",
+    "bytes": 8270707,
+    "sha256": "6f3a2055d1bdd8e83fed4917fa3b852f17e6cf6c2118bf67170b7ab98e4ca346"
+  }
+]
