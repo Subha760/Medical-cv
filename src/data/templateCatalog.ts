@@ -1,3 +1,4 @@
+import { unlockedPremiumById } from "./templateRegistry";
 export type TemplateCategory =
   | "ATS_PROFESSIONAL"
   | "MODERN_MEDICAL"
@@ -695,6 +696,33 @@ const presets: Record<TemplateCategory, Preset[]> = {
     ],
   ],
 };
+// Additional original layouts: structure changes rather than colour-only copies.
+for (const [category, rows] of Object.entries(presets)) {
+  rows.push([
+    "folio-plus",
+    CATEGORY_INFO[category as TemplateCategory].label.split(" & ")[0] +
+      " Folio",
+    "cards",
+    "masthead",
+    "caps",
+    "mono",
+    "airy",
+    category === "INTERNATIONAL",
+    "Editorial masthead, modular records and precise monospaced typography.",
+  ]);
+  rows.push([
+    "registry-plus",
+    CATEGORY_INFO[category as TemplateCategory].label.split(" & ")[0] +
+      " Registry",
+    "right-sidebar",
+    "boxed",
+    "numbered",
+    "sans",
+    "balanced",
+    category === "INTERNATIONAL",
+    "A framed identity with a numbered main column and separate credential rail.",
+  ]);
+}
 const defaultColors: Record<TemplateCategory, string> = {
   ATS_PROFESSIONAL: "navy",
   CLINICAL: "teal",
@@ -760,7 +788,10 @@ export const AVAILABLE_COLORS = [
   "purple",
 ];
 export function templateById(id: string): CvTemplate {
-  const current = TEMPLATE_CATALOG.find((t) => t.id === id);
+  const current =
+    unlockedPremiumById(id) || TEMPLATE_CATALOG.find((t) => t.id === id);
+  if (id.startsWith("premium_") && !current)
+    throw new Error("Sign in to load your unlocked premium template.");
   if (current) return current;
   // Existing 2.0 CVs keep a suitable category-specific design after the catalogue migration.
   const category = Object.keys(CATEGORY_INFO).find((k) =>

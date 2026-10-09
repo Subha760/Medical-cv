@@ -1,0 +1,9 @@
+Authoritative DNS provider: Cloudflare
+Type: CNAME
+Name: medico
+Target: Subha760.github.io
+Proxy: DNS only
+TTL: Auto
+
+After DNS resolves, configure medico.choicematrix.in in GitHub Pages and enable HTTPS.
+The existing https://subha760.github.io/Medical-cv/ URL has not been redirected to an unresolved hostname.

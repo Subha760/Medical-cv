@@ -1,14 +1,9 @@
 import { readCollection, writeCollection, isRecord } from "./safeStorage";
 import { newCvDocument, CvDocument } from "../types/cv";
+import { validCustom } from "../data/customTemplates";
 import { createId } from "../utils/id";
 
-/**
- * Everything here reads/writes ONLY window.localStorage. There is no fetch(),
- * no XMLHttpRequest, nothing that leaves the browser — this file is the web
- * equivalent of the Android app's CvRepositoryImpl (Room-backed), and carries
- * the exact same guarantee: CV content never reaches a server. See the
- * Android project's spec section 3/20/65 for the source of that requirement.
- */
+// Drafts remain local. Explicit verification/import actions use separate account services.
 
 const STORAGE_KEY = "medcv:documents";
 
@@ -22,6 +17,7 @@ export function isCv(v: unknown): v is CvDocument {
     return false;
   const base = newCvDocument(v.id);
   return (
+    (v.customTemplate === undefined || validCustom(v.customTemplate)) &&
     Object.entries(base.personalInfo).every(([key, value]) =>
       value === null
         ? v.personalInfo[key] == null || typeof v.personalInfo[key] === "string"

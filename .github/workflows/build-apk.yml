@@ -2,8 +2,19 @@ name: Build Android APK
 on:
   workflow_dispatch:
   push:
-    branches: [main, 'upgrade/**']
-    paths: ['android/**', 'src/**', 'public/**', 'index.html', '.github/workflows/build-apk.yml', 'package.json', 'package-lock.json', 'vite.config.ts', 'scripts/**']
+    branches: [main, "upgrade/**"]
+    paths:
+      [
+        "android/**",
+        "src/**",
+        "public/**",
+        "index.html",
+        ".github/workflows/build-apk.yml",
+        "package.json",
+        "package-lock.json",
+        "vite.config.ts",
+        "scripts/**",
+      ]
 
 jobs:
   build:
@@ -20,11 +31,11 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: "17"
       - uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.9'
-      - run: gradle -p android assembleDebug
+          gradle-version: "8.11.1"
+      - run: gradle -p android assembleDebug assembleRelease bundleRelease
       - name: Enable emulator acceleration
         run: |
           sudo chmod 666 /dev/kvm
@@ -34,8 +45,23 @@ jobs:
           api-level: 29
           arch: x86_64
           disable-animations: true
-          script: gradle -p android connectedDebugAndroidTest || { adb logcat -d -s chromium MedCV; exit 1; }
+          script: gradle -p android connectedMedicoDebugAndroidTest connectedPulseDebugAndroidTest || { adb logcat -d -s chromium MedCV; exit 1; }
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: MedCV-Maker-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: Medico-Android
+          path: |
+            android/app/build/outputs/apk/medico/**/*.apk
+            android/app/build/outputs/bundle/medicoRelease/*.aab
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Pulse-Android
+          path: |
+            android/app/build/outputs/apk/pulse/**/*.apk
+            android/app/build/outputs/bundle/pulseRelease/*.aab
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Android-instrumentation-reports
+          path: android/app/build/reports/androidTests/

@@ -1,66 +1,66 @@
-# MedCV Nursing Workspace 2.0
+# MedCV · Medico 4
 
-A private CV builder and daily companion for nurses and nursing students. React + TypeScript + Vite power the website and an offline Android WebView app.
+Healthcare CVs and a daily workspace for nurses and nursing students. React, TypeScript and Vite power an offline-capable website and two Android applications.
+
+Live app: https://subha760.github.io/Medical-cv/
+Pulse owner console: https://subha760.github.io/Medical-cv/pulse/
 
 ## Features
 
-- Guided healthcare CVs, 48 original designs in eight categories, photos, section ordering, PDF preview/download, saved CVs, and cover letters.
-- Shift planning with overnight durations and local-calendar ICS export.
-- Professional tasks with priorities, due dates, completion, and overdue indicators.
-- Registration/certification expiry tracker and import from saved CVs.
-- CPD/placement learning log, reflections, learning-hour totals, and CSV export.
-- Local notes-to-study-cards assistant with scheduled review.
-- Nursing job keyword matching, STAR interview practice feedback, and application status tracker.
-- Personal shift checklist and reflection prompts.
-- Full editable JSON backup/restore, previous-revision recovery, and visible storage failures.
-- Installable web app with offline caching after its first successful online load. Android bundles the same tools offline.
+- 64 free original templates in eight categories and 32 original premium designs.
+- Free custom-layout studio: structure, heading treatments, type, density and accents, with a live PDF preview and portable backup configuration.
+- Mira's animated guided CV interview, with skipped questions, images, repeated entries, saved drafts and editable forms.
+- Local CV drafts, PDF exports, cover letters, photos/signatures, validated backups and recovery.
+- Nursing shift plans, reviewed rota imports, calendar exports, task/credential/study/application tools and 15 rule-based offline assistants. These are not trained generative models or clinical decision systems.
+- Optional verified accounts and a server-authoritative referral ledger. One new verified account completing its first CV earns one credit for its original referrer. Duplicate completions do not earn more credits; installs alone are not counted.
+- One credit permanently unlocks one premium template, or reserves one 24-hour PDF/DOCX edit session producing one final version. Identical retries are allowed; a different version requires a new credit.
+- PDF references with positioned text replacements; DOCX references with extracted text and rebuilt editable Word exports. Limits: 8 MB, 20 PDF pages, 40,000 Word characters. No automatic OCR, secure redaction or exact Word formatting preservation.
+- Separate Pulse entry and Android package with verified-owner/MFA enforcement, reports, credit adjustments, account pauses, unused-edit refunds, support replies, feature flags and an audit trail.
+- Public privacy, deletion, support, terms and original career-guide pages; cache/local-storage disclosure.
 
-## Local assistants and privacy
-
-Assistants use deterministic local rules, not a remote generative model. They organise supplied notes and CV facts without sending them to an AI provider. CV Autopilot requires confirmation and no longer inserts unverified duties or skills. Suggested skills must still be reviewed by the user.
-
-Daily tools are for personal professional planning and education; they do not diagnose, recommend treatment, or store patient records. In-app renewal/review reminders are visible when opening the app; no background push notifications are promised. Learning hours are personal records, not accredited credits. Job matching and the CV completeness estimate do not reproduce an employer's ATS scoring.
-
-Data stays in localStorage. Export backups regularly, especially before clearing browser data or uninstalling the Android app. Backups include personal data and should be stored securely. Corrupted collections are preserved and saving is blocked until recovery; Settings can download raw backup data and restore the previous valid local revision.
-
-## Run and verify
+## Local development and checks
 
 ```sh
 npm ci
 npm run dev
 npm test
+npm run test:documents
 npm run build
 npm run test:pdf
-npx playwright install --with-deps chromium
 npm run test:e2e
 ```
 
-`npm run build` creates `dist/` and a versioned offline service worker. Serve the output over HTTPS (localhost also works). The worker precaches only app resources, never advertisements. Updated versions prompt the user to finish editing before activating. Google fonts were removed so font delivery no longer requires third-party access.
+`test:pdf` checks all 96 original designs. Browser checks cover desktop/390px phone layouts, custom/premium galleries, Word/PDF references, guided CVs, workspace/export/backup/offline flows and signed-out Pulse access. `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` can select a local Chromium.
 
-Playwright covers desktop and 390px phone layouts, daily tools, persistence, calendar/PDF downloads, backup recovery and offline reopening. `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` can select a system Chromium. PDF checks exercise all 48 designs and a long multipage fixture.
+`npm run test:backend` is exclusively for a disposable PostgreSQL 17 test database initialized with `tests/fixtures/auth.sql`. Set `MEDCV_TEST_DB_HOST` and optional `MEDCV_TEST_DB_PASSWORD`. It recreates the MedCV test schema and verifies role boundaries, verified sessions, owner MFA, concurrent credit spending/referral deduplication, final-version binding, export preflight and profile deletion abuse prevention. Never point it at production. CI creates its own PostgreSQL service.
 
-## Google AdSense
+## Backend and privacy
 
-Monetag integration has been removed. Copy `.env.example` to `.env` and set your real `VITE_ADSENSE_CLIENT_ID` and `VITE_ADSENSE_SLOT_ID` when ready. Both are intentionally empty by default. Without valid values, no ad script, placeholder, or ad network request is made.
+The backend uses dedicated `medcv_private` tables in the connected ChoiceMatrix Supabase project. Existing Deals tables and shared Auth settings are not changed. Clients have no direct table access. Public invoker RPCs call private, narrowly granted handlers; receipt/finalization/preflight helpers are service-role-only. Owner identity is configured server-side, and administration also requires a verified authenticator and AAL2 session. Session records, expiry and email verification are checked by the database.
 
-AdSense is web-only on the home screen after opting in; it is excluded from editors, previews and the offline Android app. Settings can reset advertising consent. Production advertising also requires your approved AdSense site, applicable regional consent configuration (including a Google-certified CMP where required), and the ads.txt entry supplied by your account. These account-specific steps cannot be completed with empty IDs.
+`supabase/functions/medcv-gateway` authenticates every request with Supabase `getUser` and then validates the continued session/entitlement in PostgreSQL. Its platform JWT flag is disabled because the function implements authentication itself; this is not an anonymous processing route. It limits request size and archive expansion, checks entitlements before rendering and never persists reference-file/CV content. The publishable frontend key is not a service key. Migration files and deployment source are included; server secrets are never shipped to browsers.
 
-## Android
+Ordinary CV/workspace editing stays local. Explicit referral completion verification transmits CV text excluding photos/signatures and retains a hash/receipt. Paid import exports process the reference and edit intent transiently, retaining entitlement/hash metadata. See the live policy for provider logs, deletion and retained anti-abuse fingerprints.
 
-The app uses WebViewAssetLoader and blocks remote asset requests. PDFs, JSON backups, calendars and CSV exports use the Android system file picker. The web build is copied into the APK by `.github/workflows/build-apk.yml`. The workflow builds a debug APK and runs Android 10 emulator smoke tests, including the nursing workspace. A production Play Store release requires your signing configuration; signing credentials are not included.
+## Android and store preparation
 
-Web CI runs logic checks, real production builds, PDF checks and desktop/phone browser tests. See `.github/workflows/verify.yml`.
+AGP 8.10.1 / Gradle 8.11.1 / Java 17 / compile and target API 36 / minimum API 23. Product flavors: `medico` retains `com.medcvmaker.app`; `pulse` uses `com.medcvmaker.app.pulse`. The bridged WebView serves packaged local files; only the configured Supabase HTTPS host is allowed for API resources, and remote navigation opens externally. File exports use Android's document picker. Android 10 instrumentation exercises both entries; API 36 window insets are handled.
 
-## Limits
+```sh
+npm run build
+mkdir -p android/app/src/main/assets/web
+cp -R dist/. android/app/src/main/assets/web/
+gradle -p android assembleDebug assembleRelease bundleRelease
+```
 
-The 48 templates use ten layout families, eight heading treatments and eight categories; legacy template IDs resolve to a compatible category design. PDF fonts currently use jsPDF's built-in Latin fonts; full multilingual script support needs bundled Unicode fonts. No cloud sync, external LLM, background reminders, or clinical decision support is enabled. A signed release and live advertising are separate account-specific steps.
+CI publishes separate app artifacts and instrumentation reports. Production signing keys/passwords live outside Git and the web bundle. Preserve the initial upload key privately; use the existing store certificate instead if this package already has a published listing. Store listings, assets generator, submission checklist and DNS instructions are in `release/`. Actual store submissions require the developer accounts, signing identity, required testing and review.
 
-## Version 3.0
+## Advertising and domain
 
-- Animated Mira home interview: answers/skips, photo and signature upload, repeatable education/experience/certifications/languages, custom sections, saved draft and resumable question position.
-- Light/dark appearance, motion-sensitive animation, responsive category navigation, and redesigned cards and hover/focus states.
-- 15 offline assistants: CV bullets, summary, keywords, STAR interviews, flashcards, recall quiz, reflections, SBAR practice, emails, cover letters, study plans, personal task sorting, portfolios, readability and shift preparation. These use local deterministic rules/templates, not neural model weights. They do not diagnose, prescribe, or verify clinical facts.
-- Rota studio: monthly calendar, editable custom shifts, 19 codes, actual split/combined segment durations, OFF/leave days, review-before-save text imports, overlap/rest notices, pay estimates and calendar export. Rota-pro is a reference only and remains unchanged. Imports accept a single staff row of codes, not OCR.
-- AdSense IDs remain blank and ads remain disabled until configured.
+Web AdSense is disabled until real publisher/slot IDs, approval flags and a Google-certified CMP are configured. Android never loads web AdSense. Native AdMob 24.9.0 and UMP 4.0.0 are integrated with automatic initialization removed; blank IDs/false approval flags prevent ad initialization and requests. A configured eligible home route must also pass consent before loading a banner. Referral, clinical workspace, editing and Pulse screens do not show ads. Gradle properties: `ADMOB_APP_ID`, `ADMOB_BANNER_ID`, `ADS_APPROVED`. Advertising privacy choices appear in Android Settings.
 
-Original CV layouts were informed by [RCN CV guidance](https://www.rcn.org.uk/Professional-Development/Your-career/CV-writing), [RCN student guidance](https://www.rcn.org.uk/Professional-Development/Your-career/Student/Student-nurse-CV-writing), [Harvard career templates](https://careerservices.fas.harvard.edu/resources/category/resume-cv-cover-letter-templates/), and [Oxford academic CV guidance](https://www.careers.ox.ac.uk/academic-cvs).
+The requested medico.choicematrix.in hostname is not activated until its Cloudflare DNS record resolves and GitHub Pages validates HTTPS. See `release/dns-record.txt`. Production SMTP/verification redirects, owner account and authenticator enrollment, advertising IDs/consent setup and developer-console access remain account-specific configuration.
+
+## Known limits
+
+PDFs use built-in Latin fonts; full complex-script support needs bundled Unicode fonts. There is no general cloud CV library, background notification service, install attestation or clinical decision engine. Word import rebuilds text instead of reproducing arbitrary layouts. Template gating is an entitlement control, not DRM for files already downloaded. All premium designs are original; no third-party paid template code or assets are redistributed. See `release/template-research.md` for references.

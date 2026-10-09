@@ -1,11 +1,17 @@
 import { generateCvPdf } from "../src/pdf/pdfGenerator";
 import { demoCv } from "../src/data/demoCv";
+import { readFileSync } from "node:fs";
+import { registerPremiumTemplate } from "../src/data/templateRegistry";
 import { TEMPLATE_CATALOG } from "../src/data/templateCatalog";
 import { writeFileSync, mkdirSync } from "node:fs";
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
 import assert from "node:assert/strict";
 mkdirSync("tmp/pdf-checks", { recursive: true });
-for (const t of TEMPLATE_CATALOG) {
+const premium = JSON.parse(
+  readFileSync("release/premium-configs.json", "utf8"),
+);
+premium.forEach(registerPremiumTemplate);
+for (const t of [...TEMPLATE_CATALOG, ...premium]) {
   const d = demoCv(t.id, t.defaultColorId);
   const bytes = new Uint8Array(await generateCvPdf(d).arrayBuffer());
   const task = getDocument({ data: bytes, useSystemFonts: true });
@@ -61,7 +67,7 @@ writeFileSync(
   Buffer.from(await generateCvPdf(normal).arrayBuffer()),
 );
 console.log(
-  `PASS: all ${TEMPLATE_CATALOG.length} templates export with text inside page bounds; multi-page fixture generated.`,
+  `PASS: all ${TEMPLATE_CATALOG.length + premium.length} templates export with text inside page bounds; multi-page fixture generated.`,
 );
 
 // Verify medically relevant dates survive text extraction from the actual PDF.

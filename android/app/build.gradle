@@ -2,17 +2,38 @@ plugins { id 'com.android.application' }
 
 android {
     namespace 'com.medcvmaker.app'
-    compileSdk 35
+    compileSdk 36
+    buildFeatures { buildConfig true }
+    flavorDimensions 'audience'
+    productFlavors {
+        medico {
+            dimension 'audience'
+            manifestPlaceholders.appName = 'MedCV Medico'
+            buildConfigField 'String', 'APP_ENTRY', '"index.html"'
+        }
+        pulse {
+            dimension 'audience'
+            applicationIdSuffix '.pulse'
+            manifestPlaceholders.appName = 'Pulse Admin'
+            buildConfigField 'String', 'APP_ENTRY', '"pulse/index.html"'
+        }
+    }
     defaultConfig {
         applicationId 'com.medcvmaker.app'
         minSdk 23
-        targetSdk 35
-        versionCode 4
-        versionName '3.0.0'
+        targetSdk 36
+        versionCode 5
+        versionName '4.0.0'
+        buildConfigField 'boolean', 'ADS_APPROVED', (project.findProperty('ADS_APPROVED') ?: 'false')
+        buildConfigField 'String', 'ADMOB_APP_ID', '"' + (project.findProperty('ADMOB_APP_ID') ?: '') + '"'
+        buildConfigField 'String', 'ADMOB_BANNER_ID', '"' + (project.findProperty('ADMOB_BANNER_ID') ?: '') + '"'
+        manifestPlaceholders.adMobAppId = project.findProperty('ADMOB_APP_ID') ?: ''
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
 }
 dependencies {
+    implementation 'com.google.android.gms:play-services-ads:24.9.0'
+    implementation 'com.google.android.ump:user-messaging-platform:4.0.0'
     implementation 'androidx.webkit:webkit:1.12.1'
     androidTestImplementation 'androidx.test:runner:1.6.2'
     androidTestImplementation 'androidx.test:rules:1.6.1'

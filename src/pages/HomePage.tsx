@@ -29,7 +29,9 @@ export default function HomePage() {
               <h1>Your nursing career. Your daily companion.</h1>
               <p className="hero__sub">
                 Build a professional healthcare CV, plan shifts, track
-                credentials, and study smarter. Your work stays on your device.
+                credentials, and study smarter. Your daily drafts stay on your
+                device. Optional verified referrals unlock premium templates and
+                document editing.
               </p>
               <div className="hero__ctas">
                 <button
@@ -46,9 +48,9 @@ export default function HomePage() {
                 </button>
               </div>
               <div className="hero__proof">
-                <span>✓ No sign-up</span>
+                <span>✓ Free CVs without sign-up</span>
                 <span>✓ Works offline</span>
-                <span>✓ Private on your device</span>
+                <span>✓ Local drafts</span>
               </div>
             </div>
             <div className="hero-robot">
@@ -75,12 +77,12 @@ export default function HomePage() {
         <section className="stats">
           <div className="container stats__grid">
             <div>
-              <b>48</b>
-              <span>CV templates</span>
+              <b>96</b>
+              <span>64 free + 32 premium</span>
             </div>
             <div>
               <b>100%</b>
-              <span>private & local</span>
+              <span>local CV storage</span>
             </div>
             <div>
               <b>ATS</b>

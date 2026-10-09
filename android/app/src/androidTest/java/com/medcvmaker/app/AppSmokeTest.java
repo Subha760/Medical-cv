@@ -18,7 +18,7 @@ public class AppSmokeTest {
         CountDownLatch latch=new CountDownLatch(1);
         AtomicReference<String> result=new AtomicReference<>();
         rule.getActivity().runOnUiThread(()-> {
-            WebView web=(WebView)((ViewGroup)rule.getActivity().findViewById(android.R.id.content)).getChildAt(0);
+            WebView web=rule.getActivity().getBrowser();
             web.evaluateJavascript(script,value->{result.set(value);latch.countDown();});
         });
         assertTrue(latch.await(10,TimeUnit.SECONDS));return result.get();
@@ -28,11 +28,18 @@ public class AppSmokeTest {
         fail("WebView condition failed: "+expression+"; page="+js("document.body.innerText"));
     }
     @Test public void offlineAssetsTemplatesAndEditorLoad() throws Exception {
+        if (BuildConfig.APP_ENTRY.startsWith("pulse/")) {
+            waitFor("document.body.innerText.includes('Owner sign-in')");
+            assertEquals("true",js("!document.body.innerText.includes('Accounts · newest')"));
+            assertEquals("true",js("document.documentElement.scrollWidth<=window.innerWidth+1"));
+            return;
+        }
         waitFor("document.body.innerText.includes('Create my CV')");
         assertEquals("true",js("window.isSecureContext"));
         assertEquals("true",js("!!window.MedCVAndroid"));
         js("location.hash='/new'");
         waitFor("document.querySelectorAll('.template-card').length>0");
+        js("document.querySelector('.template-card').scrollIntoView()");
         waitFor("document.querySelectorAll('canvas').length>0");
         js("document.querySelector('.template-card').click()");
         waitFor("!!document.querySelector('.template-confirm__action')");
@@ -42,6 +49,12 @@ public class AppSmokeTest {
         assertEquals("true",js("document.documentElement.scrollWidth<=window.innerWidth+1"));
     }
     @Test public void nursingWorkspaceAndFileExportsAvailableOffline() throws Exception {
+        if (BuildConfig.APP_ENTRY.startsWith("pulse/")) {
+            waitFor("document.body.innerText.includes('Owner sign-in')");
+            assertEquals("true",js("!document.body.innerText.includes('Accounts · newest')"));
+            assertEquals("true",js("document.documentElement.scrollWidth<=window.innerWidth+1"));
+            return;
+        }
         waitFor("document.body.innerText.includes('Create my CV')");
         assertEquals("true",js("typeof window.MedCVAndroid.saveFile === 'function'"));
         js("location.hash='/workspace'");

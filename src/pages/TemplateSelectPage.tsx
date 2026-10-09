@@ -1,3 +1,9 @@
+import { PREMIUM_CATALOG } from "../data/premiumCatalog";
+import { registerPremiumTemplate } from "../data/templateRegistry";
+import { accountAction } from "../account/client";
+import { useAccount } from "../account/useAccount";
+import { Link } from "react-router-dom";
+import type { CvTemplate } from "../data/templateCatalog";
 import { useMemo, useState } from "react";
 import TemplatePreview from "../components/TemplatePreview";
 import { createId } from "../utils/id";
@@ -21,6 +27,9 @@ const CATEGORIES = [
 export default function TemplateSelectPage() {
   const { cvId } = useParams<{ cvId: string }>();
   const navigate = useNavigate();
+  const { account, refresh } = useAccount();
+  const [tier, setTier] = useState<"free" | "premium">("free");
+  const [unlocking, setUnlocking] = useState(false);
   const [profession, setProfession] = useState<Profession>("NURSE");
   const [error, setError] = useState("");
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
@@ -28,7 +37,7 @@ export default function TemplateSelectPage() {
   const [category, setCategory] = useState("ALL");
   const [query, setQuery] = useState("");
   const [photoOnly, setPhotoOnly] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(48);
+  const [visibleCount, setVisibleCount] = useState(64);
 
   const templates = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -45,6 +54,11 @@ export default function TemplateSelectPage() {
     });
   }, [category, query, photoOnly]);
 
+  function confirmUnlock(name: string) {
+    return window.confirm(
+      `Use one referral credit to unlock ${name} permanently?`,
+    );
+  }
   function pickTemplate(templateId: string) {
     setSelectedTemplateId(templateId);
     setSelectedColorId(templateById(templateId).defaultColorId);
@@ -98,7 +112,7 @@ export default function TemplateSelectPage() {
               value={query}
               onChange={(event) => {
                 setQuery(event.target.value);
-                setVisibleCount(48);
+                setVisibleCount(64);
               }}
             />
             <select
@@ -106,7 +120,7 @@ export default function TemplateSelectPage() {
               value={category}
               onChange={(event) => {
                 setCategory(event.target.value);
-                setVisibleCount(48);
+                setVisibleCount(64);
               }}
             >
               {CATEGORIES.map((item) => (
@@ -123,7 +137,7 @@ export default function TemplateSelectPage() {
                 checked={photoOnly}
                 onChange={(event) => {
                   setPhotoOnly(event.target.checked);
-                  setVisibleCount(48);
+                  setVisibleCount(64);
                 }}
               />{" "}
               Photo templates
@@ -148,6 +162,22 @@ export default function TemplateSelectPage() {
             </select>
           </div>
         )}
+        <div className="tier-selector">
+          <button
+            className={tier === "free" ? "active" : ""}
+            onClick={() => setTier("free")}
+          >
+            Free · 64 designs
+          </button>
+          <button
+            className={tier === "premium" ? "active" : ""}
+            onClick={() => setTier("premium")}
+          >
+            Premium · 32 designs
+          </button>
+          <Link to="/design">Design a custom template →</Link>
+          <Link to="/import">Import your own PDF / Word →</Link>
+        </div>
         <div className="category-pills">
           {CATEGORIES.map((item) => (
             <button
@@ -158,50 +188,131 @@ export default function TemplateSelectPage() {
               {item === "ALL"
                 ? "All designs"
                 : CATEGORY_INFO[item as keyof typeof CATEGORY_INFO].label}{" "}
-              <small>{item === "ALL" ? 48 : 6}</small>
-            </button>
-          ))}
-        </div>
-        <div className="template-grid">
-          {templates.slice(0, visibleCount).map((template) => (
-            <button
-              key={template.id}
-              data-layout={template.layout}
-              className={`card template-card ${template.id === selectedTemplateId ? "is-selected" : ""}`}
-              onClick={() => pickTemplate(template.id)}
-            >
-              <TemplatePreview
-                id={template.id}
-                color={
-                  template.id === selectedTemplateId
-                    ? selectedColorId
-                    : template.defaultColorId
-                }
-              />
-              <small className="template-category">
-                {CATEGORY_INFO[template.category].label}
+              <small>
+                {tier === "free"
+                  ? item === "ALL"
+                    ? TEMPLATE_CATALOG.length
+                    : TEMPLATE_CATALOG.filter((t) => t.category === item).length
+                  : item === "ALL"
+                    ? 32
+                    : 4}
               </small>
-              <strong>{template.displayName}</strong>
-              <span className="template-description">
-                {template.description}
-              </span>
-              <span className="mono-label">
-                {template.layout} · {template.density}
-              </span>
-              <span className="template-badges">
-                {template.isAtsFriendly && <span>ATS</span>}
-                {template.supportsPhoto && <span>Photo</span>}
-              </span>
             </button>
           ))}
         </div>
+        {tier === "premium" && (
+          <>
+            <p>
+              One verified referral credit unlocks one original premium design
+              permanently.{" "}
+              {account
+                ? `${account.credits} credits available.`
+                : "Sign in to unlock."}{" "}
+              Original designs informed by professional resume conventions; no
+              third-party paid templates are redistributed.
+            </p>
+            <div className="template-grid">
+              {PREMIUM_CATALOG.filter(
+                (t) =>
+                  (category === "ALL" || t.category === category) &&
+                  (!query ||
+                    t.name.toLowerCase().includes(query.toLowerCase())) &&
+                  (!photoOnly || t.supportsPhoto),
+              ).map((t) => (
+                <button
+                  className="card template-card premium-card"
+                  disabled={unlocking}
+                  key={t.id}
+                  onClick={async () => {
+                    if (!account) {
+                      navigate("/account");
+                      return;
+                    }
+                    if (
+                      !account.unlocks.includes(t.id) &&
+                      !confirmUnlock(t.name)
+                    )
+                      return;
+                    setUnlocking(true);
+                    setError("");
+                    try {
+                      const config = await accountAction<CvTemplate>("unlock", {
+                        templateId: t.id,
+                      });
+                      registerPremiumTemplate(config);
+                      localStorage.setItem(
+                        "medico:premium:" + t.id,
+                        JSON.stringify(config),
+                      );
+                      pickTemplate(t.id);
+                      await refresh();
+                    } catch (e) {
+                      setError((e as Error).message);
+                    } finally {
+                      setUnlocking(false);
+                    }
+                  }}
+                >
+                  <img
+                    loading="lazy"
+                    src={import.meta.env.BASE_URL + t.preview}
+                    alt={t.name + " preview"}
+                  />
+                  <small>Premium · {CATEGORY_INFO[t.category].label}</small>
+                  <strong>{t.name}</strong>
+                  <span>{t.description}</span>
+                  <span className="premium-badge">
+                    {account?.unlocks.includes(t.id)
+                      ? "Unlocked · choose design"
+                      : "Unlock · 1 referral credit"}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+        {tier === "free" && (
+          <div className="template-grid">
+            {templates.slice(0, visibleCount).map((template) => (
+              <button
+                key={template.id}
+                data-layout={template.layout}
+                className={`card template-card ${template.id === selectedTemplateId ? "is-selected" : ""}`}
+                onClick={() => pickTemplate(template.id)}
+              >
+                <TemplatePreview
+                  id={template.id}
+                  color={
+                    template.id === selectedTemplateId
+                      ? selectedColorId
+                      : template.defaultColorId
+                  }
+                />
+                <small className="template-category">
+                  {CATEGORY_INFO[template.category].label}
+                </small>
+                <strong>{template.displayName}</strong>
+                <span className="template-description">
+                  {template.description}
+                </span>
+                <span className="mono-label">
+                  {template.layout} · {template.density}
+                </span>
+                <span className="template-badges">
+                  {template.isAtsFriendly && <span>ATS</span>}
+                  {template.supportsPhoto && <span>Photo</span>}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
 
-        {!templates.length && (
+        {tier === "free" && !templates.length && (
           <div className="card" style={{ padding: 28 }}>
             No template matches your search.
           </div>
         )}
-        {visibleCount < templates.length && (
+        {tier === "free" && visibleCount < templates.length && (
           <button
             className="btn btn-secondary"
             style={{ marginTop: 20 }}

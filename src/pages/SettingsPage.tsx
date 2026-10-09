@@ -1,17 +1,188 @@
-import { useState } from 'react';
-import NavBar from '../components/NavBar';
-import { DATA_KEYS, exportBackup, restoreBackup, recoverPrevious } from '../storage/backup';
-import { downloadFile } from '../utils/download';
-import '../styles/workspace.css';
+import { useState } from "react";
+import NavBar from "../components/NavBar";
+import {
+  DATA_KEYS,
+  exportBackup,
+  restoreBackup,
+  recoverPrevious,
+} from "../storage/backup";
+import { downloadFile } from "../utils/download";
+import "../styles/workspace.css";
 export default function SettingsPage() {
-  const [message,setMessage]=useState('');const [error,setError]=useState('');
-  async function act(fn:()=>void|Promise<void>) {try{await fn();setError('');}catch(e){setError(e instanceof Error?e.message:'Operation failed.');}}
-  return <><NavBar/><main className="container workspace" style={{maxWidth:800}}><h1>Backup & settings</h1>
-    {error&&<p role="alert" className="workspace-error">{error}</p>}{message&&<p role="status">{message}</p>}
-    <section className="tool-card"><h2>Your privacy</h2><p>CVs, letters, shifts, tasks, credentials, learning logs and study cards are stored in this browser or Android app. Writing and study assistants run locally using rules; no external AI service receives your information.</p><p>Clearing browser data or uninstalling the Android app can remove saved work. Download backups regularly. Backup files contain personal information; store them securely.</p><p>Google AdSense is optional on the website when publisher IDs are configured. It is disabled in the offline Android app and never appears in the CV editor or document preview.</p><button className="btn btn-secondary" onClick={()=>act(()=>{localStorage.removeItem('medcv:adsConsent');setMessage('Advertising consent reset. Reloading to stop loaded advertising scripts.');window.location.reload();})}>Reset advertising consent</button></section>
-    <section className="tool-card"><h2>Download a full backup</h2><p>Includes your CVs, cover letters, daily workspace, and previous local revisions. A PDF alone cannot restore an editable CV.</p><button className="btn btn-primary" onClick={()=>act(()=>downloadFile(new Blob([exportBackup()],{type:'application/json'}),`MedCV-backup-${new Date().toISOString().slice(0,10)}.json`))}>Download backup</button></section>
-    <section className="tool-card"><h2>Restore from backup</h2><p>Restoring replaces current records. Download your current backup first.</p><label>Choose backup file<input type="file" accept=".json,application/json" onChange={e=>{const file=e.target.files?.[0];e.target.value='';if(!file)return;act(async()=>{if(file.size>20*1024*1024)throw new Error('Backup exceeds the 20 MB import limit.');const raw=await file.text();if(!window.confirm('Replace current saved records with this backup?'))return;restoreBackup(raw);setMessage('Backup restored. Open the workspace or your saved CVs.');});}}/></label></section>
-    <section className="tool-card"><h2>Recover previous local revision</h2><p>If saved data cannot be read, export a backup first, then recover the last valid revision.</p><div className="button-row">{DATA_KEYS.map(key=><button key={key} className="btn btn-secondary" onClick={()=>act(()=>{if(!window.confirm('Replace this collection with its previous revision?'))return;recoverPrevious(key);setMessage('Previous revision recovered.');})}>Recover {key.split(':')[1]}</button>)}</div></section>
-    <section className="tool-card"><h2>Delete all saved data</h2><p>Permanently removes all CVs, letters, workspace records and local recovery copies from this device.</p><button className="btn btn-secondary" onClick={()=>act(()=>{if(!window.confirm('Permanently delete all saved CVs, letters and daily workspace data? This cannot be undone.'))return;for(const key of DATA_KEYS){localStorage.removeItem(key);localStorage.removeItem(`${key}:previous`);}localStorage.removeItem('medcv:adsConsent');setMessage('All saved data deleted.');})}>Delete all saved data</button></section>
-  </main></>;
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  async function act(fn: () => void | Promise<void>) {
+    try {
+      await fn();
+      setError("");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Operation failed.");
+    }
+  }
+  return (
+    <>
+      <NavBar />
+      <main className="container workspace" style={{ maxWidth: 800 }}>
+        {window.MedCVAndroid?.adPrivacyChoices && (
+          <button
+            className="btn btn-secondary"
+            onClick={() => window.MedCVAndroid?.adPrivacyChoices?.()}
+          >
+            Advertising privacy choices
+          </button>
+        )}
+        <h1>Backup & settings</h1>
+        {error && (
+          <p role="alert" className="workspace-error">
+            {error}
+          </p>
+        )}
+        {message && <p role="status">{message}</p>}
+        <section className="tool-card">
+          <h2>Your privacy</h2>
+          <p>
+            CVs, letters, shifts, tasks, credentials, learning logs and study
+            cards are stored in this browser or Android app. Writing and study
+            assistants run locally using rules; no external AI service receives
+            your information.
+          </p>
+          <p>
+            Clearing browser data or uninstalling the Android app can remove
+            saved work. Download backups regularly. Backup files contain
+            personal information; store them securely.
+          </p>
+          <p>
+            Google AdSense is optional on the website when publisher IDs are
+            configured. It is disabled in the offline Android app and never
+            appears in the CV editor or document preview.
+          </p>
+          <button
+            className="btn btn-secondary"
+            onClick={() =>
+              act(() => {
+                localStorage.removeItem("medcv:adsConsent");
+                setMessage(
+                  "Advertising consent reset. Reloading to stop loaded advertising scripts.",
+                );
+                window.location.reload();
+              })
+            }
+          >
+            Reset advertising consent
+          </button>
+        </section>
+        <section className="tool-card">
+          <h2>Download a full backup</h2>
+          <p>
+            Includes your CVs, cover letters, daily workspace, and previous
+            local revisions. A PDF alone cannot restore an editable CV.
+          </p>
+          <button
+            className="btn btn-primary"
+            onClick={() =>
+              act(() =>
+                downloadFile(
+                  new Blob([exportBackup()], { type: "application/json" }),
+                  `MedCV-backup-${new Date().toISOString().slice(0, 10)}.json`,
+                ),
+              )
+            }
+          >
+            Download backup
+          </button>
+        </section>
+        <section className="tool-card">
+          <h2>Restore from backup</h2>
+          <p>
+            Restoring replaces current records. Download your current backup
+            first.
+          </p>
+          <label>
+            Choose backup file
+            <input
+              type="file"
+              accept=".json,application/json"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                e.target.value = "";
+                if (!file) return;
+                act(async () => {
+                  if (file.size > 20 * 1024 * 1024)
+                    throw new Error("Backup exceeds the 20 MB import limit.");
+                  const raw = await file.text();
+                  if (
+                    !window.confirm(
+                      "Replace current saved records with this backup?",
+                    )
+                  )
+                    return;
+                  restoreBackup(raw);
+                  setMessage(
+                    "Backup restored. Open the workspace or your saved CVs.",
+                  );
+                });
+              }}
+            />
+          </label>
+        </section>
+        <section className="tool-card">
+          <h2>Recover previous local revision</h2>
+          <p>
+            If saved data cannot be read, export a backup first, then recover
+            the last valid revision.
+          </p>
+          <div className="button-row">
+            {DATA_KEYS.map((key) => (
+              <button
+                key={key}
+                className="btn btn-secondary"
+                onClick={() =>
+                  act(() => {
+                    if (
+                      !window.confirm(
+                        "Replace this collection with its previous revision?",
+                      )
+                    )
+                      return;
+                    recoverPrevious(key);
+                    setMessage("Previous revision recovered.");
+                  })
+                }
+              >
+                Recover {key.split(":")[1]}
+              </button>
+            ))}
+          </div>
+        </section>
+        <section className="tool-card">
+          <h2>Delete all saved data</h2>
+          <p>
+            Permanently removes all CVs, letters, workspace records and local
+            recovery copies from this device.
+          </p>
+          <button
+            className="btn btn-secondary"
+            onClick={() =>
+              act(() => {
+                if (
+                  !window.confirm(
+                    "Permanently delete all saved CVs, letters and daily workspace data? This cannot be undone.",
+                  )
+                )
+                  return;
+                for (const key of DATA_KEYS) {
+                  localStorage.removeItem(key);
+                  localStorage.removeItem(`${key}:previous`);
+                }
+                localStorage.removeItem("medcv:adsConsent");
+                setMessage("All saved data deleted.");
+              })
+            }
+          >
+            Delete all saved data
+          </button>
+        </section>
+      </main>
+    </>
+  );
 }
