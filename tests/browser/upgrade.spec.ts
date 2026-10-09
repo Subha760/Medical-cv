@@ -72,9 +72,11 @@ test("complete guided interview supports photo, repeated education and custom se
 }) => {
   test.setTimeout(90000);
   async function advance(name: string) {
-    const question = await page.locator(".chat-bubble").innerText();
+    const question = await page.locator(".chat-bubble").allTextContents();
     await page.getByRole("button", { name, exact: true }).click();
-    await expect(page.locator(".chat-bubble")).not.toHaveText(question);
+    await expect
+      .poll(() => page.locator(".chat-bubble").allTextContents())
+      .not.toEqual(question);
   }
   await page.goto("/");
   await page.setViewportSize({ width: 320, height: 720 });
