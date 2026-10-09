@@ -32,3 +32,7 @@ The domain adds HSTS, no-sniff, frame denial, a content security policy allowing
 - Supabase's shared-project advisor lists unrelated pre-existing Deals function grants and disabled leaked-password protection. No MedCV private-table/grant warning was returned. Shared-project Auth configuration could not be changed through this connection; the email-code owner path does not use a password.
 
 Changes: source version 4.1.0; Android versionCode 6, versionName 4.1.0. Initial signing key remains private and is reused for updates.
+
+## Release evidence
+
+The web and PostgreSQL CI run [37970904426](https://github.com/Subha760/Medical-cv/actions/runs/37970904426), Android build/emulator run [37970904398](https://github.com/Subha760/Medical-cv/actions/runs/37970904398), and production deploy [37970904386](https://github.com/Subha760/Medical-cv/actions/runs/37970904386) passed. A live phone browser check reached the Cloudflare “Send login code” screen for Pulse with no page errors and rendered the custom PDF preview. The actual owner inbox code was not entered by the agent. Signatures, 16 KB APK alignment and all 74 packaged web files verify. Checksum details are in verified-artifacts-4.1.json.

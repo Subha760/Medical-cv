@@ -1,4 +1,4 @@
-# Medico 4.0 delivery report
+# Medico 4.1 delivery report
 
 Updated 9 October 2026 for 4.1. App: https://medico.choicematrix.in/ · Pulse: https://medico.choicematrix.in/pulse/
 
@@ -21,7 +21,7 @@ Pulse is a separate web entry and separate Android package. Its reports and acti
 - Latest web CI passes on both push and pull-request runs, including 32 desktop/phone browser cases. The custom-preview flow also passes four repeated runs per viewport after the initial empty-preview area was fixed.
 - Android 10 instrumentation passes for both Medico and Pulse. The final release build passed before signing/delivery. The production phone app, premium previews, custom PDF preview, protected Pulse and public privacy page were also checked after deployment with no page errors or horizontal overflow. Both APK signatures (v1/v2/v3), 16 KB ZIP alignment and both AAB signatures verify; all 74 packaged web resources match the verified build byte-for-byte. API 36 insets are implemented; a physical Android 16 device was not available for additional hardware testing.
 - The deployed document service rejects anonymous and invalid-token requests with HTTP 401. It authenticates inside the function and checks sessions/entitlements in PostgreSQL; its platform JWT flag is intentionally disabled to use that explicit authentication.
-- Supabase's security advisor reports no Medico schema findings. Two pre-existing warnings concern the unrelated Deals function public.bump_deal_feed_revision; no changes were made to that service. Reference: https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable
+- Supabase's security advisor reports no Medico schema findings. Shared-project warnings concern the unrelated Deals function public.bump_deal_feed_revision and disabled leaked-password protection; no changes were made to that service or shared Auth configuration. The new owner email-code flow does not use a password. Reference: https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable
 
 ## Android and store materials
 
@@ -41,7 +41,7 @@ The store kit contains a 512px icon, 1024×500 feature graphic, actual 1170×253
 
 PDF exports use built-in Latin fonts. Complex-script fonts and arbitrary Word layouts/images are not preserved. Scanned PDFs have manual overlays, not OCR. White covers are not secure redaction. Local assistants use rules/templates, not trained LLMs or treatment guidance. No background reminder service, general cloud CV sync or install attestation is enabled. Ordinary local drafts can be lost if browser/app storage is cleared; keep exported backups. Template entitlements are not DRM for an already exported file. Imported files/CV verification text are transiently processed only through explicit actions; technical logs and hashes/metadata follow the public privacy policy.
 
-## Release evidence
+## Earlier 4.0 release evidence
 
 Source release commit: 3eff6fff0008004ac877943cc82d7cc2ebf1f0cb. Merged PR: https://github.com/Subha760/Medical-cv/pull/2.
 
@@ -80,3 +80,41 @@ Signed artifact checksums:
 ## 4.1 security and domain follow-up
 
 See [SECURITY-AND-DOMAIN.md](SECURITY-AND-DOMAIN.md) for the email-code trust boundary, session expiry, pinned owner identity, live domain headers, latest verification and account-access limits. The checksum artifact record above describes the earlier 4.0 binaries; 4.1 builds use the same private signing key.
+
+## Verified 4.1 release
+
+Application source commit: 5246ade80466e2a9292e14a46c7f650c6ec65d74. The later domain-policy, documentation and test-wait updates do not change packaged app resources.
+
+- Web/PostgreSQL/32 desktop-phone CI cases: https://github.com/Subha760/Medical-cv/actions/runs/37970904426
+- Medico/Pulse Android builds and Android 10 instrumentation: https://github.com/Subha760/Medical-cv/actions/runs/37970904398
+- Production deployment: https://github.com/Subha760/Medical-cv/actions/runs/37970904386
+- Live custom-domain phone check: home, custom PDF canvas, locked owner Gmail, no password field and secure Cloudflare email-code screen passed, with no page errors. Completing the actual inbox code requires the owner.
+- Full local browser run passed 29 cases and exposed three timing failures under parallel execution. The affected category, interview and preview flows passed again on both viewports with one worker (six cases). Test waits now follow question changes and scroll the lazy preview into view. The full CI suite passed all 32 cases.
+- Both release APKs verify v1/v2/v3 signatures and 16 KB ZIP alignment. Both AAB signatures verify. All 74 packaged web resources in both APKs match the verified build byte-for-byte. npm audit reports zero production or development vulnerabilities.
+
+Signed 4.1 artifact checksums:
+
+```json
+[
+  {
+    "file": "Medico-4.1.apk",
+    "bytes": 8533856,
+    "sha256": "fe953cbaf30d2ed3dcd88079201e50c7e6cae189d2d9b07596ef1b46247d1fd8"
+  },
+  {
+    "file": "Pulse-4.1.apk",
+    "bytes": 8533856,
+    "sha256": "6a8e526dd4ebd016947bcbad282e9fc4c616c302a538e6760b6bdeeaa98abaf0"
+  },
+  {
+    "file": "Medico-4.1.aab",
+    "bytes": 8276902,
+    "sha256": "a5e0d32339837dd0bb101794ae94a7ab03f8d621658232ef216f30d191114170"
+  },
+  {
+    "file": "Pulse-4.1.aab",
+    "bytes": 8276976,
+    "sha256": "d8fe1c305db264ada8e1b5a81a40c7b460e6a64151a0d6d8e723a5f85f754b7c"
+  }
+]
+```

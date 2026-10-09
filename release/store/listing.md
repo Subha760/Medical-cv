@@ -4,9 +4,9 @@ App name: MedCV: Nursing CV & Workspace
 Short description: Build healthcare CVs, plan shifts and organise your nursing career.
 Category: Productivity (review the Medical category if adding clinical services later).
 Support: subhajitsatpathi6@gmail.com
-Website: https://subha760.github.io/Medical-cv/
-Privacy policy: https://subha760.github.io/Medical-cv/privacy.html
-Account deletion: https://subha760.github.io/Medical-cv/account-deletion.html
+Website: https://medico.choicematrix.in/
+Privacy policy: https://medico.choicematrix.in/privacy.html
+Account deletion: https://medico.choicematrix.in/account-deletion.html
 Audience: adults; nurses, nursing students and other healthcare professionals.
 Package: com.medcvmaker.app
 Version: 4.0.0 / versionCode 5 / target API 36 / minimum API 23.
@@ -34,5 +34,7 @@ Free CV and workspace tools work offline without an account. Optional verified a
 Advertising is currently disabled pending approval and configuration. The app includes disabled AdMob/consent integration for a future approved release. Nursing study features are for practice and organisation; they do not diagnose, prescribe or replace workplace policies. Do not enter identifiable patient information.
 
 ## Release notes
+
+4.1: Live medico.choicematrix.in HTTPS domain and private Pulse owner email-code sign-in, strengthened session boundaries and patched dependencies.
 
 New custom layout studio, expanded original template library, verified referral credits, PDF/Word edit workflow, private owner administration, storage disclosures, improved mobile styling and Android API 36 support.

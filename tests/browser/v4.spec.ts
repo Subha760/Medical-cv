@@ -30,7 +30,8 @@ test("free and premium libraries, original previews and custom design work", asy
   await page.getByLabel("layout", { exact: true }).selectOption("ledger");
   await page.getByLabel("fontStyle", { exact: true }).selectOption("serif");
   await page.getByRole("button", { name: "View live layout preview" }).click();
-  await expect(page.locator("canvas").first()).toBeVisible();
+  await page.locator(".pdf-pages").first().scrollIntoViewIfNeeded();
+  await expect(page.locator("canvas").first()).toBeVisible({ timeout: 15000 });
   await page.getByRole("button", { name: "Apply custom design" }).click();
   await expect(
     page.getByText("Personal Details", { exact: true }),

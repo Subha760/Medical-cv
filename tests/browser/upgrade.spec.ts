@@ -55,6 +55,9 @@ test("template categories select genuinely different designs", async ({
   page,
 }) => {
   await page.goto("/#/new");
+  await expect(
+    page.getByRole("heading", { name: "Choose a CV template" }),
+  ).toBeVisible({ timeout: 15000 });
   await expect(page.locator(".category-pills button")).toHaveCount(9);
   await page.getByLabel("Template category").selectOption("STUDENT");
   await expect(page.locator(".template-card")).toHaveCount(8);
@@ -68,13 +71,18 @@ test("complete guided interview supports photo, repeated education and custom se
   page,
 }) => {
   test.setTimeout(90000);
+  async function advance(name: string) {
+    const question = await page.locator(".chat-bubble").innerText();
+    await page.getByRole("button", { name, exact: true }).click();
+    await expect(page.locator(".chat-bubble")).not.toHaveText(question);
+  }
   await page.goto("/");
   await page.setViewportSize({ width: 320, height: 720 });
   await page
     .getByRole("button", { name: "Start guided CV", exact: true })
     .click();
   await page.getByLabel("Your answer", { exact: true }).fill("Taylor Student");
-  await page.getByRole("button", { name: "Save answer & continue" }).click();
+  await advance("Save answer & continue");
   for (let i = 0; i < 100; i++) {
     if (
       await page
@@ -103,29 +111,20 @@ test("complete guided interview supports photo, repeated education and custom se
       await expect(page.locator(".chat-bubble")).not.toHaveText(
         "Would you like to add a profile photo?",
       );
-    } else
-      await page
-        .getByRole("button", { name: "Skip question", exact: true })
-        .click();
+    } else await advance("Skip question");
   }
   await page
     .getByRole("button", { name: "Add education", exact: true })
     .click();
   await page.getByLabel("Your answer", { exact: true }).fill("BSc Nursing");
-  await page.getByRole("button", { name: "Save answer & continue" }).click();
-  for (let i = 0; i < 5; i++)
-    await page
-      .getByRole("button", { name: "Skip question", exact: true })
-      .click();
+  await advance("Save answer & continue");
+  for (let i = 0; i < 5; i++) await advance("Skip question");
   await page
     .getByRole("button", { name: "Add custom section", exact: true })
     .click();
   await page.getByLabel("Your answer", { exact: true }).fill("Volunteering");
-  await page.getByRole("button", { name: "Save answer & continue" }).click();
-  for (let i = 0; i < 4; i++)
-    await page
-      .getByRole("button", { name: "Skip question", exact: true })
-      .click();
+  await advance("Save answer & continue");
+  for (let i = 0; i < 4; i++) await advance("Skip question");
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth + 1,
