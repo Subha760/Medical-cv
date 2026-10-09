@@ -20,7 +20,7 @@ export default function PdfPages({ blob, thumbnail=false }: { blob: Blob; thumbn
     let cancelled=false;
     let task: PDFDocumentLoadingTask | undefined;
     let started=false;
-    node.textContent=''; setError('');
+    node.textContent=''; node.style.minHeight=thumbnail?'160px':'320px'; setError('');
     async function render() {
       if(started) return; started=true;
       try {
