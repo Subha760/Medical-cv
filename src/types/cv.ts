@@ -1,8 +1,7 @@
 // Mirrors app/src/main/java/com/medcvmaker/domain/model/*.kt from the Android
 // app, so the two clients agree on shape even though nothing is shared at
-// runtime (there is no backend for either client to sync through — spec
-// section 3/20 applies here too: everything below lives only in the
-// browser's localStorage, never on a server).
+// runtime. CV drafts are local; optional account verification and imported
+// document exports use the explicit backend flows described in the privacy policy.
 
 export type Profession =
   | "DOCTOR"
@@ -111,6 +110,7 @@ export interface CustomSection {
 }
 
 export interface CvDocument {
+  customTemplate?: import("../data/templateCatalog").CvTemplate;
   id: string;
   label: string;
   profession: Profession;
@@ -215,7 +215,10 @@ export function emptyRegistrationInfo(): RegistrationInfo {
   };
 }
 
-export function newCvDocument(id: string, profession: Profession = "OTHER"): CvDocument {
+export function newCvDocument(
+  id: string,
+  profession: Profession = "OTHER",
+): CvDocument {
   const now = Date.now();
   return {
     id,
@@ -237,7 +240,8 @@ export function newCvDocument(id: string, profession: Profession = "OTHER"): CvD
     internship: "",
     hobbies: "",
     skills: "",
-    declaration: "I hereby declare that the information provided above is true and correct to the best of my knowledge and belief.",
+    declaration:
+      "I hereby declare that the information provided above is true and correct to the best of my knowledge and belief.",
     declarationDate: "",
     declarationPlace: "",
     signatureName: "",

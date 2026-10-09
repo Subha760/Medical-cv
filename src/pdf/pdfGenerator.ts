@@ -1,6 +1,6 @@
 import { jsPDF } from "jspdf";
 import { CvDocument, SECTION_LABELS } from "../types/cv";
-import { templateById } from "../data/templateCatalog";
+import { resolveCvTemplate } from "../data/customTemplates";
 import { colorRgb } from "../data/colorPalette";
 type RGB = [number, number, number];
 interface Block {
@@ -135,7 +135,7 @@ function blocksFor(d: CvDocument): Block[] {
   );
   const order = d.sectionOrder.length
     ? d.sectionOrder
-    : templateById(d.templateId).recommendedOrder;
+    : resolveCvTemplate(d).recommendedOrder;
   return blocks.sort((a, b) => {
     const index = (k: string) => {
       const i = order.indexOf(k.startsWith("custom-") ? "custom" : k);
@@ -146,7 +146,7 @@ function blocksFor(d: CvDocument): Block[] {
 }
 /** Column-aware renderer. Every preset changes structure, header or heading treatment. */
 export function generateCvPdf(doc: CvDocument): Blob {
-  const t = templateById(doc.templateId),
+  const t = resolveCvTemplate(doc),
     pdf = new jsPDF({ unit: "pt", format: "a4", compress: true });
   const W = pdf.internal.pageSize.getWidth(),
     H = pdf.internal.pageSize.getHeight();

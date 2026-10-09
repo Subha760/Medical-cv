@@ -28,6 +28,12 @@ public class AppSmokeTest {
         fail("WebView condition failed: "+expression+"; page="+js("document.body.innerText"));
     }
     @Test public void offlineAssetsTemplatesAndEditorLoad() throws Exception {
+        if (BuildConfig.APP_ENTRY.startsWith("pulse/")) {
+            waitFor("document.body.innerText.includes('Owner sign-in')");
+            assertEquals("true",js("!document.body.innerText.includes('Accounts · newest')"));
+            assertEquals("true",js("document.documentElement.scrollWidth<=window.innerWidth+1"));
+            return;
+        }
         waitFor("document.body.innerText.includes('Create my CV')");
         assertEquals("true",js("window.isSecureContext"));
         assertEquals("true",js("!!window.MedCVAndroid"));
@@ -42,6 +48,12 @@ public class AppSmokeTest {
         assertEquals("true",js("document.documentElement.scrollWidth<=window.innerWidth+1"));
     }
     @Test public void nursingWorkspaceAndFileExportsAvailableOffline() throws Exception {
+        if (BuildConfig.APP_ENTRY.startsWith("pulse/")) {
+            waitFor("document.body.innerText.includes('Owner sign-in')");
+            assertEquals("true",js("!document.body.innerText.includes('Accounts · newest')"));
+            assertEquals("true",js("document.documentElement.scrollWidth<=window.innerWidth+1"));
+            return;
+        }
         waitFor("document.body.innerText.includes('Create my CV')");
         assertEquals("true",js("typeof window.MedCVAndroid.saveFile === 'function'"));
         js("location.hash='/workspace'");

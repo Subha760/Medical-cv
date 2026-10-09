@@ -85,6 +85,8 @@ export default function NavBar() {
           <Link to="/new">Templates</Link>
           <Link to="/saved">My Saved CVs</Link>
           <Link to="/cover-letter">Cover Letter</Link>
+          <Link to="/import">Document studio</Link>
+          <Link to="/account">Account</Link>
           <Link to="/settings">Settings</Link>
           <Link to="/new" className="nav-bar__cta">
             Build my CV
@@ -96,6 +98,8 @@ export default function NavBar() {
         <Link to="/settings">Settings</Link>
         <Link to="/new">Templates</Link>
         <Link to="/saved">Saved CVs</Link>
+        <Link to="/import">Import</Link>
+        <Link to="/account">Account</Link>
         <Link to="/cover-letter">Cover letter</Link>
       </nav>
     </header>

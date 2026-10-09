@@ -15,17 +15,17 @@ import {
   isWorkspace,
   emptyWorkspace,
 } from "../src/workspace/model";
-assert.equal(TEMPLATE_CATALOG.length, 48);
+assert.equal(TEMPLATE_CATALOG.length, 64);
 for (const category of Object.keys(CATEGORY_INFO)) {
   const designs = TEMPLATE_CATALOG.filter((t) => t.category === category);
-  assert.equal(designs.length, 6);
+  assert.equal(designs.length, 8);
   assert.equal(
     new Set(
       designs.map((t) =>
         [t.layout, t.header, t.headingStyle, t.fontStyle].join(":"),
       ),
     ).size,
-    6,
+    8,
   );
 }
 assert.equal(templateById("clinical_old_01").category, "CLINICAL");
@@ -74,5 +74,5 @@ assert(
   ),
 );
 console.log(
-  "PASS: 48 structurally distinct presets, roster validation/calendar math and 15 offline assistants.",
+  "PASS: 64 structurally distinct presets, roster validation/calendar math and 15 offline assistants.",
 );

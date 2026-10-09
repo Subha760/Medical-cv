@@ -2,13 +2,28 @@ plugins { id 'com.android.application' }
 
 android {
     namespace 'com.medcvmaker.app'
-    compileSdk 35
+    compileSdk 36
+    buildFeatures { buildConfig true }
+    flavorDimensions 'audience'
+    productFlavors {
+        medico {
+            dimension 'audience'
+            manifestPlaceholders = [appName: 'MedCV Medico']
+            buildConfigField 'String', 'APP_ENTRY', '"index.html"'
+        }
+        pulse {
+            dimension 'audience'
+            applicationIdSuffix '.pulse'
+            manifestPlaceholders = [appName: 'Pulse Admin']
+            buildConfigField 'String', 'APP_ENTRY', '"pulse/index.html"'
+        }
+    }
     defaultConfig {
         applicationId 'com.medcvmaker.app'
         minSdk 23
-        targetSdk 35
-        versionCode 4
-        versionName '3.0.0'
+        targetSdk 36
+        versionCode 5
+        versionName '4.0.0'
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
 }

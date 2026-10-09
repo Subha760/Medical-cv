@@ -28,6 +28,14 @@ public class MainActivity extends Activity {
         super.onCreate(state);
         webView = new WebView(this);
         setContentView(webView);
+        if (android.os.Build.VERSION.SDK_INT >= 30) {
+            getWindow().setDecorFitsSystemWindows(false);
+            webView.setOnApplyWindowInsetsListener((view, insets) -> {
+                android.graphics.Insets bars = insets.getInsets(android.view.WindowInsets.Type.systemBars() | android.view.WindowInsets.Type.ime());
+                view.setPadding(bars.left, bars.top, bars.right, bars.bottom);
+                return insets;
+            });
+        }
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
@@ -39,6 +47,9 @@ public class MainActivity extends Activity {
             @Override public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
                 WebResourceResponse response = loader.shouldInterceptRequest(request.getUrl());
                 if (response != null) return response;
+                Uri uri = request.getUrl();
+                // API requests only. Remote HTML is never navigated inside the bridged WebView.
+                if ("https".equals(uri.getScheme()) && "jfweexvfnkotusyajkst.supabase.co".equals(uri.getHost())) return null;
                 return new WebResourceResponse("text/plain", "UTF-8", 404, "Not Found", java.util.Collections.emptyMap(), new java.io.ByteArrayInputStream(new byte[0]));
             }
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
@@ -54,7 +65,7 @@ public class MainActivity extends Activity {
             @JavascriptInterface public void savePdf(String base64, String filename) { saveFile(base64,filename,"application/pdf"); }
             @JavascriptInterface public void saveFile(String base64, String filename, String mime) {
                 if (base64 == null || filename == null || base64.length() > 28000000) return;
-                final String safeMime = java.util.Arrays.asList("application/pdf","application/json","text/calendar","text/csv","text/plain").contains(mime) ? mime : "application/octet-stream";
+                final String safeMime = java.util.Arrays.asList("application/pdf","application/json","text/calendar","text/csv","text/plain","application/vnd.openxmlformats-officedocument.wordprocessingml.document").contains(mime) ? mime : "application/octet-stream";
                 runOnUiThread(() -> {
                     if(pendingPdf != null) { Toast.makeText(MainActivity.this,"Finish the current export first",Toast.LENGTH_SHORT).show(); return; }
                     try {
@@ -81,7 +92,7 @@ public class MainActivity extends Activity {
                 return true;
             }
         });
-        webView.loadUrl("https://appassets.androidplatform.net/assets/web/index.html");
+        webView.loadUrl("https://appassets.androidplatform.net/assets/web/" + BuildConfig.APP_ENTRY);
     }
 
     @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
