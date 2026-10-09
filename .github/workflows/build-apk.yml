@@ -49,7 +49,19 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: Medico-Pulse-Android
+          name: Medico-Android
           path: |
-            android/app/build/outputs/apk/**/*.apk
-            android/app/build/outputs/bundle/**/*.aab
+            android/app/build/outputs/apk/medico/**/*.apk
+            android/app/build/outputs/bundle/medicoRelease/*.aab
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Pulse-Android
+          path: |
+            android/app/build/outputs/apk/pulse/**/*.apk
+            android/app/build/outputs/bundle/pulseRelease/*.aab
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Android-instrumentation-reports
+          path: android/app/build/reports/androidTests/

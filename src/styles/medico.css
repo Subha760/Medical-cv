@@ -481,3 +481,55 @@ td button {
     transform: none;
   }
 }
+@media (max-width: 720px) {
+  .nav-bar__inner {
+    min-height: 68px;
+    flex-wrap: nowrap;
+    gap: 10px;
+  }
+  .nav-bar__links {
+    display: none;
+  }
+  .nav-bar__mark img {
+    width: 32px;
+    height: 32px;
+  }
+  .nav-bar__wordmark {
+    font-size: 0.95rem;
+  }
+  .theme-toggle {
+    font-size: 0.75rem;
+    padding: 8px 12px;
+    min-height: 40px;
+    white-space: nowrap;
+  }
+  .mobile-links {
+    justify-content: flex-start;
+    gap: 18px;
+    padding: 10px 18px;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: thin;
+  }
+  .mobile-links a {
+    flex-shrink: 0;
+    white-space: nowrap;
+    font-size: 0.8rem;
+  }
+  .hero {
+    padding-top: 34px;
+  }
+  .hero h1 {
+    font-size: clamp(2.1rem, 9.8vw, 3rem);
+  }
+  .hero__sub {
+    font-size: 0.98rem;
+    line-height: 1.7;
+  }
+  .hero__eyebrow {
+    font-size: 0.65rem;
+  }
+  .hero__grid {
+    gap: 28px;
+  }
+}

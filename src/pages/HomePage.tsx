@@ -48,9 +48,9 @@ export default function HomePage() {
                 </button>
               </div>
               <div className="hero__proof">
-                <span>✓ No sign-up</span>
+                <span>✓ Free CVs without sign-up</span>
                 <span>✓ Works offline</span>
-                <span>✓ Private on your device</span>
+                <span>✓ Local drafts</span>
               </div>
             </div>
             <div className="hero-robot">

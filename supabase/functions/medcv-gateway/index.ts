@@ -14,18 +14,20 @@ Deno.serve(async req=>{
  // Signature and user validity were checked by getUser. DB separately checks the session's continued existence.
  const claims=JSON.parse(new TextDecoder().decode(fromBase64(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))));const sid=claims.session_id;if(typeof sid!=='string')return reply({error:'Invalid session'},401);
  if(Number(req.headers.get('content-length')||0)>12*1024*1024)return reply({error:'Request too large'},413);
- const raw=await req.text();if(raw.length>12*1024*1024)return reply({error:'Request too large'},413);const b=JSON.parse(raw);
+ const reader=req.body?.getReader();let raw='';if(reader){const decoder=new TextDecoder();let size=0;while(true){const part=await reader.read();if(part.done)break;size+=part.value.byteLength;if(size>12*1024*1024){await reader.cancel();return reply({error:'Request too large'},413);}raw+=decoder.decode(part.value,{stream:true});}raw+=decoder.decode();}if(raw.length>12*1024*1024)return reply({error:'Request too large'},413);const b=JSON.parse(raw);
  if(b.action==='complete'){
   const cv=b.cv;if(!cv||typeof cv.personalInfo?.fullName!=='string'||cv.personalInfo.fullName.trim().length<3||!cv.personalInfo.professionalTitle?.trim()||!cv.personalInfo.email?.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)||!Array.isArray(cv.education)||!Array.isArray(cv.experience)||!(cv.education.some((e:any)=>e.degree?.trim()&&e.institution?.trim())||cv.experience.some((e:any)=>e.position?.trim()&&e.hospital?.trim()))||raw.length>300000)throw new Error('Complete your name, professional title, email and education or experience before verifying your CV.');
   const hash=await sha256(new TextEncoder().encode(JSON.stringify(cv)));const r=await service.rpc('medcv_complete_cv',{p_user:user.id,p_session:sid,p_hash:hash});if(r.error)throw new Error(r.error.message);return reply(r.data);
  }
  if(b.action==='edit'){
   if(typeof b.source!=='string'||b.source.length>Math.ceil(MAX_BYTES*4/3)+4||!['pdf','docx'].includes(b.kind))throw new Error('Invalid document.');const bytes=fromBase64(b.source);if(bytes.length>MAX_BYTES)throw new Error('File exceeds 8 MB.');
+  const fingerprint=await sha256(bytes),hash=await sha256(new TextEncoder().encode(JSON.stringify({kind:b.kind,text:b.kind==='docx'?b.text:'',replacements:b.kind==='pdf'?b.replacements:[]})));
+  const check=await service.rpc('medcv_check_edit',{p_user:user.id,p_session:sid,p_id:b.id,p_fingerprint:fingerprint,p_hash:hash});if(check.error)throw new Error(check.error.message);if(check.data.kind!==b.kind)throw new Error('Document kind does not match the edit session.');
   let result:Uint8Array;let mime:string;
   if(b.kind==='pdf'){if(!Array.isArray(b.replacements))throw new Error('Invalid replacements.');result=await editedPdf(bytes,b.replacements);mime='application/pdf';}
   else {validateDocx(bytes);if(typeof b.text!=='string'||b.text.length>40000||!b.text.trim())throw new Error('Enter up to 40,000 characters of document text.');const doc=new Document({sections:[{children:b.text.split('\n').map((line:string)=>new Paragraph({children:[new TextRun({text:line,font:'Calibri',size:22})],spacing:{after:100}}))}]});result=new Uint8Array(await Packer.toBuffer(doc));mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document';}
   // Bind entitlement to this source and exact edit intent, independent of variable output file timestamps.
-  const fingerprint=await sha256(bytes),hash=await sha256(new TextEncoder().encode(JSON.stringify({kind:b.kind,text:b.kind==='docx'?b.text:'',replacements:b.kind==='pdf'?b.replacements:[]})));
+
   const r=await service.rpc('medcv_finalize_edit',{p_user:user.id,p_session:sid,p_id:b.id,p_fingerprint:fingerprint,p_hash:hash});if(r.error)throw new Error(r.error.message);if(r.data.kind!==b.kind)throw new Error('Document kind does not match the edit session.');return reply({data:toBase64(result),mime});
  }
  return reply({error:'Unknown action'},400);

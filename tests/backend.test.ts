@@ -59,12 +59,12 @@ async function service(fn: string, args: unknown[]) {
 }
 try {
   await pool.query(
-    "drop schema if exists medcv_private cascade;drop function if exists public.medcv_account(text,jsonb);drop function if exists public.medcv_complete_cv(uuid,uuid,text);drop function if exists public.medcv_finalize_edit(uuid,uuid,uuid,text,text);",
+    "drop schema if exists medcv_private cascade;drop function if exists public.medcv_account(text,jsonb);drop function if exists public.medcv_complete_cv(uuid,uuid,text);drop function if exists public.medcv_finalize_edit(uuid,uuid,uuid,text,text);drop function if exists public.medcv_check_edit(uuid,uuid,uuid,text,text);",
   );
-  const file = readdirSync("supabase/migrations").find((f) =>
-    f.endsWith("_medico_pulse.sql"),
-  )!;
-  await pool.query(readFileSync("supabase/migrations/" + file, "utf8"));
+  for (const file of readdirSync("supabase/migrations")
+    .filter((f) => f.endsWith(".sql"))
+    .sort())
+    await pool.query(readFileSync("supabase/migrations/" + file, "utf8"));
   await pool.query(readFileSync("supabase/premium-seeds.sql", "utf8"));
   await pool.query(
     "delete from auth.sessions;delete from auth.mfa_factors;delete from auth.users;",
@@ -141,6 +141,34 @@ try {
     fingerprint: "b".repeat(64),
     kind: "pdf",
   });
+  const check = await service("medcv_check_edit", [
+    ref,
+    sid(ref),
+    edit.id,
+    "b".repeat(64),
+    "c".repeat(64),
+  ]);
+  assert.equal(check.kind, "pdf");
+  await assert.rejects(
+    service("medcv_check_edit", [
+      ref,
+      sid(ref),
+      edit.id,
+      "b".repeat(64),
+      "c".repeat(64),
+    ]),
+    /wait before retrying/,
+  );
+  await assert.rejects(
+    service("medcv_check_edit", [
+      friend,
+      sid(friend),
+      edit.id,
+      "b".repeat(64),
+      "c".repeat(64),
+    ]),
+    /Invalid or expired/,
+  );
   await service("medcv_finalize_edit", [
     ref,
     sid(ref),
