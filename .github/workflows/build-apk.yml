@@ -47,6 +47,7 @@ jobs:
           disable-animations: true
           script: gradle -p android connectedMedicoDebugAndroidTest connectedPulseDebugAndroidTest || { adb logcat -d -s chromium MedCV; exit 1; }
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: Medico-Pulse-Android
           path: |

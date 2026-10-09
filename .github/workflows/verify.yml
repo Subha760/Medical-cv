@@ -1,7 +1,7 @@
 name: Verify web and nursing workspace
 on:
   push:
-    branches: [main, 'upgrade/**']
+    branches: [main, "upgrade/**"]
   pull_request:
   workflow_dispatch:
 permissions:
@@ -17,6 +17,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      - run: npm run test:documents
       - run: npm run build
       - run: npm run test:pdf
       - run: npx playwright install --with-deps chromium
@@ -29,3 +30,29 @@ jobs:
             dist/
             test-results/
             tmp/pdf-checks/
+
+  referral_security:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: test-only-password
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: psql -h 127.0.0.1 -U postgres -f tests/fixtures/auth.sql
+        env:
+          PGPASSWORD: test-only-password
+      - run: npm run test:backend
+        env:
+          MEDCV_TEST_DB_HOST: 127.0.0.1
+          MEDCV_TEST_DB_PASSWORD: test-only-password

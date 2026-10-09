@@ -18,7 +18,7 @@ public class AppSmokeTest {
         CountDownLatch latch=new CountDownLatch(1);
         AtomicReference<String> result=new AtomicReference<>();
         rule.getActivity().runOnUiThread(()-> {
-            WebView web=(WebView)((ViewGroup)rule.getActivity().findViewById(android.R.id.content)).getChildAt(0);
+            WebView web=rule.getActivity().getBrowser();
             web.evaluateJavascript(script,value->{result.set(value);latch.countDown();});
         });
         assertTrue(latch.await(10,TimeUnit.SECONDS));return result.get();
@@ -39,6 +39,7 @@ public class AppSmokeTest {
         assertEquals("true",js("!!window.MedCVAndroid"));
         js("location.hash='/new'");
         waitFor("document.querySelectorAll('.template-card').length>0");
+        js("document.querySelector('.template-card').scrollIntoView()");
         waitFor("document.querySelectorAll('canvas').length>0");
         js("document.querySelector('.template-card').click()");
         waitFor("!!document.querySelector('.template-confirm__action')");

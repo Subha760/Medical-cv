@@ -1,5 +1,5 @@
-import { Route, Routes } from "react-router-dom";
-import { lazy, Suspense } from "react";
+import { Route, Routes, useLocation } from "react-router-dom";
+import { lazy, Suspense, useEffect } from "react";
 import CacheNotice from "./components/CacheNotice";
 import OfflineStatus from "./components/OfflineStatus";
 import HomePage from "./pages/HomePage";
@@ -16,6 +16,14 @@ const ImportPage = lazy(() => import("./pages/ImportPage"));
 const WorkspacePage = lazy(() => import("./pages/WorkspacePage"));
 
 export default function App() {
+  const location = useLocation();
+  useEffect(() => {
+    let referred = true;
+    try {
+      referred = Boolean(localStorage.getItem("medico:referral"));
+    } catch {}
+    window.MedCVAndroid?.setAdPlacement?.(location.pathname, referred);
+  }, [location.pathname]);
   return (
     <div className="app-shell">
       <OfflineStatus />

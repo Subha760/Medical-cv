@@ -111,6 +111,7 @@ export default function CustomDesignPage() {
               <label key={key}>
                 {key}
                 <select
+                  aria-label={key}
                   value={design[key as keyof CvTemplate] as string}
                   onChange={(e) =>
                     setDesign({ ...design, [key]: e.target.value })

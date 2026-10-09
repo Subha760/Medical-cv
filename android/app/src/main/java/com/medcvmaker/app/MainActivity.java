@@ -19,6 +19,8 @@ import java.io.OutputStream;
 
 public class MainActivity extends Activity {
     private WebView webView;
+    private AdsController ads;
+    public WebView getBrowser() { return webView; }
     private ValueCallback<Uri[]> fileCallback;
     private static final int FILE_REQUEST = 41;
     private static final int SAVE_REQUEST = 42;
@@ -27,10 +29,14 @@ public class MainActivity extends Activity {
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         webView = new WebView(this);
-        setContentView(webView);
+        android.widget.LinearLayout root = new android.widget.LinearLayout(this);
+        root.setOrientation(android.widget.LinearLayout.VERTICAL);
+        root.addView(webView, new android.widget.LinearLayout.LayoutParams(-1,0,1));
+        setContentView(root);
+        ads = new AdsController(this,root);
         if (android.os.Build.VERSION.SDK_INT >= 30) {
             getWindow().setDecorFitsSystemWindows(false);
-            webView.setOnApplyWindowInsetsListener((view, insets) -> {
+            root.setOnApplyWindowInsetsListener((view, insets) -> {
                 android.graphics.Insets bars = insets.getInsets(android.view.WindowInsets.Type.systemBars() | android.view.WindowInsets.Type.ime());
                 view.setPadding(bars.left, bars.top, bars.right, bars.bottom);
                 return insets;
@@ -62,6 +68,8 @@ public class MainActivity extends Activity {
             }
         });
         webView.addJavascriptInterface(new Object() {
+            @JavascriptInterface public void setAdPlacement(String path, boolean referred) { runOnUiThread(() -> ads.setPlacement(path,referred)); }
+            @JavascriptInterface public void adPrivacyChoices() { runOnUiThread(() -> ads.privacyChoices()); }
             @JavascriptInterface public void savePdf(String base64, String filename) { saveFile(base64,filename,"application/pdf"); }
             @JavascriptInterface public void saveFile(String base64, String filename, String mime) {
                 if (base64 == null || filename == null || base64.length() > 28000000) return;
@@ -113,6 +121,9 @@ public class MainActivity extends Activity {
         }
     }
 
+    @Override protected void onPause() { if(ads!=null)ads.pause();super.onPause(); }
+    @Override protected void onResume() { super.onResume();if(ads!=null)ads.resume(); }
+    @Override protected void onDestroy() { if(ads!=null)ads.destroy();if(webView!=null)webView.destroy();super.onDestroy(); }
     @Override public void onBackPressed() {
         if (webView.canGoBack()) webView.goBack(); else super.onBackPressed();
     }
