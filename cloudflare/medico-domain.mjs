@@ -69,7 +69,7 @@ export default {
     h.delete("Access-Control-Allow-Origin");
     h.set(
       "Content-Security-Policy",
-      "default-src 'self'; script-src 'self' https://pagead2.googlesyndication.com https://*.googlesyndication.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googlesyndication.com; font-src 'self' data:; connect-src 'self' https://jfweexvfnkotusyajkst.supabase.co https://*.googlesyndication.com; worker-src 'self' blob:; frame-src https://*.googlesyndication.com https://*.doubleclick.net; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
+      "default-src 'self'; script-src 'self' https://static.cloudflareinsights.com https://pagead2.googlesyndication.com https://*.googlesyndication.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googlesyndication.com; font-src 'self' data:; connect-src 'self' https://cloudflareinsights.com https://jfweexvfnkotusyajkst.supabase.co https://*.googlesyndication.com; worker-src 'self' blob:; frame-src https://*.googlesyndication.com https://*.doubleclick.net; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
     );
     if (u.pathname.startsWith("/pulse")) {
       h.set("X-Robots-Tag", "noindex, nofollow, noarchive");
