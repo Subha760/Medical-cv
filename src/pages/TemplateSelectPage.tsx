@@ -217,7 +217,7 @@ export default function TemplateSelectPage() {
                   (category === "ALL" || t.category === category) &&
                   (!query ||
                     t.name.toLowerCase().includes(query.toLowerCase())) &&
-                  !photoOnly,
+                  (!photoOnly || t.supportsPhoto),
               ).map((t) => (
                 <button
                   className="card template-card premium-card"

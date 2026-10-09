@@ -29,6 +29,7 @@ test("free and premium libraries, original previews and custom design work", asy
   await page.getByLabel("Design name").fill("My Nursing Portfolio");
   await page.getByLabel("layout", { exact: true }).selectOption("ledger");
   await page.getByLabel("fontStyle", { exact: true }).selectOption("serif");
+  await page.getByRole("button", { name: "View live layout preview" }).click();
   await expect(page.locator("canvas").first()).toBeVisible();
   await page.getByRole("button", { name: "Apply custom design" }).click();
   await expect(
@@ -52,13 +53,11 @@ test("PDF and Word references can be previewed without spending credits", async 
   const p = await PDFDocument.create();
   p.addPage();
   const bytes = await p.save();
-  await page
-    .getByLabel("Reference document")
-    .setInputFiles({
-      name: "reference.pdf",
-      mimeType: "application/pdf",
-      buffer: Buffer.from(bytes),
-    });
+  await page.getByLabel("Reference document").setInputFiles({
+    name: "reference.pdf",
+    mimeType: "application/pdf",
+    buffer: Buffer.from(bytes),
+  });
   await expect(
     page.getByRole("heading", { name: "Ready to edit reference.pdf" }),
   ).toBeVisible();
@@ -73,14 +72,12 @@ test("PDF and Word references can be previewed without spending credits", async 
       ],
     }),
   );
-  await page
-    .getByLabel("Reference document")
-    .setInputFiles({
-      name: "reference.docx",
-      mimeType:
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      buffer: word,
-    });
+  await page.getByLabel("Reference document").setInputFiles({
+    name: "reference.docx",
+    mimeType:
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    buffer: word,
+  });
   await expect(page.locator(".word-reference")).toContainText(
     "Original nursing CV reference",
   );

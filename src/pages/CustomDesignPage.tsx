@@ -95,6 +95,20 @@ export default function CustomDesignPage() {
           design.
         </p>
         {error && <p role="alert">{error}</p>}
+        <button
+          className="btn btn-secondary"
+          onClick={() =>
+            document
+              .getElementById("live-design-preview")
+              ?.scrollIntoView({
+                behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
+                  ? "auto"
+                  : "smooth",
+              })
+          }
+        >
+          View live layout preview
+        </button>
         <div className="preview-grid">
           <section className="card studio-panel">
             <label>
@@ -161,7 +175,8 @@ export default function CustomDesignPage() {
               another device.
             </p>
           </section>
-          <section>
+          <section id="live-design-preview" style={{ minHeight: 400 }}>
+            <h2>Live layout preview</h2>
             <PdfPages blob={preview} />
           </section>
         </div>
