@@ -90,6 +90,8 @@ try {
     const h = new Headers(options?.headers);
     assert.equal(h.get("X-Medcv-Access-Assertion"), "signed-callback-proof");
     assert.equal(h.get("Cf-Access-Jwt-Assertion"), null);
+    // Platform regression: Workers rejects redirect:"error" before any HTTP request.
+    assert.equal(options?.redirect, "manual");
     return Response.json(session);
   };
   // Regression: use the assertion on the already verified top-level callback;
@@ -122,6 +124,24 @@ try {
   assert.deepEqual(await exchange.json(), session);
   assert.match(exchange.headers.get("Set-Cookie")!, /Max-Age=0/);
   assert.equal(exchange.headers.get("Cache-Control"), "no-store");
+  globalThis.fetch = async (_input, options) => {
+    assert.equal(options?.redirect, "manual");
+    return new Response(null, {
+      status: 302,
+      headers: { Location: "https://untrusted.example/" },
+    });
+  };
+  const redirected = await worker.fetch(
+    new Request("https://medico.choicematrix.in/pulse/login", {
+      headers: { "Cf-Access-Jwt-Assertion": "signed-callback-proof" },
+    }),
+    env,
+  );
+  assert.equal(
+    redirected.headers.get("Location"),
+    "/pulse/?login_error=owner_session_unavailable",
+  );
+  assert.match(redirected.headers.get("Set-Cookie")!, /Max-Age=0/);
   for (const [headers, expected] of [
     [
       {

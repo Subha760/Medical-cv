@@ -90,9 +90,13 @@ async function verifiedSession(assertion) {
         "Content-Type": "application/json",
       },
       body: "{}",
-      redirect: "error",
+      redirect: "manual",
     },
   );
+  // Cloudflare's runtime rejects redirect:"error" before sending the request.
+  // Manual mode is supported; never follow a redirect carrying the assertion.
+  if (result.status >= 300 && result.status < 400)
+    throw new Error("owner_session_unavailable");
   const data = await result.json();
   if (!result.ok) throw new Error(data.code || "owner_session_unavailable");
   return data;
@@ -181,9 +185,17 @@ export default {
             "Content-Type": "application/json",
           },
           body: "{}",
-          redirect: "error",
+          redirect: "manual",
         },
       );
+      if (result.status >= 300 && result.status < 400)
+        return response(
+          JSON.stringify({
+            error: "The owner account service could not be reached.",
+          }),
+          503,
+          { "Content-Type": "application/json" },
+        );
       return response(result.body, result.status, {
         "Content-Type": "application/json",
       });
