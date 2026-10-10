@@ -10,6 +10,10 @@ import { CvDocument } from "../types/cv";
 import { resolveCvTemplate } from "../data/customTemplates";
 import { checkAtsCompatibility, validateCv } from "../validation/cvChecks";
 
+import { accountAction } from "../account/client";
+import { isFreeTemplate, type CvTemplate } from "../data/templateCatalog";
+import { validCustom } from "../data/customTemplates";
+import { registerPremiumTemplate } from "../data/templateRegistry";
 import { useAccount } from "../account/useAccount";
 import { gateway } from "../account/client";
 import {
@@ -20,7 +24,7 @@ import {
 export default function PreviewPage() {
   const { cvId } = useParams<{ cvId: string }>();
   const navigate = useNavigate();
-  const { account, refresh } = useAccount();
+  const { account, refresh, busy } = useAccount();
   const [referralMessage, setReferralMessage] = useState("");
   const [exporting, setExporting] = useState(false);
   const [doc, setDoc] = useState<CvDocument | null>(null);
@@ -29,32 +33,71 @@ export default function PreviewPage() {
   const [exportError, setExportError] = useState("");
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
 
+  function requiresUnlock(value: CvDocument) {
+    return (
+      !isFreeTemplate(value.templateId) &&
+      !(
+        value.customTemplate?.id === value.templateId &&
+        validCustom(value.customTemplate)
+      )
+    );
+  }
+  async function verifyDesign(value: CvDocument) {
+    if (!requiresUnlock(value)) return;
+    if (
+      !account ||
+      account.frozen ||
+      !account.unlocks.includes(value.templateId)
+    )
+      throw new Error(
+        "This design is locked. Choose one of the ten free templates or unlock this design in Templates.",
+      );
+    const config = await accountAction<CvTemplate>("template", {
+      templateId: value.templateId,
+    });
+    if (config?.id !== value.templateId)
+      throw new Error("Invalid template response.");
+    registerPremiumTemplate(config, account.userId);
+  }
+  const unlockKey = account?.unlocks.join(",") || "";
   useEffect(() => {
     if (!cvId) return;
+    let cancelled = false;
+    let url: string | null = null;
     const found = cvStorage.getById(cvId);
     setDoc(found);
-    if (found) {
-      let blob: Blob;
-      try {
-        blob = generateCvPdf(found);
-      } catch (e) {
-        setExportError((e as Error).message);
-        return;
-      }
-      setPdfBlob(blob);
-      const url = URL.createObjectURL(blob);
-      setPdfUrl(url);
-      setFileName(suggestedFileName(found));
-      return () => URL.revokeObjectURL(url);
+    setPdfUrl(null);
+    setPdfBlob(null);
+    setExportError("");
+    if (found && !(busy && requiresUnlock(found))) {
+      void (async () => {
+        try {
+          await verifyDesign(found);
+          if (cancelled) return;
+          const blob = generateCvPdf(found);
+          url = URL.createObjectURL(blob);
+          setPdfBlob(blob);
+          setPdfUrl(url);
+          setFileName(suggestedFileName(found));
+        } catch (e) {
+          if (!cancelled) setExportError((e as Error).message);
+        }
+      })();
     }
-  }, [cvId]);
+    return () => {
+      cancelled = true;
+      if (url) URL.revokeObjectURL(url);
+    };
+  }, [cvId, account?.userId, account?.frozen, unlockKey, busy]);
 
   async function exportPdf() {
     if (!doc || !pdfBlob || exporting) return;
     setExporting(true);
     try {
+      await verifyDesign(doc);
+      const finalBlob = requiresUnlock(doc) ? generateCvPdf(doc) : pdfBlob;
       cvStorage.save(doc, false);
-      await downloadPdf(pdfBlob, fileName);
+      await downloadPdf(finalBlob, fileName);
       setExportError("");
       if (
         account &&
@@ -78,16 +121,22 @@ export default function PreviewPage() {
           );
         }
       }
-    } catch {
+    } catch (e) {
       setExportError(
-        "Unable to save or export. Download a backup in Settings and check device storage.",
+        (e as Error).message ||
+          "Unable to save or export. Check device storage.",
       );
     } finally {
       setExporting(false);
     }
   }
 
-  if (!doc || !pdfUrl) {
+  if (
+    !doc ||
+    !pdfUrl ||
+    (requiresUnlock(doc) &&
+      (!account || account.frozen || !account.unlocks.includes(doc.templateId)))
+  ) {
     return (
       <>
         <NavBar />
@@ -98,9 +147,9 @@ export default function PreviewPage() {
           {exportError && (
             <button
               className="btn btn-primary"
-              onClick={() => navigate("/account")}
+              onClick={() => navigate(`/template/${cvId}`)}
             >
-              Sign in to reload unlocked designs
+              Choose a free or unlocked design
             </button>
           )}
         </main>

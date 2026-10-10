@@ -1,6 +1,10 @@
 import { readCollection, writeCollection, isRecord } from "./safeStorage";
 import { newCvDocument, CvDocument } from "../types/cv";
 import { validCustom } from "../data/customTemplates";
+import {
+  ORIGINAL_TEMPLATE_CATALOG,
+  templateById,
+} from "../data/templateCatalog";
 import { createId } from "../utils/id";
 
 // Drafts remain local. Explicit verification/import actions use separate account services.
@@ -114,7 +118,16 @@ export function isCv(v: unknown): v is CvDocument {
   );
 }
 function readAll(): CvDocument[] {
-  return readCollection(STORAGE_KEY, isCv);
+  return readCollection(STORAGE_KEY, isCv).map((doc) => {
+    // Legacy 2.0 IDs resolve to a free successor, never to a premium design.
+    if (
+      !doc.customTemplate &&
+      !doc.templateId.startsWith("premium_") &&
+      !ORIGINAL_TEMPLATE_CATALOG.some((t) => t.id === doc.templateId)
+    )
+      return { ...doc, templateId: templateById(doc.templateId).id };
+    return doc;
+  });
 }
 function writeAll(docs: CvDocument[]): void {
   writeCollection(STORAGE_KEY, docs);

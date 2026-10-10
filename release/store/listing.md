@@ -1,40 +1,43 @@
-# MedCV 4.0 store listing
+# MedCV 4.4 store listing
 
 App name: MedCV: Nursing CV & Workspace
-Short description: Build healthcare CVs, plan shifts and organise your nursing career.
-Category: Productivity (review the Medical category if adding clinical services later).
+Category: Productivity
 Support: help@choicematrix.in
 Website: https://medico.choicematrix.in/
 Privacy policy: https://medico.choicematrix.in/privacy.html
 Account deletion: https://medico.choicematrix.in/account-deletion.html
 Audience: adults; nurses, nursing students and other healthcare professionals.
 Package: com.medcvmaker.app
-Version: 4.0.0 / versionCode 5 / target API 36 / minimum API 23.
+Version: 4.4.0 / versionCode 10 / target API 36 / minimum API 23.
 
-## Full description
+## Short description
 
-Your nursing career deserves a clear CV and a calmer workspace.
+Healthcare CVs, shift planning and a private workspace for your nursing career.
 
-MedCV helps nurses, nursing students and healthcare professionals build structured CVs, plan shifts and organise career preparation. Start with a free design or let Mira guide you through your existing CV questions, one answer at a time.
+## Long description
 
-• 64 free original templates in eight categories, including clinical, student, academic and ATS-oriented layouts.
-• 32 original premium designs: one eligible verified referral earns one credit, and one credit unlocks one design permanently.
-• A free custom design studio to combine layouts, headings, fonts, spacing and accents.
-• Local CV drafts, photos, signatures, PDF previews, cover letters and backups.
-• Shift planning, reviewed rota imports, calendar exports, task lists, credential dates and study cards.
-• 15 offline writing and study assistants using rules and templates. They are not trained generative AI models or clinical decision systems.
-• PDF and DOCX reference imports. Preview for free; one referral credit reserves one 24-hour editing session that produces one final version.
+MedCV · Medico brings your healthcare CV and everyday workspace together. Designed for nurses, nursing students and healthcare professionals, it helps you prepare your next application and organise your working day.
 
-An eligible referral means a new colleague verifies their email and creates their first complete CV. Downloads and installs alone do not earn credits. Rewards are not tied to ad views or clicks.
+YOUR PROFESSIONAL CV
+Choose from ten free original designs across eight career categories. Add your experience, education, registration, skills and certificates, review your CV, then export a PDF. Keep drafts locally and return when you have time.
 
-PDF imports support positioned text replacements while preserving reference pages. This is not secure redaction or automatic OCR. Word imports rebuild an editable text-based document; complex original formatting and images may not be preserved. Supported files: PDF/DOCX up to 8 MB, PDFs up to 20 pages.
+MEET MIRA
+Open the robot in the bottom-right corner for guided CV questions. Answer, skip or return to a question, and choose from free designs or templates your account has unlocked. Mira and the fifteen offline writing and study assistants use local rules and writing templates; they are not trained language models. Review their suggestions before use.
 
-Free CV and workspace tools work offline without an account. Optional verified account features and paid import exports need an internet connection. Uploaded import documents are processed transiently; see the privacy policy for account metadata and technical logs. Keep backups before clearing app storage.
+YOUR DAILY WORKSPACE
+Plan shifts and rotas, review working hours and rest warnings, keep credential reminders and organise study notes. Export a calendar and use practical career tools from one compact menu.
 
-Advertising is currently disabled pending approval and configuration. The app includes disabled AdMob/consent integration for a future approved release. Nursing study features are for practice and organisation; they do not diagnose, prescribe or replace workplace policies. Do not enter identifiable patient information.
+MAKE IT YOURS
+Adjust colours, typography, spacing and sections in the custom design studio. Import a PDF or Word document into Document Studio. PDF edits add positioned text to the original pages; Word editing works with supported extracted content and does not promise to preserve every original layout.
 
-## Release notes
+VERIFIED REFERRAL REWARDS
+Explore 86 additional original premium designs. One eligible referred account completing its first verified qualifying CV earns one credit. One credit unlocks one design; a custom document edit uses one credit for one edit. Rewards and unlocks are checked on the server. Creating an account or installing the app alone does not earn a reward.
 
-4.1: Live medico.choicematrix.in HTTPS domain and private Pulse owner email-code sign-in, strengthened session boundaries and patched dependencies.
+PRIVACY AND CONTROL
+Free CVs and local workspace tools work offline. Account verification, premium access and referral rewards require the internet. CV drafts remain on your device unless you explicitly use an account document service. Back up important drafts and avoid entering patient information.
 
-New custom layout studio, expanded original template library, verified referral credits, PDF/Word edit workflow, private owner administration, storage disclosures, improved mobile styling and Android API 36 support.
+These tools support career organisation and study. They do not provide diagnosis, treatment decisions or credential verification.
+
+Support: help@choicematrix.in
+Privacy: https://medico.choicematrix.in/privacy.html
+Account deletion: https://medico.choicematrix.in/account-deletion.html

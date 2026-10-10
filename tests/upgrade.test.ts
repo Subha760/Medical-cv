@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import {
   TEMPLATE_CATALOG,
+  ORIGINAL_TEMPLATE_CATALOG,
+  LOCKED_ORIGINAL_TEMPLATES,
   CATEGORY_INFO,
   templateById,
 } from "../src/data/templateCatalog";
@@ -15,9 +17,14 @@ import {
   isWorkspace,
   emptyWorkspace,
 } from "../src/workspace/model";
-assert.equal(TEMPLATE_CATALOG.length, 64);
+assert.equal(TEMPLATE_CATALOG.length, 10);
+assert.equal(LOCKED_ORIGINAL_TEMPLATES.length, 54);
+assert.equal(ORIGINAL_TEMPLATE_CATALOG.length, 64);
+assert.throws(() => templateById(LOCKED_ORIGINAL_TEMPLATES[0].id), /Sign in/);
 for (const category of Object.keys(CATEGORY_INFO)) {
-  const designs = TEMPLATE_CATALOG.filter((t) => t.category === category);
+  const designs = ORIGINAL_TEMPLATE_CATALOG.filter(
+    (t) => t.category === category,
+  );
   assert.equal(designs.length, 8);
   assert.equal(
     new Set(

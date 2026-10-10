@@ -176,13 +176,13 @@ export default function TemplateSelectPage() {
             className={tier === "free" ? "active" : ""}
             onClick={() => setTier("free")}
           >
-            Free · 64 designs
+            Free · 10 designs
           </button>
           <button
             className={tier === "premium" ? "active" : ""}
             onClick={() => setTier("premium")}
           >
-            Premium · 32 designs
+            Premium · 86 designs
           </button>
           <Link to="/design">Design a custom template →</Link>
           <Link to="/import">Import your own PDF / Word →</Link>
@@ -203,8 +203,8 @@ export default function TemplateSelectPage() {
                     ? TEMPLATE_CATALOG.length
                     : TEMPLATE_CATALOG.filter((t) => t.category === item).length
                   : item === "ALL"
-                    ? 32
-                    : 4}
+                    ? PREMIUM_CATALOG.length
+                    : PREMIUM_CATALOG.filter((t) => t.category === item).length}
               </small>
             </button>
           ))}
@@ -248,11 +248,9 @@ export default function TemplateSelectPage() {
                       const config = await accountAction<CvTemplate>("unlock", {
                         templateId: t.id,
                       });
-                      registerPremiumTemplate(config);
-                      localStorage.setItem(
-                        "medico:premium:" + t.id,
-                        JSON.stringify(config),
-                      );
+                      if (config.id !== t.id)
+                        throw new Error("Invalid template response.");
+                      registerPremiumTemplate(config, account.userId);
                       pickTemplate(t.id);
                       await refresh();
                     } catch (e) {

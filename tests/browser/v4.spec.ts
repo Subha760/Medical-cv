@@ -5,12 +5,12 @@ test("free and premium libraries, original previews and custom design work", asy
   page,
 }) => {
   const pageErrors: string[] = [];
-  page.on("pageerror", error => pageErrors.push(error.message));
+  page.on("pageerror", (error) => pageErrors.push(error.message));
   await page.goto("/#/new");
   await page
-    .getByRole("button", { name: "Premium · 32 designs", exact: true })
+    .getByRole("button", { name: "Premium · 86 designs", exact: true })
     .click();
-  await expect(page.locator(".premium-card")).toHaveCount(32);
+  await expect(page.locator(".premium-card")).toHaveCount(86);
   await expect(page.locator(".premium-card img").first()).toBeVisible();
   await expect
     .poll(() =>

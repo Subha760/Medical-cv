@@ -66,6 +66,14 @@ try {
     .sort())
     await pool.query(readFileSync("supabase/migrations/" + file, "utf8"));
   await pool.query(readFileSync("supabase/premium-seeds.sql", "utf8"));
+  assert.equal(
+    (
+      await pool.query(
+        "select count(*)::int n from medcv_private.templates where active",
+      )
+    ).rows[0].n,
+    86,
+  );
   await pool.query(
     "delete from auth.sessions;delete from auth.mfa_factors;delete from auth.users;",
   );
@@ -145,6 +153,10 @@ try {
       )
     ).rows[0].n,
     1,
+  );
+  await assert.rejects(
+    call(ref, "template", { templateId: "clinical_essential_v3" }),
+    /locked/,
   );
   const templates = (
     await pool.query(

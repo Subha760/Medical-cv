@@ -61,7 +61,7 @@ test("template categories select genuinely different designs", async ({
   ).toBeVisible({ timeout: 15000 });
   await expect(page.locator(".category-pills button")).toHaveCount(9);
   await page.getByLabel("Template category").selectOption("STUDENT");
-  await expect(page.locator(".template-card")).toHaveCount(8);
+  await expect(page.locator(".template-card")).toHaveCount(1);
   await page.locator(".template-card").first().click();
   await page
     .getByRole("button", { name: "Use this template", exact: true })

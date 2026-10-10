@@ -30,7 +30,12 @@
       "hobbies",
       "declaration"
     ],
-    "sideSections": ["registration", "skills", "certifications", "languages"]
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
   },
   {
     "id": "premium_ats_professional_2",
@@ -63,7 +68,12 @@
       "hobbies",
       "declaration"
     ],
-    "sideSections": ["registration", "skills", "certifications", "languages"]
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
   },
   {
     "id": "premium_ats_professional_3",
@@ -96,7 +106,12 @@
       "hobbies",
       "declaration"
     ],
-    "sideSections": ["registration", "skills", "certifications", "languages"]
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
   },
   {
     "id": "premium_ats_professional_4",
@@ -129,7 +144,12 @@
       "hobbies",
       "declaration"
     ],
-    "sideSections": ["registration", "skills", "certifications", "languages"]
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
   },
   {
     "id": "premium_clinical_1",
@@ -162,7 +182,12 @@
       "hobbies",
       "declaration"
     ],
-    "sideSections": ["registration", "skills", "certifications", "languages"]
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
   },
   {
     "id": "premium_clinical_2",
@@ -195,7 +220,12 @@
       "hobbies",
       "declaration"
     ],
-    "sideSections": ["registration", "skills", "certifications", "languages"]
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
   },
   {
     "id": "premium_clinical_3",
@@ -228,7 +258,12 @@
       "hobbies",
       "declaration"
     ],
-    "sideSections": ["registration", "skills", "certifications", "languages"]
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
   },
   {
     "id": "premium_clinical_4",
@@ -261,7 +296,12 @@
       "hobbies",
       "declaration"
     ],
-    "sideSections": ["registration", "skills", "certifications", "languages"]
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
   },
   {
     "id": "premium_modern_medical_1",
@@ -294,7 +334,12 @@
       "hobbies",
       "declaration"
     ],
-    "sideSections": ["registration", "skills", "certifications", "languages"]
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
   },
   {
     "id": "premium_modern_medical_2",
@@ -327,7 +372,12 @@
       "hobbies",
       "declaration"
     ],
-    "sideSections": ["registration", "skills", "certifications", "languages"]
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
   },
   {
     "id": "premium_modern_medical_3",
@@ -360,7 +410,12 @@
       "hobbies",
       "declaration"
     ],
-    "sideSections": ["registration", "skills", "certifications", "languages"]
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
   },
   {
     "id": "premium_modern_medical_4",
@@ -393,7 +448,12 @@
       "hobbies",
       "declaration"
     ],
-    "sideSections": ["registration", "skills", "certifications", "languages"]
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
   },
   {
     "id": "premium_academic_1",
@@ -426,7 +486,12 @@
       "hobbies",
       "declaration"
     ],
-    "sideSections": ["skills", "memberships", "languages", "registration"]
+    "sideSections": [
+      "skills",
+      "memberships",
+      "languages",
+      "registration"
+    ]
   },
   {
     "id": "premium_academic_2",
@@ -459,7 +524,12 @@
       "hobbies",
       "declaration"
     ],
-    "sideSections": ["skills", "memberships", "languages", "registration"]
+    "sideSections": [
+      "skills",
+      "memberships",
+      "languages",
+      "registration"
+    ]
   },
   {
     "id": "premium_academic_3",
@@ -492,7 +562,12 @@
       "hobbies",
       "declaration"
     ],
-    "sideSections": ["skills", "memberships", "languages", "registration"]
+    "sideSections": [
+      "skills",
+      "memberships",
+      "languages",
+      "registration"
+    ]
   },
   {
     "id": "premium_academic_4",
@@ -525,7 +600,12 @@
       "hobbies",
       "declaration"
     ],
-    "sideSections": ["skills", "memberships", "languages", "registration"]
+    "sideSections": [
+      "skills",
+      "memberships",
+      "languages",
+      "registration"
+    ]
   },
   {
     "id": "premium_executive_1",
@@ -558,7 +638,12 @@
       "hobbies",
       "declaration"
     ],
-    "sideSections": ["registration", "skills", "certifications", "languages"]
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
   },
   {
     "id": "premium_executive_2",
@@ -591,7 +676,12 @@
       "hobbies",
       "declaration"
     ],
-    "sideSections": ["registration", "skills", "certifications", "languages"]
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
   },
   {
     "id": "premium_executive_3",
@@ -624,7 +714,12 @@
       "hobbies",
       "declaration"
     ],
-    "sideSections": ["registration", "skills", "certifications", "languages"]
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
   },
   {
     "id": "premium_executive_4",
@@ -657,7 +752,12 @@
       "hobbies",
       "declaration"
     ],
-    "sideSections": ["registration", "skills", "certifications", "languages"]
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
   },
   {
     "id": "premium_minimal_1",
@@ -690,7 +790,12 @@
       "hobbies",
       "declaration"
     ],
-    "sideSections": ["registration", "skills", "certifications", "languages"]
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
   },
   {
     "id": "premium_minimal_2",
@@ -723,7 +828,12 @@
       "hobbies",
       "declaration"
     ],
-    "sideSections": ["registration", "skills", "certifications", "languages"]
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
   },
   {
     "id": "premium_minimal_3",
@@ -756,7 +866,12 @@
       "hobbies",
       "declaration"
     ],
-    "sideSections": ["registration", "skills", "certifications", "languages"]
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
   },
   {
     "id": "premium_minimal_4",
@@ -789,7 +904,12 @@
       "hobbies",
       "declaration"
     ],
-    "sideSections": ["registration", "skills", "certifications", "languages"]
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
   },
   {
     "id": "premium_international_1",
@@ -822,7 +942,12 @@
       "hobbies",
       "declaration"
     ],
-    "sideSections": ["registration", "skills", "certifications", "languages"]
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
   },
   {
     "id": "premium_international_2",
@@ -855,7 +980,12 @@
       "hobbies",
       "declaration"
     ],
-    "sideSections": ["registration", "skills", "certifications", "languages"]
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
   },
   {
     "id": "premium_international_3",
@@ -888,7 +1018,12 @@
       "hobbies",
       "declaration"
     ],
-    "sideSections": ["registration", "skills", "certifications", "languages"]
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
   },
   {
     "id": "premium_international_4",
@@ -921,7 +1056,12 @@
       "hobbies",
       "declaration"
     ],
-    "sideSections": ["registration", "skills", "certifications", "languages"]
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
   },
   {
     "id": "premium_student_1",
@@ -954,7 +1094,12 @@
       "hobbies",
       "declaration"
     ],
-    "sideSections": ["registration", "skills", "certifications", "languages"]
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
   },
   {
     "id": "premium_student_2",
@@ -987,7 +1132,12 @@
       "hobbies",
       "declaration"
     ],
-    "sideSections": ["registration", "skills", "certifications", "languages"]
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
   },
   {
     "id": "premium_student_3",
@@ -1020,7 +1170,12 @@
       "hobbies",
       "declaration"
     ],
-    "sideSections": ["registration", "skills", "certifications", "languages"]
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
   },
   {
     "id": "premium_student_4",
@@ -1053,6 +1208,2063 @@
       "hobbies",
       "declaration"
     ],
-    "sideSections": ["registration", "skills", "certifications", "languages"]
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "ats_professional_essential_v3",
+    "displayName": "Essential Compact",
+    "category": "ATS_PROFESSIONAL",
+    "description": "Concise spacing and simple bullet-led content.",
+    "layout": "compact",
+    "header": "left",
+    "headingStyle": "plain",
+    "fontStyle": "sans",
+    "density": "dense",
+    "supportsPhoto": false,
+    "defaultColorId": "navy",
+    "isAtsFriendly": true,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "ats_professional_balance_v3",
+    "displayName": "Balanced Letter",
+    "category": "ATS_PROFESSIONAL",
+    "description": "Centred name with formal double-line headings.",
+    "layout": "classic",
+    "header": "center",
+    "headingStyle": "double",
+    "fontStyle": "serif",
+    "density": "balanced",
+    "supportsPhoto": false,
+    "defaultColorId": "navy",
+    "isAtsFriendly": true,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "ats_professional_registry_v3",
+    "displayName": "Registry Mono",
+    "category": "ATS_PROFESSIONAL",
+    "description": "A framed identity block and clear data-like type.",
+    "layout": "classic",
+    "header": "boxed",
+    "headingStyle": "caps",
+    "fontStyle": "mono",
+    "density": "balanced",
+    "supportsPhoto": false,
+    "defaultColorId": "navy",
+    "isAtsFriendly": true,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "ats_professional_focus_v3",
+    "displayName": "Focus Brief",
+    "category": "ATS_PROFESSIONAL",
+    "description": "Strong masthead with compact tab-style headings.",
+    "layout": "compact",
+    "header": "masthead",
+    "headingStyle": "tab",
+    "fontStyle": "sans",
+    "density": "balanced",
+    "supportsPhoto": false,
+    "defaultColorId": "navy",
+    "isAtsFriendly": true,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "ats_professional_folio-plus_v3",
+    "displayName": "ATS Folio",
+    "category": "ATS_PROFESSIONAL",
+    "description": "Editorial masthead, modular records and precise monospaced typography.",
+    "layout": "cards",
+    "header": "masthead",
+    "headingStyle": "caps",
+    "fontStyle": "mono",
+    "density": "airy",
+    "supportsPhoto": false,
+    "defaultColorId": "navy",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "ats_professional_registry-plus_v3",
+    "displayName": "ATS Registry",
+    "category": "ATS_PROFESSIONAL",
+    "description": "A framed identity with a numbered main column and separate credential rail.",
+    "layout": "right-sidebar",
+    "header": "boxed",
+    "headingStyle": "numbered",
+    "fontStyle": "sans",
+    "density": "balanced",
+    "supportsPhoto": false,
+    "defaultColorId": "navy",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "clinical_rounds_v3",
+    "displayName": "Clinical Rounds",
+    "category": "CLINICAL",
+    "description": "Connected experience markers and clinical section tabs.",
+    "layout": "timeline",
+    "header": "split",
+    "headingStyle": "tab",
+    "fontStyle": "sans",
+    "density": "balanced",
+    "supportsPhoto": true,
+    "defaultColorId": "teal",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "clinical_florence_v3",
+    "displayName": "Florence Portfolio",
+    "category": "CLINICAL",
+    "description": "Experience paired with a right credential column.",
+    "layout": "right-sidebar",
+    "header": "left",
+    "headingStyle": "rule",
+    "fontStyle": "serif",
+    "density": "airy",
+    "supportsPhoto": true,
+    "defaultColorId": "teal",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "clinical_careline_v3",
+    "displayName": "Careline Cards",
+    "category": "CLINICAL",
+    "description": "A clinical banner and separated experience cards.",
+    "layout": "cards",
+    "header": "banner",
+    "headingStyle": "outline",
+    "fontStyle": "sans",
+    "density": "balanced",
+    "supportsPhoto": true,
+    "defaultColorId": "teal",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "clinical_vital_v3",
+    "displayName": "Vital Skills",
+    "category": "CLINICAL",
+    "description": "A compact skills column beside the clinical record.",
+    "layout": "split",
+    "header": "monogram",
+    "headingStyle": "bar",
+    "fontStyle": "sans",
+    "density": "dense",
+    "supportsPhoto": false,
+    "defaultColorId": "teal",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "clinical_folio-plus_v3",
+    "displayName": "Nursing Folio",
+    "category": "CLINICAL",
+    "description": "Editorial masthead, modular records and precise monospaced typography.",
+    "layout": "cards",
+    "header": "masthead",
+    "headingStyle": "caps",
+    "fontStyle": "mono",
+    "density": "airy",
+    "supportsPhoto": false,
+    "defaultColorId": "teal",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "clinical_registry-plus_v3",
+    "displayName": "Nursing Registry",
+    "category": "CLINICAL",
+    "description": "A framed identity with a numbered main column and separate credential rail.",
+    "layout": "right-sidebar",
+    "header": "boxed",
+    "headingStyle": "numbered",
+    "fontStyle": "sans",
+    "density": "balanced",
+    "supportsPhoto": false,
+    "defaultColorId": "teal",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "modern_medical_atlas_v3",
+    "displayName": "Atlas Profile",
+    "category": "MODERN_MEDICAL",
+    "description": "A monogram identity and outlined sidebar sections.",
+    "layout": "sidebar",
+    "header": "monogram",
+    "headingStyle": "outline",
+    "fontStyle": "sans",
+    "density": "balanced",
+    "supportsPhoto": true,
+    "defaultColorId": "blue",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "modern_medical_signal_v3",
+    "displayName": "Signal Timeline",
+    "category": "MODERN_MEDICAL",
+    "description": "Technical type with linked career milestones.",
+    "layout": "timeline",
+    "header": "masthead",
+    "headingStyle": "caps",
+    "fontStyle": "mono",
+    "density": "balanced",
+    "supportsPhoto": false,
+    "defaultColorId": "blue",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "modern_medical_prism_v3",
+    "displayName": "Prism Split",
+    "category": "MODERN_MEDICAL",
+    "description": "Two content zones with an offset identity.",
+    "layout": "split",
+    "header": "split",
+    "headingStyle": "tab",
+    "fontStyle": "sans",
+    "density": "airy",
+    "supportsPhoto": true,
+    "defaultColorId": "blue",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "modern_medical_horizon_v3",
+    "displayName": "Horizon Record",
+    "category": "MODERN_MEDICAL",
+    "description": "Framed header and soft structured entry panels.",
+    "layout": "cards",
+    "header": "boxed",
+    "headingStyle": "bar",
+    "fontStyle": "sans",
+    "density": "balanced",
+    "supportsPhoto": false,
+    "defaultColorId": "blue",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "modern_medical_orbit_v3",
+    "displayName": "Orbit Editorial",
+    "category": "MODERN_MEDICAL",
+    "description": "Editorial rules and numbered section introductions.",
+    "layout": "editorial",
+    "header": "center",
+    "headingStyle": "numbered",
+    "fontStyle": "serif",
+    "density": "airy",
+    "supportsPhoto": true,
+    "defaultColorId": "blue",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "modern_medical_folio-plus_v3",
+    "displayName": "Modern Healthcare Folio",
+    "category": "MODERN_MEDICAL",
+    "description": "Editorial masthead, modular records and precise monospaced typography.",
+    "layout": "cards",
+    "header": "masthead",
+    "headingStyle": "caps",
+    "fontStyle": "mono",
+    "density": "airy",
+    "supportsPhoto": false,
+    "defaultColorId": "blue",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "modern_medical_registry-plus_v3",
+    "displayName": "Modern Healthcare Registry",
+    "category": "MODERN_MEDICAL",
+    "description": "A framed identity with a numbered main column and separate credential rail.",
+    "layout": "right-sidebar",
+    "header": "boxed",
+    "headingStyle": "numbered",
+    "fontStyle": "sans",
+    "density": "balanced",
+    "supportsPhoto": false,
+    "defaultColorId": "blue",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "academic_index_v3",
+    "displayName": "Research Index",
+    "category": "ACADEMIC",
+    "description": "A numbered index gutter for long academic records.",
+    "layout": "ledger",
+    "header": "masthead",
+    "headingStyle": "numbered",
+    "fontStyle": "serif",
+    "density": "balanced",
+    "supportsPhoto": false,
+    "defaultColorId": "navy",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "education",
+      "publications",
+      "experience",
+      "conferences",
+      "achievements",
+      "memberships",
+      "certifications",
+      "skills",
+      "registration",
+      "internship",
+      "languages",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "skills",
+      "memberships",
+      "languages",
+      "registration"
+    ]
+  },
+  {
+    "id": "academic_journal_v3",
+    "displayName": "Journal Editorial",
+    "category": "ACADEMIC",
+    "description": "Journal-like masthead and fine editorial rules.",
+    "layout": "editorial",
+    "header": "left",
+    "headingStyle": "caps",
+    "fontStyle": "serif",
+    "density": "balanced",
+    "supportsPhoto": false,
+    "defaultColorId": "navy",
+    "isAtsFriendly": true,
+    "recommendedOrder": [
+      "summary",
+      "education",
+      "publications",
+      "experience",
+      "conferences",
+      "achievements",
+      "memberships",
+      "certifications",
+      "skills",
+      "registration",
+      "internship",
+      "languages",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "skills",
+      "memberships",
+      "languages",
+      "registration"
+    ]
+  },
+  {
+    "id": "academic_thesis_v3",
+    "displayName": "Thesis Portfolio",
+    "category": "ACADEMIC",
+    "description": "Research record alongside skills and memberships.",
+    "layout": "right-sidebar",
+    "header": "boxed",
+    "headingStyle": "plain",
+    "fontStyle": "serif",
+    "density": "balanced",
+    "supportsPhoto": false,
+    "defaultColorId": "navy",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "education",
+      "publications",
+      "experience",
+      "conferences",
+      "achievements",
+      "memberships",
+      "certifications",
+      "skills",
+      "registration",
+      "internship",
+      "languages",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "skills",
+      "memberships",
+      "languages",
+      "registration"
+    ]
+  },
+  {
+    "id": "academic_faculty_v3",
+    "displayName": "Faculty Dossier",
+    "category": "ACADEMIC",
+    "description": "Formal monogram and numbered academic sections.",
+    "layout": "classic",
+    "header": "monogram",
+    "headingStyle": "numbered",
+    "fontStyle": "sans",
+    "density": "airy",
+    "supportsPhoto": false,
+    "defaultColorId": "navy",
+    "isAtsFriendly": true,
+    "recommendedOrder": [
+      "summary",
+      "education",
+      "publications",
+      "experience",
+      "conferences",
+      "achievements",
+      "memberships",
+      "certifications",
+      "skills",
+      "registration",
+      "internship",
+      "languages",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "skills",
+      "memberships",
+      "languages",
+      "registration"
+    ]
+  },
+  {
+    "id": "academic_evidence_v3",
+    "displayName": "Evidence Brief",
+    "category": "ACADEMIC",
+    "description": "Compact data-oriented publication and training record.",
+    "layout": "compact",
+    "header": "split",
+    "headingStyle": "rule",
+    "fontStyle": "mono",
+    "density": "dense",
+    "supportsPhoto": false,
+    "defaultColorId": "navy",
+    "isAtsFriendly": true,
+    "recommendedOrder": [
+      "summary",
+      "education",
+      "publications",
+      "experience",
+      "conferences",
+      "achievements",
+      "memberships",
+      "certifications",
+      "skills",
+      "registration",
+      "internship",
+      "languages",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "skills",
+      "memberships",
+      "languages",
+      "registration"
+    ]
+  },
+  {
+    "id": "academic_folio-plus_v3",
+    "displayName": "Academic Folio",
+    "category": "ACADEMIC",
+    "description": "Editorial masthead, modular records and precise monospaced typography.",
+    "layout": "cards",
+    "header": "masthead",
+    "headingStyle": "caps",
+    "fontStyle": "mono",
+    "density": "airy",
+    "supportsPhoto": false,
+    "defaultColorId": "navy",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "education",
+      "publications",
+      "experience",
+      "conferences",
+      "achievements",
+      "memberships",
+      "certifications",
+      "skills",
+      "registration",
+      "internship",
+      "languages",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "skills",
+      "memberships",
+      "languages",
+      "registration"
+    ]
+  },
+  {
+    "id": "academic_registry-plus_v3",
+    "displayName": "Academic Registry",
+    "category": "ACADEMIC",
+    "description": "A framed identity with a numbered main column and separate credential rail.",
+    "layout": "right-sidebar",
+    "header": "boxed",
+    "headingStyle": "numbered",
+    "fontStyle": "sans",
+    "density": "balanced",
+    "supportsPhoto": false,
+    "defaultColorId": "navy",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "education",
+      "publications",
+      "experience",
+      "conferences",
+      "achievements",
+      "memberships",
+      "certifications",
+      "skills",
+      "registration",
+      "internship",
+      "languages",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "skills",
+      "memberships",
+      "languages",
+      "registration"
+    ]
+  },
+  {
+    "id": "executive_beacon_v3",
+    "displayName": "Beacon Statement",
+    "category": "EXECUTIVE",
+    "description": "A commanding banner and spacious leadership narrative.",
+    "layout": "banded",
+    "header": "banner",
+    "headingStyle": "double",
+    "fontStyle": "serif",
+    "density": "airy",
+    "supportsPhoto": false,
+    "defaultColorId": "burgundy",
+    "isAtsFriendly": true,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "executive_meridian_v3",
+    "displayName": "Meridian Executive",
+    "category": "EXECUTIVE",
+    "description": "Large masthead and right professional profile.",
+    "layout": "right-sidebar",
+    "header": "masthead",
+    "headingStyle": "bar",
+    "fontStyle": "sans",
+    "density": "balanced",
+    "supportsPhoto": true,
+    "defaultColorId": "burgundy",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "executive_boardroom_v3",
+    "displayName": "Boardroom Ledger",
+    "category": "EXECUTIVE",
+    "description": "Structured leadership dossier with a label gutter.",
+    "layout": "ledger",
+    "header": "monogram",
+    "headingStyle": "caps",
+    "fontStyle": "serif",
+    "density": "balanced",
+    "supportsPhoto": false,
+    "defaultColorId": "burgundy",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "executive_summit_v3",
+    "displayName": "Summit Portfolio",
+    "category": "EXECUTIVE",
+    "description": "Leadership entries presented as bordered project cards.",
+    "layout": "cards",
+    "header": "split",
+    "headingStyle": "outline",
+    "fontStyle": "sans",
+    "density": "airy",
+    "supportsPhoto": true,
+    "defaultColorId": "burgundy",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "executive_direction_v3",
+    "displayName": "Direction Editorial",
+    "category": "EXECUTIVE",
+    "description": "Framed identity and numbered leadership sections.",
+    "layout": "editorial",
+    "header": "boxed",
+    "headingStyle": "numbered",
+    "fontStyle": "serif",
+    "density": "airy",
+    "supportsPhoto": false,
+    "defaultColorId": "burgundy",
+    "isAtsFriendly": true,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "executive_folio-plus_v3",
+    "displayName": "Leadership Folio",
+    "category": "EXECUTIVE",
+    "description": "Editorial masthead, modular records and precise monospaced typography.",
+    "layout": "cards",
+    "header": "masthead",
+    "headingStyle": "caps",
+    "fontStyle": "mono",
+    "density": "airy",
+    "supportsPhoto": false,
+    "defaultColorId": "burgundy",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "executive_registry-plus_v3",
+    "displayName": "Leadership Registry",
+    "category": "EXECUTIVE",
+    "description": "A framed identity with a numbered main column and separate credential rail.",
+    "layout": "right-sidebar",
+    "header": "boxed",
+    "headingStyle": "numbered",
+    "fontStyle": "sans",
+    "density": "balanced",
+    "supportsPhoto": false,
+    "defaultColorId": "burgundy",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "minimal_quiet_v3",
+    "displayName": "Quiet Serif",
+    "category": "MINIMAL",
+    "description": "Centred serif identity with generous spacing.",
+    "layout": "classic",
+    "header": "center",
+    "headingStyle": "plain",
+    "fontStyle": "serif",
+    "density": "airy",
+    "supportsPhoto": false,
+    "defaultColorId": "black",
+    "isAtsFriendly": true,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "minimal_folio_v3",
+    "displayName": "Folio Line",
+    "category": "MINIMAL",
+    "description": "Editorial masthead and delicate horizontal rules.",
+    "layout": "editorial",
+    "header": "masthead",
+    "headingStyle": "double",
+    "fontStyle": "serif",
+    "density": "balanced",
+    "supportsPhoto": false,
+    "defaultColorId": "black",
+    "isAtsFriendly": true,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "minimal_grid_v3",
+    "displayName": "Grid Notes",
+    "category": "MINIMAL",
+    "description": "Precise labels and an understated monospaced rhythm.",
+    "layout": "ledger",
+    "header": "left",
+    "headingStyle": "plain",
+    "fontStyle": "mono",
+    "density": "dense",
+    "supportsPhoto": false,
+    "defaultColorId": "black",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "minimal_space_v3",
+    "displayName": "Open Space",
+    "category": "MINIMAL",
+    "description": "An open secondary column with restrained small caps.",
+    "layout": "split",
+    "header": "left",
+    "headingStyle": "caps",
+    "fontStyle": "sans",
+    "density": "airy",
+    "supportsPhoto": false,
+    "defaultColorId": "black",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "minimal_ink_v3",
+    "displayName": "Ink Compact",
+    "category": "MINIMAL",
+    "description": "A small framed header and efficient monochrome structure.",
+    "layout": "compact",
+    "header": "boxed",
+    "headingStyle": "rule",
+    "fontStyle": "sans",
+    "density": "dense",
+    "supportsPhoto": false,
+    "defaultColorId": "black",
+    "isAtsFriendly": true,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "minimal_folio-plus_v3",
+    "displayName": "Minimal Folio",
+    "category": "MINIMAL",
+    "description": "Editorial masthead, modular records and precise monospaced typography.",
+    "layout": "cards",
+    "header": "masthead",
+    "headingStyle": "caps",
+    "fontStyle": "mono",
+    "density": "airy",
+    "supportsPhoto": false,
+    "defaultColorId": "black",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "minimal_registry-plus_v3",
+    "displayName": "Minimal Registry",
+    "category": "MINIMAL",
+    "description": "A framed identity with a numbered main column and separate credential rail.",
+    "layout": "right-sidebar",
+    "header": "boxed",
+    "headingStyle": "numbered",
+    "fontStyle": "sans",
+    "density": "balanced",
+    "supportsPhoto": false,
+    "defaultColorId": "black",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "international_global_v3",
+    "displayName": "Global Credentials",
+    "category": "INTERNATIONAL",
+    "description": "A language and credential column on the right.",
+    "layout": "right-sidebar",
+    "header": "split",
+    "headingStyle": "tab",
+    "fontStyle": "sans",
+    "density": "balanced",
+    "supportsPhoto": true,
+    "defaultColorId": "blue",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "international_mobility_v3",
+    "displayName": "Mobility Brief",
+    "category": "INTERNATIONAL",
+    "description": "Wide photo identity strip and outlined sections.",
+    "layout": "classic",
+    "header": "banner",
+    "headingStyle": "outline",
+    "fontStyle": "sans",
+    "density": "balanced",
+    "supportsPhoto": true,
+    "defaultColorId": "blue",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "international_diplomat_v3",
+    "displayName": "Diplomat Folio",
+    "category": "INTERNATIONAL",
+    "description": "A formal centred identity with elegant section rules.",
+    "layout": "editorial",
+    "header": "center",
+    "headingStyle": "double",
+    "fontStyle": "serif",
+    "density": "airy",
+    "supportsPhoto": true,
+    "defaultColorId": "blue",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "international_metro_v3",
+    "displayName": "Metro Portfolio",
+    "category": "INTERNATIONAL",
+    "description": "Photo, monogram and compact structured entry cards.",
+    "layout": "cards",
+    "header": "monogram",
+    "headingStyle": "bar",
+    "fontStyle": "sans",
+    "density": "dense",
+    "supportsPhoto": true,
+    "defaultColorId": "blue",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "international_crossroads_v3",
+    "displayName": "Crossroads Timeline",
+    "category": "INTERNATIONAL",
+    "description": "Framed identity and numbered career milestones.",
+    "layout": "timeline",
+    "header": "boxed",
+    "headingStyle": "numbered",
+    "fontStyle": "sans",
+    "density": "balanced",
+    "supportsPhoto": true,
+    "defaultColorId": "blue",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "international_folio-plus_v3",
+    "displayName": "International Folio",
+    "category": "INTERNATIONAL",
+    "description": "Editorial masthead, modular records and precise monospaced typography.",
+    "layout": "cards",
+    "header": "masthead",
+    "headingStyle": "caps",
+    "fontStyle": "mono",
+    "density": "airy",
+    "supportsPhoto": true,
+    "defaultColorId": "blue",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "international_registry-plus_v3",
+    "displayName": "International Registry",
+    "category": "INTERNATIONAL",
+    "description": "A framed identity with a numbered main column and separate credential rail.",
+    "layout": "right-sidebar",
+    "header": "boxed",
+    "headingStyle": "numbered",
+    "fontStyle": "sans",
+    "density": "balanced",
+    "supportsPhoto": true,
+    "defaultColorId": "blue",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "registration",
+      "skills",
+      "experience",
+      "education",
+      "certifications",
+      "internship",
+      "achievements",
+      "languages",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "student_placement_v3",
+    "displayName": "Placement Path",
+    "category": "STUDENT",
+    "description": "An accessible visual path through training and learning.",
+    "layout": "timeline",
+    "header": "left",
+    "headingStyle": "rule",
+    "fontStyle": "sans",
+    "density": "balanced",
+    "supportsPhoto": false,
+    "defaultColorId": "purple",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "education",
+      "internship",
+      "skills",
+      "experience",
+      "certifications",
+      "achievements",
+      "languages",
+      "registration",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "student_foundation_v3",
+    "displayName": "Foundation Skills",
+    "category": "STUDENT",
+    "description": "Training paired with a dedicated skills column.",
+    "layout": "split",
+    "header": "boxed",
+    "headingStyle": "outline",
+    "fontStyle": "sans",
+    "density": "balanced",
+    "supportsPhoto": false,
+    "defaultColorId": "purple",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "education",
+      "internship",
+      "skills",
+      "experience",
+      "certifications",
+      "achievements",
+      "languages",
+      "registration",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "student_campus_v3",
+    "displayName": "Campus Portfolio",
+    "category": "STUDENT",
+    "description": "A personal profile beside education and placement evidence.",
+    "layout": "sidebar",
+    "header": "monogram",
+    "headingStyle": "caps",
+    "fontStyle": "sans",
+    "density": "airy",
+    "supportsPhoto": true,
+    "defaultColorId": "purple",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "education",
+      "internship",
+      "skills",
+      "experience",
+      "certifications",
+      "achievements",
+      "languages",
+      "registration",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "student_discovery_v3",
+    "displayName": "Discovery Scholar",
+    "category": "STUDENT",
+    "description": "An academic-inspired graduate research layout.",
+    "layout": "editorial",
+    "header": "center",
+    "headingStyle": "numbered",
+    "fontStyle": "serif",
+    "density": "airy",
+    "supportsPhoto": false,
+    "defaultColorId": "purple",
+    "isAtsFriendly": true,
+    "recommendedOrder": [
+      "summary",
+      "education",
+      "internship",
+      "skills",
+      "experience",
+      "certifications",
+      "achievements",
+      "languages",
+      "registration",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "student_firststep_v3",
+    "displayName": "First Step Brief",
+    "category": "STUDENT",
+    "description": "A concise first-job CV focused on demonstrable learning.",
+    "layout": "compact",
+    "header": "split",
+    "headingStyle": "plain",
+    "fontStyle": "mono",
+    "density": "dense",
+    "supportsPhoto": false,
+    "defaultColorId": "purple",
+    "isAtsFriendly": true,
+    "recommendedOrder": [
+      "summary",
+      "education",
+      "internship",
+      "skills",
+      "experience",
+      "certifications",
+      "achievements",
+      "languages",
+      "registration",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "student_folio-plus_v3",
+    "displayName": "Student Folio",
+    "category": "STUDENT",
+    "description": "Editorial masthead, modular records and precise monospaced typography.",
+    "layout": "cards",
+    "header": "masthead",
+    "headingStyle": "caps",
+    "fontStyle": "mono",
+    "density": "airy",
+    "supportsPhoto": false,
+    "defaultColorId": "purple",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "education",
+      "internship",
+      "skills",
+      "experience",
+      "certifications",
+      "achievements",
+      "languages",
+      "registration",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
+  },
+  {
+    "id": "student_registry-plus_v3",
+    "displayName": "Student Registry",
+    "category": "STUDENT",
+    "description": "A framed identity with a numbered main column and separate credential rail.",
+    "layout": "right-sidebar",
+    "header": "boxed",
+    "headingStyle": "numbered",
+    "fontStyle": "sans",
+    "density": "balanced",
+    "supportsPhoto": false,
+    "defaultColorId": "purple",
+    "isAtsFriendly": false,
+    "recommendedOrder": [
+      "summary",
+      "education",
+      "internship",
+      "skills",
+      "experience",
+      "certifications",
+      "achievements",
+      "languages",
+      "registration",
+      "publications",
+      "conferences",
+      "memberships",
+      "custom",
+      "references",
+      "hobbies",
+      "declaration"
+    ],
+    "sideSections": [
+      "registration",
+      "skills",
+      "certifications",
+      "languages"
+    ]
   }
 ]

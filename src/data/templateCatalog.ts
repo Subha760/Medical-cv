@@ -733,49 +733,65 @@ const defaultColors: Record<TemplateCategory, string> = {
   INTERNATIONAL: "blue",
   STUDENT: "purple",
 };
-export const TEMPLATE_CATALOG: CvTemplate[] = Object.entries(presets).flatMap(
-  ([cat, rows]) =>
-    rows.map(
-      (
-        [
-          slug,
-          name,
-          layout,
-          header,
-          headingStyle,
-          fontStyle,
-          density,
-          supportsPhoto,
-          description,
-        ],
-        i,
-      ) => ({
-        id:
-          cat === "ATS_PROFESSIONAL" && i === 0
-            ? "ats_professional_clarity_01"
-            : `${cat.toLowerCase()}_${slug}_v3`,
-        displayName: name,
-        category: cat as TemplateCategory,
-        description,
+export const ORIGINAL_TEMPLATE_CATALOG: CvTemplate[] = Object.entries(
+  presets,
+).flatMap(([cat, rows]) =>
+  rows.map(
+    (
+      [
+        slug,
+        name,
         layout,
         header,
         headingStyle,
         fontStyle,
         density,
         supportsPhoto,
-        defaultColorId: defaultColors[cat as TemplateCategory],
-        isAtsFriendly:
-          ["classic", "compact", "banded", "editorial"].includes(layout) &&
-          !supportsPhoto,
-        recommendedOrder:
-          cat === "ACADEMIC" ? academic : cat === "STUDENT" ? student : normal,
-        sideSections:
-          cat === "ACADEMIC"
-            ? ["skills", "memberships", "languages", "registration"]
-            : ["registration", "skills", "certifications", "languages"],
-      }),
-    ),
+        description,
+      ],
+      i,
+    ) => ({
+      id:
+        cat === "ATS_PROFESSIONAL" && i === 0
+          ? "ats_professional_clarity_01"
+          : `${cat.toLowerCase()}_${slug}_v3`,
+      displayName: name,
+      category: cat as TemplateCategory,
+      description,
+      layout,
+      header,
+      headingStyle,
+      fontStyle,
+      density,
+      supportsPhoto,
+      defaultColorId: defaultColors[cat as TemplateCategory],
+      isAtsFriendly:
+        ["classic", "compact", "banded", "editorial"].includes(layout) &&
+        !supportsPhoto,
+      recommendedOrder:
+        cat === "ACADEMIC" ? academic : cat === "STUDENT" ? student : normal,
+      sideSections:
+        cat === "ACADEMIC"
+          ? ["skills", "memberships", "languages", "registration"]
+          : ["registration", "skills", "certifications", "languages"],
+    }),
+  ),
 );
+// Ten fixed free designs: one per career category, plus a second ATS and clinical option.
+export const TEMPLATE_CATALOG = ORIGINAL_TEMPLATE_CATALOG.filter((t) => {
+  const group = ORIGINAL_TEMPLATE_CATALOG.filter(
+    (v) => v.category === t.category,
+  );
+  return (
+    group.indexOf(t) <
+    (["ATS_PROFESSIONAL", "CLINICAL"].includes(t.category) ? 2 : 1)
+  );
+});
+export const LOCKED_ORIGINAL_TEMPLATES = ORIGINAL_TEMPLATE_CATALOG.filter(
+  (t) => !TEMPLATE_CATALOG.some((free) => free.id === t.id),
+);
+export const isFreeTemplate = (id: string) =>
+  TEMPLATE_CATALOG.some((t) => t.id === id);
 export const DEFAULT_TEMPLATE_ID = "ats_professional_clarity_01";
 export const AVAILABLE_COLORS = [
   "navy",
@@ -790,7 +806,11 @@ export const AVAILABLE_COLORS = [
 export function templateById(id: string): CvTemplate {
   const current =
     unlockedPremiumById(id) || TEMPLATE_CATALOG.find((t) => t.id === id);
-  if (id.startsWith("premium_") && !current)
+  if (
+    (id.startsWith("premium_") ||
+      LOCKED_ORIGINAL_TEMPLATES.some((t) => t.id === id)) &&
+    !current
+  )
     throw new Error("Sign in to load your unlocked premium template.");
   if (current) return current;
   // Existing 2.0 CVs keep a suitable category-specific design after the catalogue migration.

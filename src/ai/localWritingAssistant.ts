@@ -201,12 +201,9 @@ export function runCvAutopilot(source: CvDocument): CvAutopilotResult {
   if (!doc.skills.trim()) needsInput.push("Confirm your own core skills");
   if (doc.experience.some((e) => !e.responsibilities.trim()))
     needsInput.push("Add your actual responsibilities");
-  doc.templateId = recommendTemplateId(doc);
+  if (!doc.templateId) doc.templateId = recommendTemplateId(doc);
   if (!doc.sectionOrder.length) doc.sectionOrder = defaultSectionOrder();
-  completed.push(
-    "Selected an ATS-friendly template",
-    "Optimised the section order",
-  );
+  completed.push("Kept your selected template", "Optimised the section order");
 
   if (!doc.personalInfo.fullName.trim()) needsInput.push("Full name");
   if (!doc.personalInfo.phone.trim() && !doc.personalInfo.email.trim())

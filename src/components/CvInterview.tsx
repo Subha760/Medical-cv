@@ -9,6 +9,11 @@ import {
 import { cvStorage } from "../storage/cvStorage";
 import { createId } from "../utils/id";
 import Robot from "./Robot";
+import { useAccount } from "../account/useAccount";
+import { TEMPLATE_CATALOG, isFreeTemplate } from "../data/templateCatalog";
+import { unlockedPremiumById } from "../data/templateRegistry";
+import { validCustom } from "../data/customTemplates";
+
 type Question = { path: string; label: string; photo?: boolean };
 const labels: Record<string, string> = {
   fullName: "What is your full name?",
@@ -158,6 +163,7 @@ function resumeInterview(): {
 }
 export default function CvInterview() {
   const navigate = useNavigate();
+  const { account } = useAccount();
   const [resumed] = useState(resumeInterview);
   const [doc, setDoc] = useState(resumed.doc);
   const [questions, setQuestions] = useState(resumed.questions);
@@ -177,6 +183,29 @@ export default function CvInterview() {
   const [error, setError] = useState("");
   const [history, setHistory] = useState<string[]>([]);
   const q = questions[index];
+  const themes = [
+    ...TEMPLATE_CATALOG,
+    ...(account && !account.frozen
+      ? account.unlocks
+          .map(unlockedPremiumById)
+          .filter((t): t is NonNullable<typeof t> => Boolean(t))
+      : []),
+  ];
+  const originalCustom =
+    doc.customTemplate?.id === doc.templateId &&
+    validCustom(doc.customTemplate);
+  const themeAllowed =
+    isFreeTemplate(doc.templateId) ||
+    originalCustom ||
+    themes.some((t) => t.id === doc.templateId);
+  function editDraft() {
+    if (!themeAllowed) {
+      navigate("/template/" + doc.id);
+      return;
+    }
+    navigate("/editor/" + doc.id);
+  }
+
   function save(next: CvDocument) {
     try {
       cvStorage.save(next, true);
@@ -283,6 +312,45 @@ export default function CvInterview() {
         <Robot />
       </div>
       <div className="copilot-chat">
+        <label htmlFor="mira-theme">CV theme · free or unlocked</label>
+        <select
+          id="mira-theme"
+          value={doc.templateId}
+          onChange={(event) => {
+            const selected = themes.find((t) => t.id === event.target.value);
+            if (!selected) return;
+            const nextDoc = {
+              ...doc,
+              templateId: selected.id,
+              customTemplate: undefined,
+              colorId: selected.defaultColorId,
+            };
+            if (index < 0) setDoc(nextDoc);
+            else save(nextDoc);
+          }}
+        >
+          {!themeAllowed && (
+            <option value={doc.templateId} disabled>
+              Locked theme — choose an available design
+            </option>
+          )}
+          {originalCustom && (
+            <option value={doc.templateId}>Your original custom design</option>
+          )}
+          {themes.map((t) => (
+            <option key={t.id} value={t.id}>
+              {t.displayName}
+              {isFreeTemplate(t.id) ? " · Free" : " · Unlocked"}
+            </option>
+          ))}
+        </select>
+        {!themeAllowed && (
+          <small>
+            Saved answers are safe. Choose a free design or verify its unlock in
+            Templates before exporting.
+          </small>
+        )}
+
         <div className="chat-status">
           <span />
           Mira · On your device
@@ -379,10 +447,7 @@ export default function CvInterview() {
               >
                 Back
               </button>
-              <button
-                className="btn btn-secondary"
-                onClick={() => navigate("/editor/" + doc.id)}
-              >
+              <button className="btn btn-secondary" onClick={editDraft}>
                 Edit draft now
               </button>
             </div>
@@ -408,10 +473,7 @@ export default function CvInterview() {
             <button className="btn btn-secondary" onClick={addCustom}>
               Add custom section
             </button>
-            <button
-              className="btn btn-primary"
-              onClick={() => navigate("/editor/" + doc.id)}
-            >
+            <button className="btn btn-primary" onClick={editDraft}>
               Review and finish my CV →
             </button>
             <p>Choose a design and add custom sections in the editor.</p>

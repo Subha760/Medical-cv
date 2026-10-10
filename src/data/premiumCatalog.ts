@@ -1,5 +1,5 @@
 import type { TemplateCategory } from "./templateCatalog";
-import { CATEGORY_INFO } from "./templateCatalog";
+import { CATEGORY_INFO, LOCKED_ORIGINAL_TEMPLATES } from "./templateCatalog";
 export interface PremiumDescriptor {
   id: string;
   name: string;
@@ -24,5 +24,16 @@ export const PREMIUM_CATALOG: PremiumDescriptor[] = Object.keys(
     ][index],
     supportsPhoto: index === 1,
     preview: `premium/${category.toLowerCase()}_${index + 1}.png`,
+  })),
+);
+
+PREMIUM_CATALOG.push(
+  ...LOCKED_ORIGINAL_TEMPLATES.map((t) => ({
+    id: t.id,
+    name: t.displayName,
+    category: t.category,
+    description: t.description,
+    preview: `premium/${t.id}.png`,
+    supportsPhoto: t.supportsPhoto,
   })),
 );

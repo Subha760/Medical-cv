@@ -1,4 +1,4 @@
-# MedCV · Medico 4.3
+# MedCV · Medico 4.4
 
 Healthcare CVs and a daily workspace for nurses and nursing students. React, TypeScript and Vite power an offline-capable website and two Android applications.
 
@@ -8,10 +8,10 @@ Support: help@choicematrix.in
 
 ## Features
 
-- Redesigned responsive homepage with interactive layout/colour previews, persistent accents, searchable career collections, category-specific gallery links and quick tool actions.
+- Minimal responsive homepage with one CV action, a subtle 3D document stack, searchable career collections and tools/appearance controls in a compact dialog.
 - Mira floats at the bottom-right; its keyboard-accessible chat panel keeps in-progress answers when closed and resumes saved interviews after reload. Motion respects the device’s reduced-motion preference.
 
-- 64 free original templates in eight categories and 32 original premium designs.
+- Exactly 10 free original templates in eight categories and 86 original premium designs. Mira lists only free or verified account-owned designs; premium preview and export recheck the server, without trusting localStorage unlocks.
 - Free custom-layout studio: structure, heading treatments, type, density and accents, with a live PDF preview and portable backup configuration.
 - Mira's animated guided CV interview, with skipped questions, images, repeated entries, saved drafts and editable forms.
 - Local CV drafts, PDF exports, cover letters, photos/signatures, validated backups and recovery.

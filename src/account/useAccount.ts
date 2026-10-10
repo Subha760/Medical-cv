@@ -3,6 +3,7 @@ import { Account, accountAction, backend } from "./client";
 import {
   registerPremiumTemplate,
   unlockedPremiumById,
+  setTemplateOwner,
 } from "../data/templateRegistry";
 import type { CvTemplate } from "../data/templateCatalog";
 export function useAccount() {
@@ -22,21 +23,23 @@ export function useAccount() {
       if (!session) {
         if (mounted.current && version === request.current) {
           current.current = null;
+          setTemplateOwner(null);
           setAccount(null);
         }
         return;
       }
       const code = localStorage.getItem("medico:referral") || "";
       const a = await accountAction("enroll", { code });
-      for (const id of a.unlocks) {
+      if (!mounted.current || version !== request.current) return;
+      setTemplateOwner(a.userId, a.frozen ? [] : a.unlocks);
+      for (const id of a.frozen ? [] : a.unlocks) {
         if (unlockedPremiumById(id)) continue;
         const t = await accountAction<CvTemplate>("template", {
           templateId: id,
         });
-        registerPremiumTemplate(t);
-        try {
-          localStorage.setItem("medico:premium:" + id, JSON.stringify(t));
-        } catch {}
+        if (!mounted.current || version !== request.current) return;
+        if (t.id !== id) throw new Error("Invalid template response.");
+        registerPremiumTemplate(t, a.userId);
       }
       if (!mounted.current || version !== request.current) return;
       current.current = a;
@@ -59,6 +62,7 @@ export function useAccount() {
       if (event === "SIGNED_OUT") {
         ++request.current;
         current.current = null;
+        setTemplateOwner(null);
         setAccount(null);
         setBusy(false);
       } else

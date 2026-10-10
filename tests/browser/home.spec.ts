@@ -5,6 +5,8 @@ test("home categories search, open a filtered gallery and carry the selected col
 }) => {
   await page.goto("/");
   await expect(page.locator(".home-category")).toHaveCount(8);
+  await page.getByRole("button", { name: "Open tools", exact: true }).click();
+  await page.getByText("Make it yours", { exact: true }).click();
   await page
     .getByRole("button", { name: "purple accent", exact: true })
     .click();
@@ -13,9 +15,12 @@ test("home categories search, open a filtered gallery and carry the selected col
     page.getByRole("button", { name: "Timeline", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");
   await page.reload();
+  await page.getByRole("button", { name: "Open tools", exact: true }).click();
+  await page.getByText("Make it yours", { exact: true }).click();
   await expect(
     page.getByRole("button", { name: "purple accent", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "Close tools", exact: true }).click();
   await page.getByLabel("Explore categories", { exact: true }).fill("student");
   await expect(page.locator(".home-category")).toHaveCount(1);
   await page
@@ -25,7 +30,7 @@ test("home categories search, open a filtered gallery and carry the selected col
     })
     .click();
   await expect(page.getByLabel("Template category")).toHaveValue("STUDENT");
-  await expect(page.locator(".template-card")).toHaveCount(8);
+  await expect(page.locator(".template-card")).toHaveCount(1);
   await page.locator(".template-card").first().click();
   await page
     .getByRole("button", { name: "Use this template", exact: true })
@@ -65,6 +70,7 @@ test("Mira stays at the lower right, traps dialog focus and keeps an unfinished 
   await page
     .getByRole("button", { name: "Start guided CV", exact: true })
     .click();
+  await expect(page.locator("#mira-theme option")).toHaveCount(10);
   await page
     .getByLabel("Your answer", { exact: true })
     .fill("Not finished yet");
@@ -110,6 +116,7 @@ test("home search recovers from no results and reduced-motion mode disables robo
       .locator(".mira-launcher .robot-float")
       .evaluate((node) => getComputedStyle(node).animationName),
   ).toBe("none");
+  await page.getByRole("button", { name: "Open tools", exact: true }).click();
   await page
     .getByRole("button", { name: "Customize a design", exact: false })
     .click();

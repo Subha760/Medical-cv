@@ -28,4 +28,4 @@ for (const t of JSON.parse(
     "public/premium/" + t.id.replace(/^premium_/, ""),
   ]);
 }
-console.log("Rendered 32 original premium preview images.");
+console.log("Rendered all original premium preview images.");

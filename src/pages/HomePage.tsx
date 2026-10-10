@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import CvInterview from "../components/CvInterview";
 import Robot from "../components/Robot";
 import NavBar from "../components/NavBar";
+import AppIcon from "../components/AppIcon";
 import AdSlot from "../components/AdSlot";
 import {
   CATEGORY_INFO,
@@ -69,6 +70,8 @@ function PaperPreview({ variant = 0 }: { variant?: number }) {
 }
 export default function HomePage() {
   const navigate = useNavigate();
+  const [toolsOpen, setToolsOpen] = useState(false);
+  const toolsDialog = useRef<HTMLDialogElement>(null);
   const [miraOpen, setMiraOpen] = useState(false);
   const [accent, setAccent] = useState(savedAccent);
   const [layout, setLayout] = useState(0);
@@ -79,6 +82,11 @@ export default function HomePage() {
     if (miraOpen && panel && !panel.open) panel.showModal();
     if (!miraOpen && panel?.open) panel.close();
   }, [miraOpen]);
+  useEffect(() => {
+    const panel = toolsDialog.current;
+    if (toolsOpen && panel && !panel.open) panel.showModal();
+    if (!toolsOpen && panel?.open) panel.close();
+  }, [toolsOpen]);
   const categories = CATEGORY_KEYS.filter((key) =>
     `${CATEGORY_INFO[key].label} ${CATEGORY_INFO[key].description}`
       .toLowerCase()
@@ -121,131 +129,67 @@ export default function HomePage() {
   } as CSSProperties;
   return (
     <>
-      <NavBar />
-      <main className="home home-refresh" style={appearance}>
+      <NavBar compact onOpenTools={() => setToolsOpen(true)} />
+      <main className="home home-refresh home-desk" style={appearance}>
         <section className="home-hero">
           <div className="container home-hero__grid">
             <div className="home-hero__copy">
-              <span className="home-eyebrow">
-                <span aria-hidden="true">✦</span> YOUR CAREER, BEAUTIFULLY
-                ORGANIZED
-              </span>
+              <span className="home-eyebrow">FOR YOUR NEXT CHAPTER</span>
               <h1>
-                Care for others.
+                Your career.
                 <br />
-                Make room for <em>your future.</em>
+                <em>In good hands.</em>
               </h1>
               <p>
-                A polished CV. A calmer shift. A little help along the way. Your
-                personal workspace for nursing and healthcare careers.
+                A professional CV and a practical workspace for life in
+                healthcare. Make time for what comes next.
               </p>
               <div className="home-hero__actions">
                 <button
                   className="home-button home-button--primary"
                   onClick={() => openTemplates()}
                 >
-                  Create my CV <span aria-hidden="true">→</span>
-                </button>
-                <button
-                  className="home-button home-button--secondary"
-                  onClick={() => setMiraOpen(true)}
-                >
-                  Build with Mira <span aria-hidden="true">✦</span>
+                  <AppIcon name="document" /> Create my CV{" "}
+                  <AppIcon name="arrow" />
                 </button>
               </div>
               <div className="home-proof">
-                <span>✓ Free templates</span>
-                <span>✓ Local drafts</span>
-                <span>✓ Offline ready</span>
+                <span>10 free designs</span>
+                <span>Private local drafts</span>
+                <span>PDF export</span>
               </div>
-              <button
-                className="home-text-link"
-                onClick={() => navigate("/workspace")}
-              >
-                Already on your next shift? Open daily workspace{" "}
-                <span aria-hidden="true">→</span>
-              </button>
             </div>
-            <div className="home-studio">
-              <div className="home-studio__bar">
-                <span>
-                  <i /> CV DESIGN STUDIO
-                </span>
-                <span>Sample preview</span>
-              </div>
-              <div className="home-studio__canvas">
+            <div
+              className="home-studio desk-stack"
+              onPointerMove={(event) => {
+                if (
+                  event.pointerType !== "mouse" ||
+                  window.matchMedia("(prefers-reduced-motion: reduce)").matches
+                )
+                  return;
+                const rect = event.currentTarget.getBoundingClientRect();
+                event.currentTarget.style.setProperty(
+                  "--tilt-x",
+                  `${(0.5 - (event.clientY - rect.top) / rect.height) * 8}deg`,
+                );
+                event.currentTarget.style.setProperty(
+                  "--tilt-y",
+                  `${((event.clientX - rect.left) / rect.width - 0.5) * 8}deg`,
+                );
+              }}
+              onPointerLeave={(event) => {
+                event.currentTarget.style.setProperty("--tilt-x", "0deg");
+                event.currentTarget.style.setProperty("--tilt-y", "0deg");
+              }}
+            >
+              <div className="desk-stack__back" aria-hidden="true" />
+              <div className="desk-stack__front">
                 <PaperPreview variant={layout} />
-                <span className="home-studio__badge">✦ Make it yours</span>
               </div>
-              <div className="home-studio__controls">
-                <div
-                  className="home-layouts"
-                  role="group"
-                  aria-label="Preview layout"
-                >
-                  {LAYOUTS.map((name, index) => (
-                    <button
-                      key={name}
-                      aria-pressed={layout === index}
-                      onClick={() => setLayout(index)}
-                    >
-                      {name}
-                    </button>
-                  ))}
-                </div>
-                <div
-                  className="home-swatches"
-                  role="group"
-                  aria-label="CV accent colour"
-                >
-                  {ACCENTS.map((name) => (
-                    <button
-                      key={name}
-                      aria-label={`${name} accent`}
-                      aria-pressed={accent === name}
-                      style={{ background: COLOR_HEX[name] }}
-                      onClick={() => chooseAccent(name)}
-                    >
-                      {accent === name ? "✓" : ""}
-                    </button>
-                  ))}
-                </div>
-                <button
-                  className="home-text-link"
-                  onClick={() =>
-                    openTemplates(
-                      (
-                        [
-                          "ATS_PROFESSIONAL",
-                          "MODERN_MEDICAL",
-                          "CLINICAL",
-                        ] as TemplateCategory[]
-                      )[layout],
-                    )
-                  }
-                >
-                  Find layouts like this <span aria-hidden="true">→</span>
-                </button>
-              </div>
+              <span className="desk-stack__caption">
+                Sample CV · Your story goes here
+              </span>
             </div>
-          </div>
-        </section>
-        <section className="container home-metrics" aria-label="CV features">
-          <div>
-            <b>64</b>
-            <span>free designs</span>
-          </div>
-          <div>
-            <b>8</b>
-            <span>career categories</span>
-          </div>
-          <div>
-            <b>15</b>
-            <span>offline assistants</span>
-          </div>
-          <div>
-            <b>PDF</b>
-            <span>ready to share</span>
           </div>
         </section>
         <section
@@ -254,63 +198,60 @@ export default function HomePage() {
         >
           <div className="home-section-heading">
             <div>
-              <span className="home-kicker">A DESIGN FOR EVERY NEXT STEP</span>
-              <h2 id="home-categories-title">Find your signature style.</h2>
-              <p>
-                Distinct layouts, organized around your career. Every category
-                includes eight free templates.
-              </p>
+              <span className="home-kicker">THE COLLECTION</span>
+              <h2 id="home-categories-title">A place to start.</h2>
+              <p>Ten free designs. More to unlock with verified referrals.</p>
             </div>
-            <button
-              className="home-button home-button--secondary"
-              onClick={() => openTemplates()}
-            >
-              Browse all templates <span aria-hidden="true">→</span>
-            </button>
           </div>
           <div className="home-category-toolbar">
-            <label htmlFor="home-category-search">Explore categories</label>
+            <AppIcon name="search" />
+            <label htmlFor="home-category-search" className="sr-only">
+              Explore categories
+            </label>
             <input
               id="home-category-search"
               type="search"
-              placeholder="Search nursing, student, minimal…"
+              placeholder="Find your category"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
             />
             <span role="status">{categories.length} categories</span>
           </div>
           <div className="home-category-grid">
-            {categories.map((key) => {
+            {categories.map((key, index) => {
               const info = CATEGORY_INFO[key];
-              const index = CATEGORY_KEYS.indexOf(key);
+              const icons = [
+                "document",
+                "clinical",
+                "grid",
+                "book",
+                "briefcase",
+                "edit",
+                "globe",
+                "graduate",
+              ] as const;
               return (
                 <button
-                  className={`home-category home-category--${index % 4}`}
+                  className="home-category"
                   key={key}
                   onClick={() => openTemplates(key)}
                   aria-label={`Explore ${info.label} templates`}
                 >
-                  <div className="home-category__preview">
-                    <PaperPreview variant={index} />
-                    <span className="home-category__icon" aria-hidden="true">
-                      {info.icon}
-                    </span>
-                  </div>
+                  <span className="desk-category-icon">
+                    <AppIcon name={icons[index % icons.length]} size={24} />
+                  </span>
                   <div className="home-category__copy">
-                    <span className="home-category__count">
-                      {
-                        TEMPLATE_CATALOG.filter(
-                          (template) => template.category === key,
-                        ).length
-                      }{" "}
-                      FREE DESIGNS
-                    </span>
                     <h3>{info.label}</h3>
                     <p>{info.description}</p>
-                    <span className="home-category__link">
-                      Explore collection <span aria-hidden="true">→</span>
+                    <span className="home-category__count">
+                      {
+                        TEMPLATE_CATALOG.filter((t) => t.category === key)
+                          .length
+                      }{" "}
+                      free · explore designs
                     </span>
                   </div>
+                  <AppIcon name="arrow" />
                 </button>
               );
             })}
@@ -329,82 +270,125 @@ export default function HomePage() {
             </div>
           )}
         </section>
-        <section
-          className="container home-shortcuts"
-          aria-labelledby="home-tools-title"
-        >
-          <div className="home-section-heading">
-            <div>
-              <span className="home-kicker">MORE THAN A CV</span>
-              <h2 id="home-tools-title">Your everyday toolkit.</h2>
-              <p>Start something new, or pick up where you left off.</p>
-            </div>
-          </div>
-          <div className="home-tools-grid">
-            {[
-              {
-                icon: "◷",
-                title: "Daily workspace",
-                text: "Plan shifts, track credentials and study with offline assistants.",
-                path: "/workspace",
-              },
-              {
-                icon: "◇",
-                title: "Customize a design",
-                text: "Adjust fonts, spacing, sections and colours in your design studio.",
-                path: "/design",
-              },
-              {
-                icon: "↑",
-                title: "Import a document",
-                text: "Bring your PDF or Word document into Document Studio.",
-                path: "/import",
-              },
-              {
-                icon: "▤",
-                title: "Saved CVs",
-                text: "Revisit your local drafts and keep your next application moving.",
-                path: "/saved",
-              },
-            ].map((tool) => (
-              <button
-                className="home-tool"
-                key={tool.path}
-                aria-label={tool.title}
-                onClick={() => navigate(tool.path)}
-              >
-                <span className="home-tool__icon" aria-hidden="true">
-                  {tool.icon}
-                </span>
-                <h3>{tool.title}</h3>
-                <p>{tool.text}</p>
-                <span className="home-tool__arrow" aria-hidden="true">
-                  →
-                </span>
-              </button>
-            ))}
-          </div>
-        </section>
         <div className="container ad-wrap">
           <AdSlot placement="home" />
         </div>
-        <section className="container home-final">
-          <span className="home-kicker">YOUR NEXT CHAPTER STARTS HERE</span>
-          <h2>
-            One small step.
-            <br />A stronger first impression.
-          </h2>
-          <p>
-            Choose your design, tell your story, and export a professional CV.
-          </p>
-          <button
-            className="home-button home-button--primary"
-            onClick={() => openTemplates()}
-          >
-            Start building for free <span aria-hidden="true">→</span>
-          </button>
-        </section>
       </main>
+      <dialog
+        ref={toolsDialog}
+        className="desk-tools"
+        aria-labelledby="desk-tools-title"
+        onKeyDown={keepDialogFocus}
+        onCancel={() => setToolsOpen(false)}
+        onClose={() => setToolsOpen(false)}
+      >
+        <header>
+          <div>
+            <span className="home-kicker">YOUR WORKSPACE</span>
+            <h2 id="desk-tools-title">Tools & appearance</h2>
+          </div>
+          <button
+            autoFocus
+            aria-label="Close tools"
+            onClick={() => setToolsOpen(false)}
+          >
+            <AppIcon name="close" />
+          </button>
+        </header>
+        <div className="desk-tool-grid">
+          {[
+            {
+              icon: "calendar",
+              title: "Daily workspace",
+              text: "Shifts, study and credentials",
+              path: "/workspace",
+            },
+            {
+              icon: "saved",
+              title: "Saved CVs",
+              text: "Return to your local drafts",
+              path: "/saved",
+            },
+            {
+              icon: "edit",
+              title: "Customize a design",
+              text: "Typography, sections and spacing",
+              path: "/design",
+            },
+            {
+              icon: "upload",
+              title: "Import a document",
+              text: "PDF and Word document studio",
+              path: "/import",
+            },
+            {
+              icon: "mail",
+              title: "Cover letter",
+              text: "Prepare your next application",
+              path: "/cover-letter",
+            },
+            {
+              icon: "user",
+              title: "Account & credits",
+              text: "Verified referrals and unlocks",
+              path: "/account",
+            },
+            {
+              icon: "settings",
+              title: "Settings",
+              text: "Privacy, backups and preferences",
+              path: "/settings",
+            },
+          ].map((tool) => (
+            <button key={tool.path} onClick={() => navigate(tool.path)}>
+              <AppIcon
+                name={tool.icon as Parameters<typeof AppIcon>[0]["name"]}
+              />
+              <span>
+                <b>{tool.title}</b>
+                <small>{tool.text}</small>
+              </span>
+              <AppIcon name="arrow" />
+            </button>
+          ))}
+        </div>
+        <details>
+          <summary>Make it yours</summary>
+          <div
+            className="home-layouts"
+            role="group"
+            aria-label="Preview layout"
+          >
+            {LAYOUTS.map((name, index) => (
+              <button
+                key={name}
+                aria-pressed={layout === index}
+                onClick={() => setLayout(index)}
+              >
+                {name}
+              </button>
+            ))}
+          </div>
+          <div
+            className="home-swatches"
+            role="group"
+            aria-label="CV accent colour"
+          >
+            {ACCENTS.map((name) => (
+              <button
+                key={name}
+                aria-label={`${name} accent`}
+                aria-pressed={accent === name}
+                style={{ background: COLOR_HEX[name] }}
+                onClick={() => chooseAccent(name)}
+              >
+                {accent === name ? "✓" : ""}
+              </button>
+            ))}
+          </div>
+          <p>Your colour is used when you start a CV.</p>
+        </details>
+      </dialog>
       <div className="mira-dock">
         <span className="mira-dock__hint">Your CV guide</span>
         <button

@@ -1,5 +1,8 @@
 import { writeFileSync, mkdirSync } from "node:fs";
-import { TEMPLATE_CATALOG } from "../src/data/templateCatalog";
+import {
+  TEMPLATE_CATALOG,
+  LOCKED_ORIGINAL_TEMPLATES,
+} from "../src/data/templateCatalog";
 import { PREMIUM_CATALOG } from "../src/data/premiumCatalog";
 const variants = [
   {
@@ -35,14 +38,17 @@ const variants = [
     supportsPhoto: false,
   },
 ];
-const configs = PREMIUM_CATALOG.map((d) => ({
-  ...TEMPLATE_CATALOG.find((t) => t.category === d.category)!,
-  ...variants[Number(d.id.slice(-1)) - 1],
-  id: d.id,
-  displayName: d.name,
-  description: d.description,
-  isAtsFriendly: false,
-}));
+const configs = PREMIUM_CATALOG.map(
+  (d) =>
+    LOCKED_ORIGINAL_TEMPLATES.find((t) => t.id === d.id) || {
+      ...TEMPLATE_CATALOG.find((t) => t.category === d.category)!,
+      ...variants[Number(d.id.slice(-1)) - 1],
+      id: d.id,
+      displayName: d.name,
+      description: d.description,
+      isAtsFriendly: false,
+    },
+);
 mkdirSync("release", { recursive: true });
 writeFileSync("release/premium-configs.json", JSON.stringify(configs, null, 2));
 const quote = (s: string) => "'" + s.replace(/'/g, "''") + "'";
@@ -55,4 +61,6 @@ writeFileSync(
     )
     .join("\n"),
 );
-console.log("Prepared 32 original premium layout configurations.");
+console.log(
+  `Prepared ${configs.length} original premium layout configurations.`,
+);

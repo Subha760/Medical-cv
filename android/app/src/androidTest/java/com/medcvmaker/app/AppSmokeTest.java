@@ -37,8 +37,12 @@ public class AppSmokeTest {
         waitFor("document.body.innerText.includes('Create my CV')");
         assertEquals("true",js("window.isSecureContext"));
         assertEquals("true",js("!!window.MedCVAndroid"));
+        js("document.querySelector('[aria-label=\"Open Mira CV guide\"]').click()");
+        waitFor("document.querySelector('#mira-panel').open");
+        assertEquals("true",js("document.querySelectorAll('#mira-theme option').length===10"));
+        js("document.querySelector('[aria-label=\"Close Mira\"]').click()");
         js("location.hash='/new'");
-        waitFor("document.querySelectorAll('.template-card').length>0");
+        waitFor("document.querySelectorAll('.template-card').length===10");
         js("document.querySelector('.template-card').scrollIntoView()");
         waitFor("document.querySelectorAll('canvas').length>0");
         js("document.querySelector('.template-card').click()");

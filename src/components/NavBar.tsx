@@ -1,8 +1,12 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import "./NavBar.css";
+import AppIcon from "./AppIcon";
 
-export default function NavBar() {
+export default function NavBar({
+  compact = false,
+  onOpenTools,
+}: { compact?: boolean; onOpenTools?: () => void } = {}) {
   const [theme, setTheme] = useState(
     document.documentElement.dataset.theme || "light",
   );
@@ -15,7 +19,7 @@ export default function NavBar() {
     } catch {}
   }
   return (
-    <header className="nav-bar">
+    <header className={`nav-bar ${compact ? "nav-bar--compact" : ""}`}>
       <div className="container nav-bar__inner">
         <Link to="/" className="nav-bar__brand">
           <span className="nav-bar__mark" aria-hidden="true">
@@ -78,30 +82,48 @@ export default function NavBar() {
           onClick={toggleTheme}
           aria-label="Toggle colour theme"
         >
-          {theme === "light" ? "☾ Dark" : "☀ Light"}
+          {compact ? (
+            <AppIcon name={theme === "light" ? "moon" : "sun"} />
+          ) : theme === "light" ? (
+            "☾ Dark"
+          ) : (
+            "☀ Light"
+          )}
         </button>
-        <nav className="nav-bar__links">
-          <Link to="/workspace">Daily workspace</Link>
-          <Link to="/new">Templates</Link>
-          <Link to="/saved">My Saved CVs</Link>
-          <Link to="/cover-letter">Cover Letter</Link>
-          <Link to="/import">Document studio</Link>
-          <Link to="/account">Account</Link>
-          <Link to="/settings">Settings</Link>
-          <Link to="/new" className="nav-bar__cta">
-            Build my CV
-          </Link>
-        </nav>
+        {compact ? (
+          <button
+            className="nav-tools"
+            aria-label="Open tools"
+            onClick={onOpenTools}
+          >
+            <AppIcon name="grid" /> <span>Tools</span>
+          </button>
+        ) : (
+          <nav className="nav-bar__links">
+            <Link to="/workspace">Daily workspace</Link>
+            <Link to="/new">Templates</Link>
+            <Link to="/saved">My Saved CVs</Link>
+            <Link to="/cover-letter">Cover Letter</Link>
+            <Link to="/import">Document studio</Link>
+            <Link to="/account">Account</Link>
+            <Link to="/settings">Settings</Link>
+            <Link to="/new" className="nav-bar__cta">
+              Build my CV
+            </Link>
+          </nav>
+        )}
       </div>
-      <nav className="mobile-links" aria-label="Quick navigation">
-        <Link to="/workspace">Workspace</Link>
-        <Link to="/settings">Settings</Link>
-        <Link to="/new">Templates</Link>
-        <Link to="/saved">Saved CVs</Link>
-        <Link to="/import">Import</Link>
-        <Link to="/account">Account</Link>
-        <Link to="/cover-letter">Cover letter</Link>
-      </nav>
+      {!compact && (
+        <nav className="mobile-links" aria-label="Quick navigation">
+          <Link to="/workspace">Workspace</Link>
+          <Link to="/settings">Settings</Link>
+          <Link to="/new">Templates</Link>
+          <Link to="/saved">Saved CVs</Link>
+          <Link to="/import">Import</Link>
+          <Link to="/account">Account</Link>
+          <Link to="/cover-letter">Cover letter</Link>
+        </nav>
+      )}
     </header>
   );
 }
