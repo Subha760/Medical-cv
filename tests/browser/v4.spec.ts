@@ -4,6 +4,8 @@ import { Document, Packer, Paragraph } from "docx";
 test("free and premium libraries, original previews and custom design work", async ({
   page,
 }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", error => pageErrors.push(error.message));
   await page.goto("/#/new");
   await page
     .getByRole("button", { name: "Premium · 32 designs", exact: true })
@@ -44,6 +46,7 @@ test("free and premium libraries, original previews and custom design work", asy
   );
   expect(draft.customTemplate.layout).toBe("ledger");
   expect(draft.customTemplate.fontStyle).toBe("serif");
+  expect(pageErrors).toEqual([]);
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth + 1,

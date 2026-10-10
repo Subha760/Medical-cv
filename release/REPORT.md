@@ -122,3 +122,5 @@ Signed 4.1 artifact checksums:
 ## Pulse login correction · 10 October
 
 The Gmail verification itself succeeded in Cloudflare Access logs, but the original browser-to-server handoff failed and mislabeled the failure as email verification expiry. The protected callback now creates the verified session before returning to Pulse, then passes it through a short-lived encrypted HttpOnly cookie and a same-origin exchange. Desktop/phone regression tests exercise the complete redirect, cookie exchange and report rendering using fixtures. See SECURITY-AND-DOMAIN.md for security controls and verification limits. Existing signed 4.1 APKs open this updated web owner portal in the system browser.
+
+The expanded browser checks also exposed a PDF.js worker ownership race during rapid custom-design changes. PDF tasks now receive an explicitly owned shared PDFWorker, so cancelling one document does not destroy the message handler needed by another. The browser regression asserts no page errors as well as a visible PDF canvas.

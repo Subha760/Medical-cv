@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import type { PDFDocumentLoadingTask } from 'pdfjs-dist';
+import type { PDFDocumentLoadingTask, PDFWorker } from 'pdfjs-dist';
 import PdfWorker from 'pdfjs-dist/legacy/build/pdf.worker.mjs?worker';
 
-let sharedWorker: Worker | undefined;
+let sharedWorker: PDFWorker | undefined;
 function readPdf(blob: Blob): Promise<ArrayBuffer> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -26,9 +26,12 @@ export default function PdfPages({ blob, thumbnail=false }: { blob: Blob; thumbn
       try {
         const pdfjs=await import('pdfjs-dist/legacy/build/pdf.mjs');
         if(cancelled) return;
-        sharedWorker ??= new PdfWorker();
-        pdfjs.GlobalWorkerOptions.workerPort=sharedWorker;
-        task=pdfjs.getDocument({data:new Uint8Array(await readPdf(blob)), useSystemFonts:true, isEvalSupported:false});
+        sharedWorker ??= pdfjs.PDFWorker.fromPort({port:new PdfWorker()});
+        const data = new Uint8Array(await readPdf(blob));
+        if(cancelled) return;
+        // Explicit worker ownership keeps destroying one preview from destroying
+        // the shared PDF message handler used by other previews and new designs.
+        task=pdfjs.getDocument({data, worker:sharedWorker, useSystemFonts:true, isEvalSupported:false});
         const doc=await task.promise;
         for(let i=1;i<=(thumbnail ? 1 : doc.numPages);i++) {
           if(cancelled) break;
@@ -45,7 +48,7 @@ export default function PdfPages({ blob, thumbnail=false }: { blob: Blob; thumbn
     }
     const observer=new IntersectionObserver(entries => { if(entries.some(e=>e.isIntersecting)) { observer.disconnect(); void render(); } },{rootMargin:'150px'});
     observer.observe(node);
-    return () => {cancelled=true;observer.disconnect();void task?.destroy();};
+    return () => {cancelled=true;observer.disconnect();void task?.destroy().catch(()=>{});};
   },[blob,thumbnail]);
   return <div className={`pdf-pages ${thumbnail ? 'pdf-pages--thumbnail' : ''}`}><div ref={host}/>{error && <p role="alert">{error}</p>}</div>;
 }
