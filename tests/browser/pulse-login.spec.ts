@@ -97,9 +97,11 @@ test("verified owner handoff opens Pulse reports instead of a false expiry error
       return;
     }
     expect(url.pathname).not.toBe("/pulse/login/session");
-    const response = await route.fetch({
-      url: "http://127.0.0.1:4173" + url.pathname + url.search,
-    });
+    // Fetch fixtures independently: Firefox retains the original Host header
+    // when route.fetch changes the URL, which Vite correctly refuses.
+    const response = await page.request.get(
+      "http://127.0.0.1:4173" + url.pathname + url.search,
+    );
     await route.fulfill({ response });
   });
   await page.route(backend + "/**", async (route) => {
@@ -155,9 +157,9 @@ test("owner identity service errors are explained without claiming the email cod
 }) => {
   await page.route(domain + "/**", async (route) => {
     const url = new URL(route.request().url());
-    const response = await route.fetch({
-      url: "http://127.0.0.1:4173" + url.pathname + url.search,
-    });
+    const response = await page.request.get(
+      "http://127.0.0.1:4173" + url.pathname + url.search,
+    );
     await route.fulfill({ response });
   });
   await page.goto(domain + "/pulse/?login_error=owner_identity_unavailable");
