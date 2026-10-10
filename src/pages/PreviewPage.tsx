@@ -10,9 +10,19 @@ import { CvDocument } from "../types/cv";
 import { resolveCvTemplate } from "../data/customTemplates";
 import { checkAtsCompatibility, validateCv } from "../validation/cvChecks";
 
+import { useAccount } from "../account/useAccount";
+import { gateway } from "../account/client";
+import {
+  autoVerificationEnabled,
+  completionPayload,
+  qualifyingCv,
+} from "../account/referrals";
 export default function PreviewPage() {
   const { cvId } = useParams<{ cvId: string }>();
   const navigate = useNavigate();
+  const { account, refresh } = useAccount();
+  const [referralMessage, setReferralMessage] = useState("");
+  const [exporting, setExporting] = useState(false);
   const [doc, setDoc] = useState<CvDocument | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [fileName, setFileName] = useState("cv.pdf");
@@ -40,15 +50,40 @@ export default function PreviewPage() {
   }, [cvId]);
 
   async function exportPdf() {
-    if (!doc || !pdfBlob) return;
+    if (!doc || !pdfBlob || exporting) return;
+    setExporting(true);
     try {
       cvStorage.save(doc, false);
       await downloadPdf(pdfBlob, fileName);
       setExportError("");
+      if (
+        account &&
+        !account.qualified &&
+        !account.frozen &&
+        autoVerificationEnabled(account.userId) &&
+        qualifyingCv(doc)
+      ) {
+        try {
+          if (!navigator.onLine)
+            throw new Error("Offline verification is pending.");
+          await gateway("complete", { cv: completionPayload(doc) });
+          await refresh();
+          window.dispatchEvent(new Event("medico:account-updated"));
+          setReferralMessage(
+            "Your first CV is verified. Any eligible referral reward was issued automatically.",
+          );
+        } catch {
+          setReferralMessage(
+            "Your PDF was downloaded. Referral verification could not finish; retry from Account when online.",
+          );
+        }
+      }
     } catch {
       setExportError(
         "Unable to save or export. Download a backup in Settings and check device storage.",
       );
+    } finally {
+      setExporting(false);
     }
   }
 
@@ -92,8 +127,17 @@ export default function PreviewPage() {
         </h1>
 
         {exportError && <p role="alert">{exportError}</p>}
+        {referralMessage && (
+          <p role="status" className="notice">
+            {referralMessage}
+          </p>
+        )}
         <div className="preview-actions">
-          <button className="btn btn-primary" onClick={() => void exportPdf()}>
+          <button
+            className="btn btn-primary"
+            disabled={exporting}
+            onClick={() => void exportPdf()}
+          >
             Download PDF
           </button>
           <button
@@ -182,7 +226,11 @@ export default function PreviewPage() {
         <div
           style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 20 }}
         >
-          <button className="btn btn-primary" onClick={() => void exportPdf()}>
+          <button
+            className="btn btn-primary"
+            disabled={exporting}
+            onClick={() => void exportPdf()}
+          >
             Download PDF
           </button>
           <button

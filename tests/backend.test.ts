@@ -238,6 +238,67 @@ try {
     ),
     /unused/,
   );
+  // Only the owner can grant bounded support credits or refund an unused edit.
+  await assert.rejects(
+    call(
+      ref,
+      "admin_credit",
+      { userId: ref, amount: 20, reason: "Client attempted credit grant" },
+      "aal2",
+    ),
+    /Owner MFA/,
+  );
+  for (const amount of [0, 21, -1]) {
+    await assert.rejects(
+      call(
+        owner,
+        "admin_credit",
+        { userId: ref, amount, reason: "Out of range support grant" },
+        "aal2",
+      ),
+      /1 to 20/,
+    );
+  }
+  await call(
+    owner,
+    "admin_credit",
+    { userId: ref, amount: 1, reason: "Test unused edit refund" },
+    "aal2",
+  );
+  const unused = await call(ref, "reserve_edit", {
+    fingerprint: "d".repeat(64),
+    kind: "pdf",
+  });
+  await assert.rejects(
+    call(
+      ref,
+      "admin_refund_edit",
+      { id: unused.id, reason: "Unauthorized refund request" },
+      "aal2",
+    ),
+    /Owner MFA/,
+  );
+  await call(
+    owner,
+    "admin_refund_edit",
+    { id: unused.id, reason: "Verified unused reservation" },
+    "aal2",
+  );
+  await assert.rejects(
+    call(
+      owner,
+      "admin_refund_edit",
+      { id: unused.id, reason: "Duplicate refund request" },
+      "aal2",
+    ),
+    /unused/,
+  );
+  assert.equal((await call(ref, "status")).credits, 1);
+  await call(ref, "unlock", {
+    templateId: templates.find((t: string) => t !== unlocked),
+  });
+  assert.equal((await call(ref, "status")).credits, 0);
+
   // Profile deletion/recreation cannot manufacture another referral completion reward.
   await call(friend, "delete_profile");
   await call(friend, "enroll", { code: r.code });
@@ -248,6 +309,52 @@ try {
     [friend],
   );
   await assert.rejects(call(friend, "status"), /sign-in/);
+  // Gmail dots, plus aliases and googlemail domains cannot manufacture rewards.
+  const alias1 = "00000000-0000-4000-8000-000000000004";
+  const alias2 = "00000000-0000-4000-8000-000000000005";
+  const unverified = "00000000-0000-4000-8000-000000000006";
+  for (const [user, email] of [
+    [alias1, "test.nurse+one@gmail.com"],
+    [alias2, "testnurse+two@googlemail.com"],
+    [unverified, "unverified@example.test"],
+  ]) {
+    await pool.query(
+      "insert into auth.users(id,email,email_confirmed_at) values($1,$2,$3)",
+      [user, email, user === unverified ? null : new Date()],
+    );
+    await pool.query("insert into auth.sessions(id,user_id) values($1,$2)", [
+      sid(user),
+      user,
+    ]);
+  }
+  await assert.rejects(
+    call(unverified, "enroll", { code: r.code }),
+    /Verify your email/,
+  );
+  await assert.rejects(
+    service("medcv_complete_cv", [unverified, sid(unverified), "a".repeat(64)]),
+    /Invalid session/,
+  );
+  await call(alias1, "enroll", { code: r.code });
+  await call(alias2, "enroll", { code: r.code });
+  await service("medcv_complete_cv", [alias1, sid(alias1), "a".repeat(64)]);
+  assert.equal((await call(ref, "status")).credits, 1);
+  await service("medcv_complete_cv", [alias2, sid(alias2), "b".repeat(64)]);
+  assert.equal((await call(ref, "status")).credits, 1);
+  await call(
+    owner,
+    "admin_freeze",
+    { userId: alias1, frozen: true, reason: "Test paused referral account" },
+    "aal2",
+  );
+  await assert.rejects(
+    service("medcv_complete_cv", [alias1, sid(alias1), "c".repeat(64)]),
+    /Account unavailable/,
+  );
+  await assert.rejects(
+    call(alias1, "reserve_edit", { fingerprint: "a".repeat(64), kind: "pdf" }),
+    /paused/,
+  );
   const c = await pool.connect();
   try {
     await c.query("begin");

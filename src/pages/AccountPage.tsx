@@ -1,9 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import NavBar from "../components/NavBar";
 import { backend, accountAction, gateway } from "../account/client";
 import { useAccount } from "../account/useAccount";
 import { cvStorage } from "../storage/cvStorage";
 import { Link } from "react-router-dom";
+import {
+  autoVerificationEnabled,
+  completionPayload,
+  setAutoVerification,
+} from "../account/referrals";
 export default function AccountPage() {
   const { account, error, busy, refresh, setError } = useAccount();
   const [email, setEmail] = useState(""),
@@ -14,7 +19,13 @@ export default function AccountPage() {
     ),
     [subject, setSubject] = useState(""),
     [ticket, setTicket] = useState("");
+  const [autoVerify, setAutoVerify] = useState(false);
+  const [working, setWorking] = useState(false);
+  useEffect(() => {
+    setAutoVerify(account ? autoVerificationEnabled(account.userId) : false);
+  }, [account?.userId]);
   async function run(fn: () => Promise<unknown>) {
+    setWorking(true);
     setMessage("");
     setError("");
     try {
@@ -22,6 +33,8 @@ export default function AccountPage() {
       await refresh();
     } catch (e) {
       setError((e as Error).message);
+    } finally {
+      setWorking(false);
     }
   }
   async function auth(signup: boolean) {
@@ -103,13 +116,13 @@ export default function AccountPage() {
               />
             </label>
             <div className="action-row">
-              <button className="btn btn-primary" disabled={busy}>
+              <button className="btn btn-primary" disabled={busy || working}>
                 Sign in
               </button>
               <button
                 type="button"
                 className="btn btn-secondary"
-                disabled={busy || !email || password.length < 10}
+                disabled={busy || working || !email || password.length < 10}
                 onClick={() => void auth(true)}
               >
                 Create account
@@ -121,6 +134,11 @@ export default function AccountPage() {
           </form>
         ) : (
           <>
+            <p className="notice">
+              Credits are checked with the server every 30 seconds while this
+              page is visible, and when you return online. One qualifying
+              referral earns one credit automatically.
+            </p>
             <div className="metric-grid">
               <article className="card">
                 <strong>{account.credits}</strong>
@@ -176,11 +194,54 @@ export default function AccountPage() {
                 Edit a PDF or Word document
               </Link>
             </section>
+            <section className="card studio-panel">
+              <h2>Automatic referral verification</h2>
+              <label className="referral-consent">
+                <input
+                  type="checkbox"
+                  checked={autoVerify}
+                  onChange={(e) => {
+                    try {
+                      setAutoVerification(account.userId, e.target.checked);
+                      setAutoVerify(e.target.checked);
+                    } catch {
+                      setError("This device could not save your preference.");
+                    }
+                  }}
+                />
+                Verify my first qualifying CV automatically when I download it
+              </label>
+              <p>
+                With this optional consent, your name, title, email and
+                education or employment institution are sent securely for
+                completion validation. Photos, signatures and the rest of your
+                CV stay on your device. Only a completion hash and referral
+                receipt are retained. You can turn this off anytime.
+              </p>
+              <p>
+                A verified account and complete CV are required. Repeated
+                completions, self-referrals and duplicate Gmail aliases do not
+                earn additional rewards. Installs alone do not earn credits. You
+                choose where to spend each earned credit.
+              </p>
+              <button
+                className="btn btn-secondary"
+                disabled={busy || working}
+                onClick={() =>
+                  void run(async () => {
+                    setMessage("Credit balance updated from the server.");
+                  })
+                }
+              >
+                Refresh credit balance
+              </button>
+            </section>
             {!account.qualified && (
               <section className="card studio-panel">
                 <h2>Complete your first CV</h2>
                 <p>
-                  Pick a saved CV below. With your consent, its text is sent
+                  Pick a saved CV below. With your consent, only your name,
+                  title, email and education or employment institution are sent
                   securely for completion validation. Photos and signatures are
                   excluded. Only a completion hash and referral receipt are
                   retained.
@@ -189,17 +250,11 @@ export default function AccountPage() {
                   <button
                     className="btn btn-secondary"
                     key={d.id}
+                    disabled={busy || working}
                     onClick={() =>
                       void run(async () => {
                         await gateway("complete", {
-                          cv: {
-                            ...d,
-                            personalInfo: {
-                              ...d.personalInfo,
-                              profilePhotoDataUrl: null,
-                            },
-                            signatureDataUrl: null,
-                          },
+                          cv: completionPayload(d),
                         });
                         setMessage("CV completion verified. Thank you!");
                       })
@@ -264,7 +319,9 @@ export default function AccountPage() {
                   onChange={(e) => setTicket(e.target.value)}
                 />
               </label>
-              <button className="btn btn-primary">Send request</button>
+              <button className="btn btn-primary" disabled={busy || working}>
+                Send request
+              </button>
               {account.tickets.map((t) => (
                 <article key={t.id}>
                   <h3>{t.subject}</h3>

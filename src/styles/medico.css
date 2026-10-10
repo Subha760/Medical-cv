@@ -553,3 +553,6 @@ td button {
   font-weight: 800;
   margin-right: 0.4rem;
 }
+
+.referral-consent { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; }
+.referral-consent input[type="checkbox"] { width: 20px; height: 20px; min-width: 20px; margin: 2px 0 0; accent-color: var(--color-teal); }

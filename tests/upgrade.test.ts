@@ -76,3 +76,47 @@ assert(
 console.log(
   "PASS: 64 structurally distinct presets, roster validation/calendar math and 15 offline assistants.",
 );
+
+const { csv, dailyAccounts } = await import("../src/pulse/report");
+const { completionPayload, qualifyingCv } =
+  await import("../src/account/referrals");
+const { demoCv } = await import("../src/data/demoCv");
+const cv = demoCv("clinical_01", "teal");
+cv.personalInfo.profilePhotoDataUrl = "PRIVATE_PHOTO";
+cv.personalInfo.fullAddress = "PRIVATE_ADDRESS";
+cv.signatureDataUrl = "PRIVATE_SIGNATURE";
+assert(qualifyingCv(cv));
+const payload = JSON.stringify(completionPayload(cv));
+assert(!payload.includes("PRIVATE_"));
+assert(!payload.includes("professionalSummary"));
+assert(!payload.includes("registrationInfo"));
+assert(!qualifyingCv({ ...cv, education: [], experience: [] }));
+assert(csv([[" =SUM(1,2)", 'a"b', "normal"]]).includes('"\' =SUM(1,2)"'));
+assert(csv([['a"b']]).includes('"a""b"'));
+const dates = dailyAccounts(
+  [
+    {
+      user_id: "a",
+      code: "a",
+      credits: 0,
+      frozen: false,
+      created_at: "2026-10-10T12:00:00",
+    },
+    {
+      user_id: "b",
+      code: "b",
+      credits: 0,
+      frozen: false,
+      created_at: "2026-09-01T12:00:00",
+    },
+  ],
+  new Date("2026-10-10T13:00:00"),
+);
+assert.equal(dates.length, 7);
+assert.equal(
+  dates.reduce((sum, day) => sum + day.count, 0),
+  1,
+);
+console.log(
+  "PASS: private referral payload, CV qualification, spreadsheet-safe CSV and dated account activity.",
+);

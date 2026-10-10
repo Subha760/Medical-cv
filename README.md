@@ -1,4 +1,4 @@
-# MedCV · Medico 4
+# MedCV · Medico 4.2
 
 Healthcare CVs and a daily workspace for nurses and nursing students. React, TypeScript and Vite power an offline-capable website and two Android applications.
 
@@ -13,6 +13,8 @@ Pulse owner console: https://medico.choicematrix.in/pulse/
 - Local CV drafts, PDF exports, cover letters, photos/signatures, validated backups and recovery.
 - Nursing shift plans, reviewed rota imports, calendar exports, task/credential/study/application tools and 15 rule-based offline assistants. These are not trained generative models or clinical decision systems.
 - Optional verified accounts and a server-authoritative referral ledger. One new verified account completing its first CV earns one credit for its original referrer. Duplicate completions do not earn more credits; installs alone are not counted.
+- Consent-based automatic first-CV completion verification on PDF download; server balances synchronize while visible and after reconnect. Verification sends only the required completion fields.
+- Pulse light/dark owner workspace with mobile account cards, search/filter/sort/pagination, ticket-specific replies, seven-day activity, session countdown, automatic report refresh, audited credit controls and CSV/JSON/print reports.
 - One credit permanently unlocks one premium template, or reserves one 24-hour PDF/DOCX edit session producing one final version. Identical retries are allowed; a different version requires a new credit.
 - PDF references with positioned text replacements; DOCX references with extracted text and rebuilt editable Word exports. Limits: 8 MB, 20 PDF pages, 40,000 Word characters. No automatic OCR, secure redaction or exact Word formatting preservation.
 - Separate Pulse entry and Android package with verified-owner email-code sessions (30 minutes) or verified TOTP/AAL2 enforcement, reports, credit adjustments, account pauses, unused-edit refunds, support replies, feature flags and an audit trail.
@@ -36,11 +38,11 @@ npm run test:e2e
 
 ## Backend and privacy
 
-The backend uses dedicated `medcv_private` tables in the connected ChoiceMatrix Supabase project. Existing Deals tables and shared Auth settings are not changed. Clients have no direct table access. Public invoker RPCs call private, narrowly granted handlers; receipt/finalization/preflight helpers are service-role-only. Owner identity is configured server-side, and administration also requires a verified authenticator and AAL2 session. Session records, expiry and email verification are checked by the database.
+The backend uses dedicated `medcv_private` tables in the connected ChoiceMatrix Supabase project. Existing Deals tables and shared Auth settings are not changed. Clients have no direct table access. Public invoker RPCs call private, narrowly granted handlers; receipt/finalization/preflight helpers are service-role-only. Owner identity is configured server-side, and administration requires a verified TOTP/AAL2 session or a server-issued, unexpired Gmail verification grant tied to the exact Auth session. Session records, expiry and email verification are checked by the database.
 
 `supabase/functions/medcv-gateway` authenticates every request with Supabase `getUser` and then validates the continued session/entitlement in PostgreSQL. Its platform JWT flag is disabled because the function implements authentication itself; this is not an anonymous processing route. It limits request size and archive expansion, checks entitlements before rendering and never persists reference-file/CV content. The publishable frontend key is not a service key. Migration files and deployment source are included; server secrets are never shipped to browsers.
 
-Ordinary CV/workspace editing stays local. Explicit referral completion verification transmits CV text excluding photos/signatures and retains a hash/receipt. Paid import exports process the reference and edit intent transiently, retaining entitlement/hash metadata. See the live policy for provider logs, deletion and retained anti-abuse fingerprints.
+Ordinary CV/workspace editing stays local. Manual referral completion verification, or optional automatic verification enabled by the user, transmits only name, title, email and education/employment institution and retains a hash/receipt. Photos, signatures and the rest of the CV stay local. Paid import exports process the reference and edit intent transiently, retaining entitlement/hash metadata. See the live policy for provider logs, deletion and retained anti-abuse fingerprints.
 
 ## Android and store preparation
 

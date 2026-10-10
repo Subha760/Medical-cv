@@ -9,6 +9,7 @@ const email = "subhajitsatpathi6@gmail.com";
 test("verified owner handoff opens Pulse reports instead of a false expiry error", async ({
   page,
 }) => {
+  await page.clock.install();
   const exp = Math.floor(Date.now() / 1000) + 1800;
   const payload = Buffer.from(
     JSON.stringify({
@@ -48,18 +49,60 @@ test("verified owner handoff opens Pulse reports instead of a false expiry error
     edits: [],
   };
   const report = {
-    users: 1,
-    qualified: 0,
-    awarded: 0,
+    users: 2,
+    qualified: 1,
+    awarded: 2,
     spent: 0,
     edits: 0,
     unlocks: 0,
-    profiles: [],
-    tickets: [],
-    audit: [],
+    profiles: [
+      {
+        user_id: "00000000-0000-4000-8000-000000000002",
+        code: "ALPHA",
+        credits: 2,
+        frozen: false,
+        created_at: new Date().toISOString(),
+      },
+      {
+        user_id: "00000000-0000-4000-8000-000000000003",
+        code: "BETA",
+        credits: 0,
+        frozen: true,
+        created_at: new Date().toISOString(),
+      },
+    ],
+    tickets: [
+      {
+        id: "00000000-0000-4000-8000-000000000004",
+        subject: "Template help",
+        message: "Please explain my unlock",
+        status: "open",
+        reply: "",
+        created_at: new Date().toISOString(),
+      },
+      {
+        id: "00000000-0000-4000-8000-000000000005",
+        subject: "Old request",
+        message: "Resolved already",
+        status: "resolved",
+        reply: "Thanks for contacting support.",
+        created_at: new Date().toISOString(),
+      },
+    ],
+    audit: [
+      {
+        actor: owner,
+        action: "admin_credit",
+        created_at: new Date().toISOString(),
+        details: { reason: "Verified support correction" },
+      },
+    ],
     config: { referrals_enabled: true, imports_enabled: true },
   };
   let exchanges = 0;
+  let reportReads = 0;
+  const changes: { p_action: string; p_payload: Record<string, unknown> }[] =
+    [];
   await page.route(domain + "/**", async (route) => {
     const url = new URL(route.request().url());
     if (url.pathname === "/pulse/login") {
@@ -108,7 +151,23 @@ test("verified owner handoff opens Pulse reports instead of a false expiry error
     const path = new URL(route.request().url()).pathname;
     if (path === "/auth/v1/user") return route.fulfill({ json: user });
     if (path === "/rest/v1/rpc/medcv_account") {
-      const { p_action } = route.request().postDataJSON();
+      const { p_action, p_payload } = route.request().postDataJSON();
+      if (p_action === "admin_credit") {
+        changes.push({ p_action, p_payload });
+        const profile = report.profiles.find(
+          (p) => p.user_id === p_payload.userId,
+        )!;
+        profile.credits += p_payload.amount;
+        return route.fulfill({ json: { ok: true } });
+      }
+      if (p_action === "admin_ticket") {
+        changes.push({ p_action, p_payload });
+        const ticket = report.tickets.find((t) => t.id === p_payload.id)!;
+        ticket.reply = p_payload.reply;
+        ticket.status = "resolved";
+        return route.fulfill({ json: { ok: true } });
+      }
+      if (p_action === "admin_report") reportReads++;
       return route.fulfill({
         json: p_action === "admin_report" ? report : account,
       });
@@ -144,6 +203,68 @@ test("verified owner handoff opens Pulse reports instead of a false expiry error
     ),
   ).toBe(false);
   expect(new URL(page.url()).search).toBe("");
+  await page.getByRole("button", { name: "Switch to dark theme" }).click();
+  await expect(page.locator(".pulse-shell")).toHaveAttribute(
+    "data-theme",
+    "dark",
+  );
+  await page.getByLabel("Search accounts").fill("ALPHA");
+  await expect(page.locator("tbody tr")).toHaveCount(1);
+  await expect(
+    page.getByRole("button", { name: "Grant 1 credit", exact: true }),
+  ).toBeDisabled();
+  await page
+    .getByLabel("Reason for administrative changes (required)")
+    .fill("Verified support correction");
+  await page.getByLabel("Support credit amount").fill("21");
+  await expect(
+    page.getByRole("button", { name: "Grant 21 credits", exact: true }),
+  ).toBeDisabled();
+  await page.getByLabel("Support credit amount").fill("3");
+  await page
+    .getByRole("button", { name: "Grant 3 credits", exact: true })
+    .click();
+  await expect(page.locator(".pulse-credit-value")).toHaveText("5");
+  expect(changes[0].p_payload.amount).toBe(3);
+  expect(changes[0].p_payload.reason).toBe("Verified support correction");
+  await expect(
+    page.getByRole("heading", { name: "Old request", exact: true }),
+  ).toHaveCount(0);
+  await page
+    .getByLabel("Response to Template help")
+    .fill("Your template unlock remains available in Account.");
+  await page.getByRole("button", { name: "Reply and resolve" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Your inbox is clear." }),
+  ).toBeVisible();
+  await page.getByLabel("Ticket status").selectOption("resolved");
+  await expect(
+    page.getByRole("heading", { name: "Template help", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Your template unlock remains available in Account."),
+  ).toBeVisible();
+  const reportsBeforeTick = reportReads;
+  await page.clock.fastForward(30001);
+  await expect.poll(() => reportReads).toBeGreaterThan(reportsBeforeTick);
+  await page.getByLabel("Refresh every 30 seconds").uncheck();
+  const reportsWhilePaused = reportReads;
+  await page.clock.fastForward(30001);
+  await page.waitForTimeout(200);
+  expect(reportReads).toBe(reportsWhilePaused);
+  const downloaded = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Export filtered accounts" }).click();
+  expect((await downloaded).suggestedFilename()).toContain("pulse-accounts");
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth + 1,
+    ),
+  ).toBeTruthy();
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+  await page.screenshot({
+    path: `tmp/pulse-upgraded-${test.info().project.name}.png`,
+    fullPage: true,
+  });
   expect(
     await page.evaluate(() => sessionStorage.getItem("pulse:expires")),
   ).toBeTruthy();
