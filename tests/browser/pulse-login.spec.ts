@@ -65,9 +65,10 @@ test("verified owner handoff opens Pulse reports instead of a false expiry error
     if (url.pathname === "/pulse/login") {
       const value = await sealSession(session, env);
       await route.fulfill({
-        status: 303,
+        status: 200,
+        contentType: "text/html",
+        body: '<script>location.replace("/pulse/?verified=1")</script>',
         headers: {
-          Location: domain + "/pulse/?verified=1",
           "Set-Cookie": `__Secure-PulseHandoff=${value}; Path=/pulse; Max-Age=120; Secure; HttpOnly; SameSite=Strict`,
           "Cache-Control": "no-store",
         },
@@ -78,10 +79,9 @@ test("verified owner handoff opens Pulse reports instead of a false expiry error
       exchanges++;
       expect(route.request().method()).toBe("POST");
       expect(route.request().headers()["origin"]).toBe(domain);
-      const value = route
-        .request()
-        .headers()
-        ["cookie"].split(";")
+      const requestHeaders = await route.request().allHeaders();
+      const value = requestHeaders["cookie"]
+        .split(";")
         .map((p) => p.trim())
         .find((p) => p.startsWith("__Secure-PulseHandoff="))!
         .slice("__Secure-PulseHandoff=".length);
@@ -113,13 +113,16 @@ test("verified owner handoff opens Pulse reports instead of a false expiry error
     }
     throw new Error("Unexpected authentication request: " + path);
   });
-  // Emulate the real cross-site identity-provider redirect, including the HttpOnly handoff cookie.
+  // Each fixture navigation starts a new request so Playwright intercepts it.
+  // (Redirect-chain requests bypass routing.) Worker tests separately assert HTTP 303.
+  // This still exercises cross-site navigation and the real HttpOnly cookie behavior.
   await page.route(
     "https://toolinger-owner.cloudflareaccess.com/test-verified",
     (route) =>
       route.fulfill({
-        status: 303,
-        headers: { Location: domain + "/pulse/login" },
+        status: 200,
+        contentType: "text/html",
+        body: `<script>location.replace(${JSON.stringify(domain + "/pulse/login")})</script>`,
       }),
   );
   await page.goto("https://toolinger-owner.cloudflareaccess.com/test-verified");
