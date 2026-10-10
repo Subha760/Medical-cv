@@ -3,7 +3,10 @@ import {
   validateOwnerClaims,
   OWNER_EMAIL,
 } from "../supabase/functions/medcv-pulse-access/access.ts";
-import worker from "../cloudflare/medico-domain.mjs";
+import worker, {
+  sealSession,
+  openSession,
+} from "../cloudflare/medico-domain.mjs";
 const now = Math.floor(Date.now() / 1000);
 const good = {
   email: OWNER_EMAIL,
@@ -63,13 +66,108 @@ assert.equal(
 );
 const original = globalThis.fetch;
 try {
+  const env = { PULSE_HANDOFF_KEY: Buffer.alloc(32, 7).toString("base64") };
+  const session = {
+    access_token: "test-owner-token",
+    refresh_token: "test-refresh-token",
+    expires_at: new Date(Date.now() + 1800000).toISOString(),
+  };
+  const sealed = await sealSession(session, env);
+  assert.deepEqual(await openSession(sealed, env), session);
+  assert(!sealed.includes(session.access_token));
+  await assert.rejects(() => openSession(sealed, env, Date.now() + 120001));
+  await assert.rejects(() =>
+    openSession(sealed, {
+      PULSE_HANDOFF_KEY: Buffer.alloc(32, 8).toString("base64"),
+    }),
+  );
+  await assert.rejects(() => openSession(sealed.slice(0, -3) + "AAAA", env));
+  globalThis.fetch = async (input, options) => {
+    assert.equal(
+      String(input),
+      "https://jfweexvfnkotusyajkst.supabase.co/functions/v1/medcv-pulse-access",
+    );
+    const h = new Headers(options?.headers);
+    assert.equal(h.get("X-Medcv-Access-Assertion"), "signed-callback-proof");
+    assert.equal(h.get("Cf-Access-Jwt-Assertion"), null);
+    return Response.json(session);
+  };
+  // Regression: use the assertion on the already verified top-level callback;
+  // the following browser POST must not depend on a second Access assertion.
+  const callback = await worker.fetch(
+    new Request("https://medico.choicematrix.in/pulse/login", {
+      headers: { "Cf-Access-Jwt-Assertion": "signed-callback-proof" },
+    }),
+    env,
+  );
+  assert.equal(callback.status, 303);
+  assert.equal(callback.headers.get("Location"), "/pulse/?verified=1");
+  assert(!callback.headers.get("Location")!.includes(session.access_token));
+  const setCookie = callback.headers.get("Set-Cookie")!;
+  assert.match(setCookie, /Secure; HttpOnly; SameSite=Strict/);
+  assert.match(setCookie, /Max-Age=120/);
+  const exchange = await worker.fetch(
+    new Request("https://medico.choicematrix.in/pulse/session", {
+      method: "POST",
+      headers: {
+        Origin: "https://medico.choicematrix.in",
+        "Content-Type": "application/json",
+        Cookie: setCookie.split(";")[0],
+      },
+      body: "{}",
+    }),
+    env,
+  );
+  assert.equal(exchange.status, 200);
+  assert.deepEqual(await exchange.json(), session);
+  assert.match(exchange.headers.get("Set-Cookie")!, /Max-Age=0/);
+  assert.equal(exchange.headers.get("Cache-Control"), "no-store");
+  for (const [headers, expected] of [
+    [
+      {
+        Origin: "https://attacker.example",
+        "Content-Type": "application/json",
+        Cookie: setCookie.split(";")[0],
+      },
+      403,
+    ],
+    [
+      {
+        Origin: "https://medico.choicematrix.in",
+        "Content-Type": "application/json",
+      },
+      401,
+    ],
+    [
+      {
+        Origin: "https://medico.choicematrix.in",
+        "Content-Type": "application/json",
+        Cookie: "__Secure-PulseHandoff=forged",
+      },
+      401,
+    ],
+  ] as const) {
+    assert.equal(
+      (
+        await worker.fetch(
+          new Request("https://medico.choicematrix.in/pulse/session", {
+            method: "POST",
+            headers,
+            body: "{}",
+          }),
+          env,
+        )
+      ).status,
+      expected,
+    );
+  }
   globalThis.fetch = async (input, options) => {
     assert.equal(
       String(input),
       "https://jfweexvfnkotusyajkst.supabase.co/functions/v1/medcv-pulse-access",
     );
     assert.equal(
-      new Headers(options?.headers).get("Cf-Access-Jwt-Assertion"),
+      new Headers(options?.headers).get("X-Medcv-Access-Assertion"),
       "forged",
     );
     return new Response('{"error":"verification denied"}', { status: 401 });

@@ -6,7 +6,7 @@ GitHub Pages build origin: https://subha760.github.io/Medical-cv/
 
 ## Owner sign-in
 
-Choose Continue with Gmail in Pulse. Enter subhajitsatpathi6@gmail.com on the secure Cloudflare verification page, request the email code, and enter it. Cloudflare redirects to Pulse, which verifies the signed Access assertion on the server and establishes a short-lived session automatically. No public-app signup or password is required for this path. Cloudflare's existing team hostname is toolinger-owner.cloudflareaccess.com; this is the owner's already configured shared Access organization, not a third-party login.
+Choose Continue with Gmail in Pulse. Enter subhajitsatpathi6@gmail.com on the secure Cloudflare verification page, request the email code, and enter it. The protected top-level login callback sends the signed Access assertion to the server for validation before redirecting. A short-lived encrypted HttpOnly cookie carries the resulting session to Pulse; a same-origin JSON request exchanges and clears that cookie automatically. No public-app signup or password is required for this path. Cloudflare's existing team hostname is toolinger-owner.cloudflareaccess.com; this is the owner's already configured shared Access organization, not a third-party login.
 
 Only the exact owner email is permitted by the Access policy, Edge verification and database ownership check. This is email authentication, not Google OAuth or a claim that one email code is two-factor authentication. Existing verified TOTP/AAL2 is still supported. Signing out closes the Pulse Auth session and Cloudflare login. The first successfully verified owner's Supabase user ID is pinned to prevent email reassignment from creating a different owner. Owner reports are unavailable to public visitors and ordinary signed-in accounts.
 
@@ -36,3 +36,13 @@ Changes: source version 4.1.0; Android versionCode 6, versionName 4.1.0. Initial
 ## Release evidence
 
 The web and PostgreSQL CI run [37970904426](https://github.com/Subha760/Medical-cv/actions/runs/37970904426), Android build/emulator run [37970904398](https://github.com/Subha760/Medical-cv/actions/runs/37970904398), and production deploy [37970904386](https://github.com/Subha760/Medical-cv/actions/runs/37970904386) passed. A live phone browser check reached the Cloudflare “Send login code” screen for Pulse with no page errors and rendered the custom PDF preview. The actual owner inbox code was not entered by the agent. Signatures, 16 KB APK alignment and all 74 packaged web files verify. Checksum details are in verified-artifacts-4.1.json.
+
+## 10 October owner-login correction
+
+Owner feedback and Cloudflare Access logs showed successful Gmail authentication followed by an incorrect expired-verification message. The previous implementation redirected first and depended on a second Access-protected browser POST to establish the Supabase session. That handoff had not been covered by the earlier check that only reached Send login code.
+
+The protected top-level callback now establishes the verified server session before redirecting. It sets an AES-GCM encrypted, authenticated HttpOnly/Secure/SameSite=Strict cookie with a maximum 120-second handoff lifetime. No assertion, access token or refresh token appears in a URL. The separate /pulse/session POST requires the exact same-origin Origin and JSON content type; it decrypts the handoff and clears the cookie. The existing database owner grant still expires within 30 minutes. Replaying a captured handoff does not create another session or extend that grant. The encryption key exists only as a Cloudflare Worker secret; uploads must inherit PULSE_HANDOFF_KEY.
+
+Worker-to-Edge forwarding uses X-Medcv-Access-Assertion rather than a Cloudflare-reserved proxy header. The Edge still independently validates the RSA signature, fixed issuer/audience, owner identity and expiry. Safe failure stages distinguish verification, identity, Auth session and database grant errors; credentials and email codes are never logged.
+
+Regression checks cover the callback-to-handoff-to-session path, tampering, expiry, wrong keys, foreign origins and missing cookies. Browser tests cover the identity-provider cross-site redirect, encrypted cookie exchange, successful owner report rendering and explanatory service errors on desktop and phone using test fixtures. They do not fabricate a successful live owner login.

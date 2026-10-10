@@ -1,6 +1,6 @@
 # Medico 4.1 delivery report
 
-Updated 9 October 2026 for 4.1. App: https://medico.choicematrix.in/ · Pulse: https://medico.choicematrix.in/pulse/
+Updated 10 October 2026 for the Pulse login correction (4.1 web patch). App: https://medico.choicematrix.in/ · Pulse: https://medico.choicematrix.in/pulse/
 
 ## Delivered
 
@@ -118,3 +118,7 @@ Signed 4.1 artifact checksums:
   }
 ]
 ```
+
+## Pulse login correction · 10 October
+
+The Gmail verification itself succeeded in Cloudflare Access logs, but the original browser-to-server handoff failed and mislabeled the failure as email verification expiry. The protected callback now creates the verified session before returning to Pulse, then passes it through a short-lived encrypted HttpOnly cookie and a same-origin exchange. Desktop/phone regression tests exercise the complete redirect, cookie exchange and report rendering using fixtures. See SECURITY-AND-DOMAIN.md for security controls and verification limits. Existing signed 4.1 APKs open this updated web owner portal in the system browser.

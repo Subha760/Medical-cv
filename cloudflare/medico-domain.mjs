@@ -14,8 +14,91 @@ function response(body, status, extra = {}) {
     headers: { ...SECURITY, "Cache-Control": "no-store", ...extra },
   });
 }
+const HANDOFF_COOKIE = "__Secure-PulseHandoff";
+const HANDOFF_TTL = 120000;
+const encoder = new TextEncoder();
+const handoffAAD = encoder.encode(DOMAIN + ":pulse-handoff-v1");
+function cookie(value, age = 120) {
+  return `${HANDOFF_COOKIE}=${value}; Path=/pulse; Max-Age=${age}; Secure; HttpOnly; SameSite=Strict`;
+}
+function base64(bytes) {
+  return btoa(String.fromCharCode(...bytes));
+}
+async function handoffKey(env) {
+  if (!env?.PULSE_HANDOFF_KEY) throw new Error("Login unavailable");
+  const bytes = Uint8Array.from(atob(env.PULSE_HANDOFF_KEY), (c) =>
+    c.charCodeAt(0),
+  );
+  if (bytes.length !== 32) throw new Error("Login unavailable");
+  return crypto.subtle.importKey("raw", bytes, "AES-GCM", false, [
+    "encrypt",
+    "decrypt",
+  ]);
+}
+export async function sealSession(session, env, now = Date.now()) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const payload = encoder.encode(
+    JSON.stringify({
+      session,
+      deadline: Math.min(now + HANDOFF_TTL, Date.parse(session.expires_at)),
+    }),
+  );
+  const encrypted = new Uint8Array(
+    await crypto.subtle.encrypt(
+      { name: "AES-GCM", iv, additionalData: handoffAAD },
+      await handoffKey(env),
+      payload,
+    ),
+  );
+  const value = base64(iv) + "." + base64(encrypted);
+  // Stay below browser cookie limits. Never redirect with tokens in a URL.
+  if (value.length > 3700) throw new Error("Login unavailable");
+  return value;
+}
+export async function openSession(value, env, now = Date.now()) {
+  if (!value || value.length > 3700) throw new Error("Login required");
+  const [ivText, encryptedText, extra] = value.split(".");
+  if (!ivText || !encryptedText || extra) throw new Error("Login required");
+  const decode = (text) => Uint8Array.from(atob(text), (c) => c.charCodeAt(0));
+  const decrypted = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: decode(ivText), additionalData: handoffAAD },
+    await handoffKey(env),
+    decode(encryptedText),
+  );
+  const { session, deadline } = JSON.parse(new TextDecoder().decode(decrypted));
+  if (
+    !Number.isFinite(deadline) ||
+    deadline <= now ||
+    deadline > now + HANDOFF_TTL ||
+    typeof session?.access_token !== "string" ||
+    typeof session?.refresh_token !== "string" ||
+    !Number.isFinite(Date.parse(session.expires_at)) ||
+    Date.parse(session.expires_at) <= now
+  )
+    throw new Error("Login required");
+  return session;
+}
+async function verifiedSession(assertion) {
+  // This is a signed assertion, not an email claim. The Edge verifies its signature and owner identity.
+  // Use an application header rather than forwarding Cloudflare's reserved proxy header across zones.
+  const result = await fetch(
+    "https://jfweexvfnkotusyajkst.supabase.co/functions/v1/medcv-pulse-access",
+    {
+      method: "POST",
+      headers: {
+        "X-Medcv-Access-Assertion": assertion,
+        "Content-Type": "application/json",
+      },
+      body: "{}",
+      redirect: "error",
+    },
+  );
+  const data = await result.json();
+  if (!result.ok) throw new Error(data.code || "owner_session_unavailable");
+  return data;
+}
 export default {
-  async fetch(req) {
+  async fetch(req, env) {
     const u = new URL(req.url);
     if (u.hostname !== "medico.choicematrix.in")
       return response("Unknown host", 421);
@@ -25,7 +108,58 @@ export default {
       if (req.method !== "GET") return response("Method not allowed", 405);
       if (!req.headers.get("Cf-Access-Jwt-Assertion"))
         return response("Owner verification required", 401);
-      return response(null, 303, { Location: "/pulse/?verified=1" });
+      try {
+        const session = await verifiedSession(
+          req.headers.get("Cf-Access-Jwt-Assertion"),
+        );
+        return response(null, 303, {
+          Location: "/pulse/?verified=1",
+          "Set-Cookie": cookie(await sealSession(session, env)),
+        });
+      } catch (error) {
+        const allowed = [
+          "owner_verification_invalid",
+          "owner_identity_unavailable",
+          "owner_session_unavailable",
+          "owner_grant_denied",
+        ];
+        const code = allowed.includes(error.message)
+          ? error.message
+          : "owner_session_unavailable";
+        return response(null, 303, {
+          Location: "/pulse/?login_error=" + code,
+          "Set-Cookie": cookie("", 0),
+        });
+      }
+    }
+    if (u.pathname === "/pulse/session") {
+      if (req.method !== "POST") return response("Method not allowed", 405);
+      if (
+        req.headers.get("Origin") !== DOMAIN ||
+        req.headers.get("Content-Type") !== "application/json"
+      )
+        return response("Forbidden", 403);
+      try {
+        const value = (req.headers.get("Cookie") || "")
+          .split(";")
+          .map((p) => p.trim())
+          .find((p) => p.startsWith(HANDOFF_COOKIE + "="))
+          ?.slice(HANDOFF_COOKIE.length + 1);
+        const session = await openSession(value, env);
+        return response(JSON.stringify(session), 200, {
+          "Content-Type": "application/json",
+          "Set-Cookie": cookie("", 0),
+        });
+      } catch {
+        return response(
+          JSON.stringify({
+            error:
+              "The secure login handoff is missing or expired. Continue with Gmail again.",
+          }),
+          401,
+          { "Content-Type": "application/json", "Set-Cookie": cookie("", 0) },
+        );
+      }
     }
     if (u.pathname === "/pulse/login/session") {
       if (req.method !== "POST") return response("Method not allowed", 405);
@@ -43,7 +177,7 @@ export default {
         {
           method: "POST",
           headers: {
-            "Cf-Access-Jwt-Assertion": assertion,
+            "X-Medcv-Access-Assertion": assertion,
             "Content-Type": "application/json",
           },
           body: "{}",

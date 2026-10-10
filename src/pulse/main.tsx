@@ -69,6 +69,25 @@ function Pulse() {
     setReport(r);
   }
   useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.has("login_error")) {
+      const errors: Record<string, string> = {
+        owner_verification_invalid:
+          "The owner verification could not be validated. Continue with Gmail again.",
+        owner_identity_unavailable:
+          "Your Gmail was verified, but the account service could not open your identity. Please retry.",
+        owner_session_unavailable:
+          "Your Gmail was verified, but the secure session could not be created. Please retry.",
+        owner_grant_denied:
+          "Your Gmail was verified, but owner access was denied by the database.",
+      };
+      setError(
+        errors[params.get("login_error") || ""] ||
+          "Secure sign-in could not be completed. Please retry.",
+      );
+      history.replaceState(null, "", location.pathname);
+      return;
+    }
     if (
       location.origin !== domain ||
       !new URLSearchParams(location.search).has("verified") ||
@@ -77,17 +96,21 @@ function Pulse() {
       return;
     exchanging.current = true;
     void run(async () => {
-      const r = await fetch("/pulse/login/session", {
+      const r = await fetch("/pulse/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: "{}",
         credentials: "same-origin",
       });
-      if (!r.ok || !r.headers.get("content-type")?.includes("application/json"))
+      if (!r.headers.get("content-type")?.includes("application/json"))
         throw new Error(
-          "Email verification expired. Continue with Gmail again.",
+          "Secure sign-in returned an unexpected response. Please retry.",
         );
       const data = await r.json();
+      if (!r.ok)
+        throw new Error(
+          data.error || "Secure sign-in could not be completed. Please retry.",
+        );
       const result = await backend.auth.setSession({
         access_token: data.access_token,
         refresh_token: data.refresh_token,
