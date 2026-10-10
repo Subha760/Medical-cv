@@ -4,6 +4,7 @@ Healthcare CVs and a daily workspace for nurses and nursing students. React, Typ
 
 Live app: https://medico.choicematrix.in/
 Pulse owner console: https://medico.choicematrix.in/pulse/
+Support: help@choicematrix.in
 
 ## Features
 

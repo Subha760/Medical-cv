@@ -3,7 +3,7 @@
 App name: MedCV: Nursing CV & Workspace
 Short description: Build healthcare CVs, plan shifts and organise your nursing career.
 Category: Productivity (review the Medical category if adding clinical services later).
-Support: subhajitsatpathi6@gmail.com
+Support: help@choicematrix.in
 Website: https://medico.choicematrix.in/
 Privacy policy: https://medico.choicematrix.in/privacy.html
 Account deletion: https://medico.choicematrix.in/account-deletion.html
