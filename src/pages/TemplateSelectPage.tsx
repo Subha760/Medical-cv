@@ -7,7 +7,7 @@ import type { CvTemplate } from "../data/templateCatalog";
 import { useMemo, useState } from "react";
 import TemplatePreview from "../components/TemplatePreview";
 import { createId } from "../utils/id";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import NavBar from "../components/NavBar";
 import { cvStorage } from "../storage/cvStorage";
 import { newCvDocument, Profession, PROFESSION_LABELS } from "../types/cv";
@@ -27,6 +27,9 @@ const CATEGORIES = [
 export default function TemplateSelectPage() {
   const { cvId } = useParams<{ cvId: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const preferredColor = searchParams.get("color");
+  const initialCategory = searchParams.get("category") || "ALL";
   const { account, refresh } = useAccount();
   const [tier, setTier] = useState<"free" | "premium">("free");
   const [unlocking, setUnlocking] = useState(false);
@@ -34,7 +37,9 @@ export default function TemplateSelectPage() {
   const [error, setError] = useState("");
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
   const [selectedColorId, setSelectedColorId] = useState("navy");
-  const [category, setCategory] = useState("ALL");
+  const [category, setCategory] = useState(
+    CATEGORIES.includes(initialCategory) ? initialCategory : "ALL",
+  );
   const [query, setQuery] = useState("");
   const [photoOnly, setPhotoOnly] = useState(false);
   const [visibleCount, setVisibleCount] = useState(64);
@@ -61,7 +66,11 @@ export default function TemplateSelectPage() {
   }
   function pickTemplate(templateId: string) {
     setSelectedTemplateId(templateId);
-    setSelectedColorId(templateById(templateId).defaultColorId);
+    setSelectedColorId(
+      preferredColor && AVAILABLE_COLORS.includes(preferredColor)
+        ? preferredColor
+        : templateById(templateId).defaultColorId,
+    );
   }
 
   function confirm() {

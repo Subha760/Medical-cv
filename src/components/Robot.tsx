@@ -1,4 +1,7 @@
+import { useId } from "react";
+
 export default function Robot() {
+  const shellId = useId();
   return (
     <svg
       className="mira-robot"
@@ -7,7 +10,7 @@ export default function Robot() {
       aria-label="Mira, your animated CV guide"
     >
       <defs>
-        <linearGradient id="robot-shell" x2="1" y2="1">
+        <linearGradient id={shellId} x2="1" y2="1">
           <stop stopColor="#fff" />
           <stop offset="1" stopColor="#b5e9e5" />
         </linearGradient>
@@ -29,7 +32,7 @@ export default function Robot() {
           width="166"
           height="116"
           rx="45"
-          fill="url(#robot-shell)"
+          fill={`url(#${shellId})`}
           stroke="#419f99"
           strokeWidth="3"
         />
@@ -51,7 +54,7 @@ export default function Robot() {
           width="86"
           height="57"
           rx="23"
-          fill="url(#robot-shell)"
+          fill={`url(#${shellId})`}
           stroke="#419f99"
           strokeWidth="3"
         />

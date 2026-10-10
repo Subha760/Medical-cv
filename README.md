@@ -1,4 +1,4 @@
-# MedCV · Medico 4.2
+# MedCV · Medico 4.3
 
 Healthcare CVs and a daily workspace for nurses and nursing students. React, TypeScript and Vite power an offline-capable website and two Android applications.
 
@@ -6,6 +6,9 @@ Live app: https://medico.choicematrix.in/
 Pulse owner console: https://medico.choicematrix.in/pulse/
 
 ## Features
+
+- Redesigned responsive homepage with interactive layout/colour previews, persistent accents, searchable career collections, category-specific gallery links and quick tool actions.
+- Mira floats at the bottom-right; its keyboard-accessible chat panel keeps in-progress answers when closed and resumes saved interviews after reload. Motion respects the device’s reduced-motion preference.
 
 - 64 free original templates in eight categories and 32 original premium designs.
 - Free custom-layout studio: structure, heading treatments, type, density and accents, with a live PDF preview and portable backup configuration.

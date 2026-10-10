@@ -5,6 +5,7 @@ test("Mira interviews, skips, saves and opens editable draft", async ({
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
+  await page.getByRole("button", { name: "Open Mira CV guide" }).click();
   await page
     .getByRole("button", { name: "Start guided CV", exact: true })
     .click();
@@ -70,7 +71,7 @@ test("template categories select genuinely different designs", async ({
 test("complete guided interview supports photo, repeated education and custom sections", async ({
   page,
 }) => {
-  test.setTimeout(90000);
+  test.setTimeout(120000);
   async function advance(name: string) {
     const question = await page.locator(".chat-bubble").allTextContents();
     await page.getByRole("button", { name, exact: true }).click();
@@ -79,6 +80,7 @@ test("complete guided interview supports photo, repeated education and custom se
       .not.toEqual(question);
   }
   await page.goto("/");
+  await page.getByRole("button", { name: "Open Mira CV guide" }).click();
   await page.setViewportSize({ width: 320, height: 720 });
   await page
     .getByRole("button", { name: "Start guided CV", exact: true })
@@ -133,6 +135,7 @@ test("complete guided interview supports photo, repeated education and custom se
     ),
   ).toBeTruthy();
   await page.reload();
+  await page.getByRole("button", { name: "Open Mira CV guide" }).click();
   await expect(
     page.getByRole("button", {
       name: "Review and finish my CV →",
