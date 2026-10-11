@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { activateProfileData } from "./profileData";
 import { Account, accountAction, backend } from "./client";
 import {
   registerPremiumTemplate,
@@ -31,6 +32,7 @@ export function useAccount() {
       const code = localStorage.getItem("medico:referral") || "";
       const a = await accountAction("enroll", { code });
       if (!mounted.current || version !== request.current) return;
+      if (!location.pathname.includes("/pulse")) activateProfileData(a.userId);
       setTemplateOwner(a.userId, a.frozen ? [] : a.unlocks);
       for (const id of a.frozen ? [] : a.unlocks) {
         if (unlockedPremiumById(id)) continue;

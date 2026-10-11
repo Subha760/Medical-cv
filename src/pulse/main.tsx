@@ -16,7 +16,7 @@ function Pulse() {
   const exchanging = useRef(false);
   const running = useRef(false);
   const [emailSessionExpiry, setEmailSessionExpiry] = useState(
-    () => sessionStorage.getItem("pulse:expires") || "",
+    () => localStorage.getItem("pulse:expires") || "",
   );
   const [otp, setOtp] = useState(""),
     [factor, setFactor] = useState(""),
@@ -25,7 +25,11 @@ function Pulse() {
     [report, setReport] = useState<Report | null>(null),
     [busy, setBusy] = useState(false),
     [reason, setReason] = useState(""),
-    [message, setMessage] = useState("");
+    [message, setMessage] = useState(
+      new URLSearchParams(location.search).has("signed_out")
+        ? "Signed out. Reports, credits and support records are saved. Verify your owner Gmail to return."
+        : "",
+    );
   const [updatedAt, setUpdatedAt] = useState(Date.now());
   const [dark, setDark] = useState(
     () => localStorage.getItem("pulse:theme") === "dark",
@@ -100,7 +104,7 @@ function Pulse() {
         refresh_token: data.refresh_token,
       });
       if (result.error) throw result.error;
-      sessionStorage.setItem("pulse:expires", data.expires_at);
+      localStorage.setItem("pulse:expires", data.expires_at);
       setEmailSessionExpiry(data.expires_at);
       history.replaceState(null, "", location.pathname);
       await refresh();
@@ -116,7 +120,7 @@ function Pulse() {
       () => {
         setReport(null);
         setMessage("Your owner session expired. Verify your Gmail again.");
-        sessionStorage.removeItem("pulse:expires");
+        localStorage.removeItem("pulse:expires");
         void backend.auth.signOut({ scope: "local" }).then(() => refresh());
       },
       Math.max(0, remaining),
@@ -167,13 +171,30 @@ function Pulse() {
             className="btn btn-secondary"
             onClick={() =>
               void run(async () => {
-                await backend.auth.signOut({ scope: "local" });
-                sessionStorage.removeItem("pulse:expires");
+                const signedOut = await backend.auth.signOut({
+                  scope: "local",
+                });
+                if (signedOut.error) throw signedOut.error;
+                localStorage.removeItem("pulse:expires");
                 setEmailSessionExpiry("");
                 setReport(null);
                 await refresh();
-                if (location.origin === domain)
-                  location.assign(domain + "/cdn-cgi/access/logout");
+                if (location.origin === domain) {
+                  const accessLogout = await fetch("/cdn-cgi/access/logout", {
+                    credentials: "same-origin",
+                    redirect: "manual",
+                    cache: "no-store",
+                    signal: AbortSignal.timeout(10000),
+                  });
+                  if (
+                    !accessLogout.ok &&
+                    accessLogout.type !== "opaqueredirect"
+                  )
+                    throw new Error(
+                      "Pulse signed out, but the verification session could not be closed. Close this tab and retry.",
+                    );
+                  location.assign(domain + "/pulse/?signed_out=1");
+                }
               })
             }
           >
@@ -226,13 +247,15 @@ function Pulse() {
               Continue with Gmail
             </a>
             <p>
-              Enter this Gmail on the secure verification page, then enter the
-              code sent to your inbox. After verification, Pulse opens
-              automatically.
+              Step 1: Continue with Gmail. Step 2: Enter this Gmail on the
+              secure verification page, then enter the code sent to your inbox.
+              After verification, Pulse opens automatically.
             </p>
             <p className="muted">
-              The code is sent by Cloudflare Access. This verifies your email;
-              it does not read your Gmail or request your Google password.
+              Your session is remembered on this device until its 30-minute
+              expiry. Signing out keeps all reports, credits and settings. The
+              code is sent by Cloudflare Access. This verifies your email; it
+              does not read your Gmail or request your Google password.
             </p>
           </section>
         ) : !account.owner ? (

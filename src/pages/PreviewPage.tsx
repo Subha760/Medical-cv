@@ -184,7 +184,7 @@ export default function PreviewPage() {
         <div className="preview-actions">
           <button
             className="btn btn-primary"
-            disabled={exporting}
+            disabled={exporting || busy}
             onClick={() => void exportPdf()}
           >
             Download PDF
@@ -277,7 +277,7 @@ export default function PreviewPage() {
         >
           <button
             className="btn btn-primary"
-            disabled={exporting}
+            disabled={exporting || busy}
             onClick={() => void exportPdf()}
           >
             Download PDF

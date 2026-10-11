@@ -37,8 +37,24 @@ export default function Dashboard({
   setReason,
 }: Props) {
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("all");
-  const [sort, setSort] = useState("newest");
+  const viewKey = "pulse:view:" + userId;
+  const savedView = () => {
+    try {
+      return JSON.parse(localStorage.getItem(viewKey) || "{}");
+    } catch {
+      return {};
+    }
+  };
+  const [filter, setFilter] = useState(() =>
+    ["all", "paused", "credits"].includes(savedView().filter)
+      ? savedView().filter
+      : "all",
+  );
+  const [sort, setSort] = useState(() =>
+    ["newest", "oldest", "credits"].includes(savedView().sort)
+      ? savedView().sort
+      : "newest",
+  );
   const [page, setPage] = useState(0);
   const [ticketSearch, setTicketSearch] = useState("");
   const [ticketFilter, setTicketFilter] = useState("open");
@@ -46,9 +62,20 @@ export default function Dashboard({
   const [amount, setAmount] = useState(1);
   const [editId, setEditId] = useState("");
   const [auditSearch, setAuditSearch] = useState("");
-  const [active, setActive] = useState("overview");
+  const [active, setActive] = useState(() =>
+    sections.some((s) => s[0] === savedView().active)
+      ? savedView().active
+      : "overview",
+  );
   const [now, setNow] = useState(Date.now());
   const [autoRefresh, setAutoRefresh] = useState(true);
+  useEffect(() => {
+    try {
+      localStorage.setItem(viewKey, JSON.stringify({ filter, sort, active }));
+    } catch {
+      /* Preferences are optional. */
+    }
+  }, [viewKey, filter, sort, active]);
   const [exportMessage, setExportMessage] = useState("");
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000);

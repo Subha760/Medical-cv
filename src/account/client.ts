@@ -2,13 +2,28 @@ import { createClient } from "@supabase/supabase-js";
 export const backendUrl = "https://jfweexvfnkotusyajkst.supabase.co";
 // A publishable key identifies the project. All authority is enforced by verified sessions and database roles.
 const isPulse = location.pathname.includes("/pulse");
+export const authReturnKind =
+  new URLSearchParams(location.search).get("auth") ||
+  new URLSearchParams(location.hash.slice(1)).get("type");
+if (isPulse) {
+  for (const key of ["pulse:auth", "pulse:expires"]) {
+    try {
+      const previous = sessionStorage.getItem(key);
+      if (previous && !localStorage.getItem(key))
+        localStorage.setItem(key, previous);
+      if (previous) sessionStorage.removeItem(key);
+    } catch {
+      /* Storage restrictions prevent session migration; verification remains required. */
+    }
+  }
+}
 export const backend = createClient(
   backendUrl,
   "sb_publishable_bqCwiBot6gKENGqoIkMDgw_kvyqiu3l",
   {
     auth: {
       storageKey: isPulse ? "pulse:auth" : "medico:auth",
-      storage: isPulse ? sessionStorage : localStorage,
+      storage: localStorage,
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: !isPulse,

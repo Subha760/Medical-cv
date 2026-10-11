@@ -1,15 +1,33 @@
 .nav-bar {
   border-bottom: 1px solid var(--color-line);
-  background: rgba(255,255,255,.92);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(14px);
   position: sticky;
   top: 0;
   z-index: 20;
 }
-.nav-bar__mark { display:flex; }
-.nav-bar__mark svg { display:none; }
-.mobile-links { display:none; }
-@media(max-width:720px) { .mobile-links { display:flex; justify-content:center; gap:24px; padding:8px 12px; border-top:1px solid #edf1f5; } .mobile-links a { font-size:13px; text-decoration:none; } }
+.nav-bar__mark {
+  display: flex;
+}
+.nav-bar__mark svg {
+  display: none;
+}
+.mobile-links {
+  display: none;
+}
+@media (max-width: 720px) {
+  .mobile-links {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    padding: 8px 12px;
+    border-top: 1px solid #edf1f5;
+  }
+  .mobile-links a {
+    font-size: 13px;
+    text-decoration: none;
+  }
+}
 
 .nav-bar__inner {
   display: flex;
@@ -47,13 +65,48 @@
   color: var(--color-teal-dark);
 }
 
-.nav-bar__links { align-items: center; }
-.nav-bar__links .nav-bar__cta { background: var(--color-ink); color: #fff; padding: 10px 16px; border-radius: 10px; }
-.nav-bar__links .nav-bar__cta:hover { color: #fff; background: var(--color-teal-dark); }
+.nav-bar__links {
+  align-items: center;
+}
+.nav-bar__links .nav-bar__cta {
+  background: var(--color-ink);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 10px;
+}
+.nav-bar__links .nav-bar__cta:hover {
+  color: #fff;
+  background: var(--color-teal-dark);
+}
 
 @media (max-width: 720px) {
-  .nav-bar__inner { min-height: 64px; }
-  .nav-bar__links a:not(.nav-bar__cta) { display: none; }
-  .nav-bar__links { gap: 0; }
-  .nav-bar__wordmark { font-size: 1rem; }
+  .nav-bar__inner {
+    min-height: 64px;
+  }
+  .nav-bar__links a:not(.nav-bar__cta) {
+    display: none;
+  }
+  .nav-bar__links {
+    gap: 0;
+  }
+  .nav-bar__wordmark {
+    font-size: 1rem;
+  }
+}
+
+.nav-account {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid var(--color-line);
+  border-radius: 12px;
+  color: var(--color-ink);
+  background: var(--color-paper-raised);
+}
+
+@media (max-width: 380px) {
+  .nav-bar--compact .nav-bar__wordmark {
+    display: none;
+  }
 }

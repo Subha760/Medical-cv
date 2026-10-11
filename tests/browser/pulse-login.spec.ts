@@ -9,6 +9,7 @@ const email = "subhajitsatpathi6@gmail.com";
 test("verified owner handoff opens Pulse reports instead of a false expiry error", async ({
   page,
 }) => {
+  test.setTimeout(90000);
   await page.clock.install();
   const exp = Math.floor(Date.now() / 1000) + 1800;
   const payload = Buffer.from(
@@ -99,12 +100,21 @@ test("verified owner handoff opens Pulse reports instead of a false expiry error
     ],
     config: { referrals_enabled: true, imports_enabled: true },
   };
+  let accessLogouts = 0;
   let exchanges = 0;
   let reportReads = 0;
   const changes: { p_action: string; p_payload: Record<string, unknown> }[] =
     [];
   await page.route(domain + "/**", async (route) => {
     const url = new URL(route.request().url());
+    if (url.pathname === "/cdn-cgi/access/logout") {
+      accessLogouts++;
+      return route.fulfill({
+        status: 200,
+        contentType: "text/html",
+        body: "Signed out",
+      });
+    }
     if (url.pathname === "/pulse/login") {
       const value = await sealSession(session, env);
       await route.fulfill({
@@ -149,6 +159,7 @@ test("verified owner handoff opens Pulse reports instead of a false expiry error
   });
   await page.route(backend + "/**", async (route) => {
     const path = new URL(route.request().url()).pathname;
+    if (path === "/auth/v1/logout") return route.fulfill({ status: 204 });
     if (path === "/auth/v1/user") return route.fulfill({ json: user });
     if (path === "/rest/v1/rpc/medcv_account") {
       const { p_action, p_payload } = route.request().postDataJSON();
@@ -189,7 +200,7 @@ test("verified owner handoff opens Pulse reports instead of a false expiry error
   await page.goto("https://toolinger-owner.cloudflareaccess.com/test-verified");
   await expect(
     page.getByRole("heading", { name: "Accounts · newest 200" }),
-  ).toBeVisible();
+  ).toBeVisible({ timeout: 15000 });
   await expect(
     page.getByRole("heading", { name: "Support inbox" }),
   ).toBeVisible();
@@ -266,11 +277,28 @@ test("verified owner handoff opens Pulse reports instead of a false expiry error
     fullPage: true,
   });
   expect(
-    await page.evaluate(() => sessionStorage.getItem("pulse:expires")),
+    await page.evaluate(() => localStorage.getItem("pulse:expires")),
   ).toBeTruthy();
   await expect(
     page.getByText("Email verification expired. Continue with Gmail again."),
   ).toHaveCount(0);
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "Accounts · newest 200" }),
+  ).toBeVisible();
+  expect(exchanges).toBe(1);
+  expect(
+    await page.evaluate(() => localStorage.getItem("pulse:auth")),
+  ).toBeTruthy();
+  await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Owner sign-in" }),
+  ).toBeVisible({ timeout: 15000 });
+  expect(accessLogouts).toBe(1);
+  expect(
+    await page.evaluate(() => localStorage.getItem("pulse:auth")),
+  ).toBeNull();
+  expect(report.profiles).toHaveLength(2);
 });
 
 test("owner identity service errors are explained without claiming the email code expired", async ({

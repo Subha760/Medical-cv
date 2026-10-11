@@ -3,13 +3,16 @@ import NavBar from "../components/NavBar";
 import { backend, accountAction, gateway } from "../account/client";
 import { useAccount } from "../account/useAccount";
 import { cvStorage } from "../storage/cvStorage";
-import { Link } from "react-router-dom";
+import { preserveProfileData } from "../account/profileData";
+import { rememberedEmail } from "../account/authMessages";
+import { Link, useNavigate } from "react-router-dom";
 import {
   autoVerificationEnabled,
   completionPayload,
   setAutoVerification,
 } from "../account/referrals";
 export default function AccountPage() {
+  const navigate = useNavigate();
   const { account, error, busy, refresh, setError } = useAccount();
   const [email, setEmail] = useState(""),
     [password, setPassword] = useState(""),
@@ -37,25 +40,6 @@ export default function AccountPage() {
       setWorking(false);
     }
   }
-  async function auth(signup: boolean) {
-    await run(async () => {
-      if (code)
-        localStorage.setItem("medico:referral", code.trim().toUpperCase());
-      const r = signup
-        ? await backend.auth.signUp({
-            email,
-            password,
-            options: { emailRedirectTo: location.origin + location.pathname },
-          })
-        : await backend.auth.signInWithPassword({ email, password });
-      if (r.error) throw r.error;
-      setMessage(
-        signup
-          ? "Check your email for the verification link, then sign in."
-          : "Signed in.",
-      );
-    });
-  }
   return (
     <>
       <NavBar />
@@ -78,60 +62,36 @@ export default function AccountPage() {
         )}
         {busy && <p role="status">Connecting securely…</p>}
         {!account ? (
-          <form
-            className="card studio-panel"
-            onSubmit={(e) => {
-              e.preventDefault();
-              void auth(false);
-            }}
-          >
-            <h2>Sign in</h2>
-            <label>
-              Email
-              <input
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </label>
-            <label>
-              Password (at least 10 characters)
-              <input
-                type="password"
-                minLength={10}
-                required
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </label>
-            <label>
-              Referral code (optional; applied only at first enrollment)
-              <input
-                maxLength={12}
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-              />
-            </label>
+          <section className="card studio-panel auth-invite">
+            <h2>Your account, ready when you are</h2>
+            <p>
+              Sign in to return to your credits, unlocked designs and support.
+              New here? Create an account on the dedicated signup page.
+            </p>
+            {rememberedEmail() && (
+              <p>
+                Last email on this device: <strong>{rememberedEmail()}</strong>
+              </p>
+            )}
             <div className="action-row">
-              <button className="btn btn-primary" disabled={busy || working}>
+              <Link className="btn btn-primary" to="/login">
                 Sign in
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                disabled={busy || working || !email || password.length < 10}
-                onClick={() => void auth(true)}
-              >
+              </Link>
+              <Link className="btn btn-secondary" to="/signup">
                 Create account
-              </button>
+              </Link>
             </div>
             <p>
-              Your email must be verified. Do not reuse a workplace password.
+              <Link to="/forgot-password">
+                Forgot or need to set your password?
+              </Link>
             </p>
-          </form>
+            <p>
+              Signing out keeps your local drafts and your server account
+              records. To return on another device, export and restore a backup
+              from Settings.
+            </p>
+          </section>
         ) : (
           <>
             <p className="notice">
@@ -174,7 +134,7 @@ export default function AccountPage() {
                     const link =
                       location.origin +
                       location.pathname +
-                      "#/account?ref=" +
+                      "#/signup?ref=" +
                       account.code;
                     await navigator.clipboard.writeText(link);
                     setMessage("Referral link copied.");
@@ -337,7 +297,16 @@ export default function AccountPage() {
                 className="btn btn-secondary"
                 onClick={() =>
                   void run(async () => {
-                    await backend.auth.signOut();
+                    try {
+                      preserveProfileData();
+                    } catch {
+                      /* Original local records remain intact even if the optional snapshot is full. */
+                    }
+                    const result = await backend.auth.signOut({
+                      scope: "local",
+                    });
+                    if (result.error) throw result.error;
+                    navigate("/login?signed_out=1", { replace: true });
                     setMessage(
                       "Signed out. Your local CVs remain on this device.",
                     );
@@ -356,7 +325,7 @@ export default function AccountPage() {
                   )
                     void run(async () => {
                       await accountAction("delete_profile");
-                      await backend.auth.signOut();
+                      await backend.auth.signOut({ scope: "local" });
                       setMessage("Medico profile deleted.");
                     });
                 }}

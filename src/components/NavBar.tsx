@@ -90,6 +90,11 @@ export default function NavBar({
             "☀ Light"
           )}
         </button>
+        {compact && (
+          <Link className="nav-account" aria-label="Account" to="/account">
+            <AppIcon name="user" />
+          </Link>
+        )}
         {compact ? (
           <button
             className="nav-tools"

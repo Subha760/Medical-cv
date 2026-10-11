@@ -26,6 +26,20 @@ public class MainActivity extends Activity {
     private static final int SAVE_REQUEST = 42;
     private byte[] pendingPdf;
 
+    private boolean pulseApp() { return BuildConfig.APP_ENTRY.startsWith("pulse/"); }
+    static boolean trustedPulseResource(Uri uri) {
+        return "https".equals(uri.getScheme()) && java.util.Arrays.asList("medico.choicematrix.in","toolinger-owner.cloudflareaccess.com","challenges.cloudflare.com").contains(uri.getHost()) && (uri.getPort()==-1 || uri.getPort()==443);
+    }
+    static boolean trustedPulseNavigation(Uri uri) {
+        if(!trustedPulseResource(uri))return false;
+        String host=uri.getHost(),path=uri.getPath();
+        return "toolinger-owner.cloudflareaccess.com".equals(host) || ("medico.choicematrix.in".equals(host) && (path.equals("/pulse") || path.startsWith("/pulse/") || path.startsWith("/cdn-cgi/access/")));
+    }
+    private boolean trustedBridgePage() {
+        String url=webView.getUrl();if(url==null)return false;
+        Uri uri=Uri.parse(url);
+        return "https".equals(uri.getScheme()) && ("appassets.androidplatform.net".equals(uri.getHost()) || (pulseApp() && "medico.choicematrix.in".equals(uri.getHost()) && uri.getPath().startsWith("/pulse/")));
+    }
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         webView = new WebView(this);
@@ -54,13 +68,19 @@ public class MainActivity extends Activity {
                 WebResourceResponse response = loader.shouldInterceptRequest(request.getUrl());
                 if (response != null) return response;
                 Uri uri = request.getUrl();
-                // API requests only. Remote HTML is never navigated inside the bridged WebView.
+                // Public app uses local assets. Pulse permits only its own HTTPS owner-verification resources.
                 if ("https".equals(uri.getScheme()) && "jfweexvfnkotusyajkst.supabase.co".equals(uri.getHost())) return null;
+                if(pulseApp() && trustedPulseResource(uri))return null;
                 return new WebResourceResponse("text/plain", "UTF-8", 404, "Not Found", java.util.Collections.emptyMap(), new java.io.ByteArrayInputStream(new byte[0]));
+            }
+            @Override public void onReceivedError(WebView view, WebResourceRequest request, android.webkit.WebResourceError error) {
+                if(pulseApp() && request.isForMainFrame() && "medico.choicematrix.in".equals(request.getUrl().getHost()) && request.getUrl().getPath().equals("/pulse/"))
+                    view.loadUrl("https://appassets.androidplatform.net/assets/web/" + BuildConfig.APP_ENTRY);
             }
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 Uri uri=request.getUrl();
                 if ("https".equals(uri.getScheme()) && "appassets.androidplatform.net".equals(uri.getHost())) return false;
+                if(pulseApp() && trustedPulseNavigation(uri))return false;
                 if ("https".equals(uri.getScheme()) || "mailto".equals(uri.getScheme()) || "tel".equals(uri.getScheme())) {
                     try { startActivity(new Intent(Intent.ACTION_VIEW,uri)); } catch (Exception ignored) {}
                 }
@@ -68,13 +88,14 @@ public class MainActivity extends Activity {
             }
         });
         webView.addJavascriptInterface(new Object() {
-            @JavascriptInterface public void setAdPlacement(String path, boolean referred) { runOnUiThread(() -> ads.setPlacement(path,referred)); }
-            @JavascriptInterface public void adPrivacyChoices() { runOnUiThread(() -> ads.privacyChoices()); }
+            @JavascriptInterface public void setAdPlacement(String path, boolean referred) { runOnUiThread(() -> { if(trustedBridgePage())ads.setPlacement(path,referred); }); }
+            @JavascriptInterface public void adPrivacyChoices() { runOnUiThread(() -> { if(trustedBridgePage())ads.privacyChoices(); }); }
             @JavascriptInterface public void savePdf(String base64, String filename) { saveFile(base64,filename,"application/pdf"); }
             @JavascriptInterface public void saveFile(String base64, String filename, String mime) {
                 if (base64 == null || filename == null || base64.length() > 28000000) return;
                 final String safeMime = java.util.Arrays.asList("application/pdf","application/json","text/calendar","text/csv","text/plain","application/vnd.openxmlformats-officedocument.wordprocessingml.document").contains(mime) ? mime : "application/octet-stream";
                 runOnUiThread(() -> {
+                    if(!trustedBridgePage())return;
                     if(pendingPdf != null) { Toast.makeText(MainActivity.this,"Finish the current export first",Toast.LENGTH_SHORT).show(); return; }
                     try {
                         pendingPdf=Base64.decode(base64,Base64.DEFAULT);
@@ -93,6 +114,7 @@ public class MainActivity extends Activity {
                 return true;
             }
             @Override public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> callback, FileChooserParams params) {
+                if (!trustedBridgePage()) { callback.onReceiveValue(null); return true; }
                 if (fileCallback != null) fileCallback.onReceiveValue(null);
                 fileCallback = callback;
                 try { startActivityForResult(params.createIntent(), FILE_REQUEST); }
@@ -100,7 +122,7 @@ public class MainActivity extends Activity {
                 return true;
             }
         });
-        webView.loadUrl("https://appassets.androidplatform.net/assets/web/" + BuildConfig.APP_ENTRY);
+        webView.loadUrl(pulseApp()?"https://medico.choicematrix.in/pulse/":"https://appassets.androidplatform.net/assets/web/" + BuildConfig.APP_ENTRY);
     }
 
     @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -121,7 +143,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    @Override protected void onPause() { if(ads!=null)ads.pause();super.onPause(); }
+    @Override protected void onPause() { android.webkit.CookieManager.getInstance().flush();if(ads!=null)ads.pause();super.onPause(); }
     @Override protected void onResume() { super.onResume();if(ads!=null)ads.resume(); }
     @Override protected void onDestroy() { if(ads!=null)ads.destroy();if(webView!=null)webView.destroy();super.onDestroy(); }
     @Override public void onBackPressed() {

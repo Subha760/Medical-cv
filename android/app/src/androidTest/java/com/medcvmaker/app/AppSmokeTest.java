@@ -29,6 +29,7 @@ public class AppSmokeTest {
     }
     @Test public void offlineAssetsTemplatesAndEditorLoad() throws Exception {
         if (BuildConfig.APP_ENTRY.startsWith("pulse/")) {
+            js("location.replace('https://appassets.androidplatform.net/assets/web/pulse/')");
             waitFor("document.body.innerText.includes('Owner sign-in')");
             assertEquals("true",js("!document.body.innerText.includes('Accounts · newest')"));
             assertEquals("true",js("document.documentElement.scrollWidth<=window.innerWidth+1"));
@@ -54,6 +55,7 @@ public class AppSmokeTest {
     }
     @Test public void nursingWorkspaceAndFileExportsAvailableOffline() throws Exception {
         if (BuildConfig.APP_ENTRY.startsWith("pulse/")) {
+            js("location.replace('https://appassets.androidplatform.net/assets/web/pulse/')");
             waitFor("document.body.innerText.includes('Owner sign-in')");
             assertEquals("true",js("!document.body.innerText.includes('Accounts · newest')"));
             assertEquals("true",js("document.documentElement.scrollWidth<=window.innerWidth+1"));
@@ -69,4 +71,12 @@ public class AppSmokeTest {
         assertEquals("true",js("document.documentElement.scrollWidth<=window.innerWidth+1"));
     }
 
+    @Test public void ownerNavigationRejectsUntrustedHosts() {
+        assertTrue(MainActivity.trustedPulseNavigation(android.net.Uri.parse("https://medico.choicematrix.in/pulse/login")));
+        assertTrue(MainActivity.trustedPulseNavigation(android.net.Uri.parse("https://toolinger-owner.cloudflareaccess.com/cdn-cgi/access/login")));
+        assertFalse(MainActivity.trustedPulseNavigation(android.net.Uri.parse("https://medico.choicematrix.in.evil.test/pulse/")));
+        assertFalse(MainActivity.trustedPulseNavigation(android.net.Uri.parse("http://medico.choicematrix.in/pulse/")));
+        assertFalse(MainActivity.trustedPulseNavigation(android.net.Uri.parse("https://medico.choicematrix.in:8443/pulse/")));
+        assertFalse(MainActivity.trustedPulseNavigation(android.net.Uri.parse("https://medico.choicematrix.in/privacy/")));
+    }
 }
