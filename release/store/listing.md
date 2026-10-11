@@ -1,4 +1,4 @@
-# MedCV 4.4 store listing
+# MedCV 4.5 store listing
 
 App name: MedCV: Nursing CV & Workspace
 Category: Productivity
@@ -8,7 +8,7 @@ Privacy policy: https://medico.choicematrix.in/privacy.html
 Account deletion: https://medico.choicematrix.in/account-deletion.html
 Audience: adults; nurses, nursing students and other healthcare professionals.
 Package: com.medcvmaker.app
-Version: 4.4.0 / versionCode 10 / target API 36 / minimum API 23.
+Version: 4.5.0 / versionCode 11 / target API 36 / minimum API 23.
 
 ## Short description
 

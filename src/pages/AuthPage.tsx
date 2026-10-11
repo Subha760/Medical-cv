@@ -199,7 +199,10 @@ export default function AuthPage({ mode }: { mode: Mode }) {
   }
   return (
     <>
-      <NavBar compact onOpenTools={() => navigate("/")} />
+      <NavBar
+        compact
+        onOpenTools={() => navigate("/", { state: { openTools: true } })}
+      />
       <main className="auth-page container">
         <aside className="auth-story">
           <span className="eyebrow">YOUR CAREER, CONNECTED</span>

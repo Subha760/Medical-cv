@@ -23,3 +23,7 @@ These tools support career organisation and study. They do not provide diagnosis
 Support: help@choicematrix.in
 Privacy: https://medico.choicematrix.in/privacy.html
 Account deletion: https://medico.choicematrix.in/account-deletion.html
+
+
+ACCOUNT ACCESS
+Create an account on a dedicated signup page, verify your email and use password recovery when needed. Sign-in is remembered on your device. Signing out keeps saved local CVs and workspace data; each account restores its own drafts when switching accounts. Use Settings backups when changing devices. Credits and unlocked templates are protected by verified server checks.

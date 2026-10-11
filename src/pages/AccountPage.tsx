@@ -14,12 +14,7 @@ import {
 export default function AccountPage() {
   const navigate = useNavigate();
   const { account, error, busy, refresh, setError } = useAccount();
-  const [email, setEmail] = useState(""),
-    [password, setPassword] = useState(""),
-    [message, setMessage] = useState(""),
-    [code, setCode] = useState(
-      () => localStorage.getItem("medico:referral") || "",
-    ),
+  const [message, setMessage] = useState(""),
     [subject, setSubject] = useState(""),
     [ticket, setTicket] = useState("");
   const [autoVerify, setAutoVerify] = useState(false);

@@ -248,3 +248,21 @@ test("a verified recovery callback permits one password update without losing th
   );
   await expect(page).toHaveURL(/reset-password/);
 });
+
+test("account page Tools button opens the tools panel directly", async ({
+  page,
+}) => {
+  await page.goto("/#/login");
+  await page.getByRole("button", { name: "Open tools", exact: true }).click();
+  await expect(
+    page.getByRole("dialog", { name: "Tools & appearance" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Close tools" }).click();
+  await expect(
+    page.getByRole("dialog", { name: "Tools & appearance" }),
+  ).toHaveCount(0);
+  await page.reload();
+  await expect(
+    page.getByRole("dialog", { name: "Tools & appearance" }),
+  ).toHaveCount(0);
+});

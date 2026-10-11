@@ -5,7 +5,7 @@ import {
   type CSSProperties,
   type KeyboardEvent,
 } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import CvInterview from "../components/CvInterview";
 import Robot from "../components/Robot";
 import NavBar from "../components/NavBar";
@@ -70,7 +70,14 @@ function PaperPreview({ variant = 0 }: { variant?: number }) {
 }
 export default function HomePage() {
   const navigate = useNavigate();
-  const [toolsOpen, setToolsOpen] = useState(false);
+  const { state } = useLocation();
+  const [toolsOpen, setToolsOpen] = useState(Boolean(state?.openTools));
+  useEffect(() => {
+    if (state?.openTools) {
+      setToolsOpen(true);
+      navigate("/", { replace: true, state: null });
+    }
+  }, [state, navigate]);
   const toolsDialog = useRef<HTMLDialogElement>(null);
   const [miraOpen, setMiraOpen] = useState(false);
   const [accent, setAccent] = useState(savedAccent);
