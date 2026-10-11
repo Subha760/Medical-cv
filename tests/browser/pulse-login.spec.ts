@@ -291,6 +291,9 @@ test("verified owner handoff opens Pulse reports instead of a false expiry error
     await page.evaluate(() => localStorage.getItem("pulse:auth")),
   ).toBeTruthy();
   await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  await expect(page).toHaveURL(domain + "/pulse/?signed_out=1", {
+    timeout: 15000,
+  });
   await expect(
     page.getByRole("heading", { name: "Owner sign-in" }),
   ).toBeVisible({ timeout: 15000 });
