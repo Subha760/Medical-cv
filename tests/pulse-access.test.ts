@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import {
   validateOwnerClaims,
   OWNER_EMAIL,
+  ACCESS_ISSUER,
+  ACCESS_AUDIENCE,
 } from "../supabase/functions/medcv-pulse-access/access.ts";
 import worker, {
   sealSession,
@@ -67,10 +69,40 @@ assert.equal(
 const original = globalThis.fetch;
 try {
   const env = { PULSE_HANDOFF_KEY: Buffer.alloc(32, 7).toString("base64") };
+  const pair = await crypto.subtle.generateKey(
+    {
+      name: "RSASSA-PKCS1-v1_5",
+      modulusLength: 2048,
+      publicExponent: new Uint8Array([1, 0, 1]),
+      hash: "SHA-256",
+    },
+    true,
+    ["sign", "verify"],
+  );
+  const jwk = {
+    ...(await crypto.subtle.exportKey("jwk", pair.publicKey)),
+    kid: "test-owner-key",
+  };
+  const b64 = (v: unknown) =>
+    Buffer.from(JSON.stringify(v)).toString("base64url");
+  const unsigned =
+    b64({ alg: "RS256", kid: jwk.kid }) +
+    "." +
+    b64({ ...good, iss: ACCESS_ISSUER, aud: [ACCESS_AUDIENCE] });
+  const proof =
+    unsigned +
+    "." +
+    Buffer.from(
+      await crypto.subtle.sign(
+        "RSASSA-PKCS1-v1_5",
+        pair.privateKey,
+        new TextEncoder().encode(unsigned),
+      ),
+    ).toString("base64url");
   const session = {
-    access_token: "test-owner-token",
-    refresh_token: "test-refresh-token",
-    expires_at: new Date(Date.now() + 1800000).toISOString(),
+    provider: "cloudflare",
+    access_token: proof,
+    expires_at: new Date((now + 1800) * 1000).toISOString(),
   };
   const sealed = await sealSession(session, env);
   assert.deepEqual(await openSession(sealed, env), session);
@@ -82,23 +114,15 @@ try {
     }),
   );
   await assert.rejects(() => openSession(sealed.slice(0, -3) + "AAAA", env));
-  globalThis.fetch = async (input, options) => {
-    assert.equal(
-      String(input),
-      "https://jfweexvfnkotusyajkst.supabase.co/functions/v1/medcv-pulse-access",
-    );
-    const h = new Headers(options?.headers);
-    assert.equal(h.get("X-Medcv-Access-Assertion"), "signed-callback-proof");
-    assert.equal(h.get("Cf-Access-Jwt-Assertion"), null);
-    // Platform regression: Workers rejects redirect:"error" before any HTTP request.
-    assert.equal(options?.redirect, "manual");
-    return Response.json(session);
+  globalThis.fetch = async (input) => {
+    assert.equal(String(input), ACCESS_ISSUER + "/cdn-cgi/access/certs");
+    return Response.json({ keys: [jwk] });
   };
   // Regression: use the assertion on the already verified top-level callback;
   // the following browser POST must not depend on a second Access assertion.
   const callback = await worker.fetch(
     new Request("https://medico.choicematrix.in/pulse/login", {
-      headers: { "Cf-Access-Jwt-Assertion": "signed-callback-proof" },
+      headers: { "Cf-Access-Jwt-Assertion": proof },
     }),
     env,
   );
@@ -125,7 +149,6 @@ try {
   assert.match(exchange.headers.get("Set-Cookie")!, /Max-Age=0/);
   assert.equal(exchange.headers.get("Cache-Control"), "no-store");
   globalThis.fetch = async (_input, options) => {
-    assert.equal(options?.redirect, "manual");
     return new Response(null, {
       status: 302,
       headers: { Location: "https://untrusted.example/" },

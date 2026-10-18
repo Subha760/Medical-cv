@@ -1,8 +1,32 @@
 export function authErrorMessage(
   error: { code?: string; message?: string } | unknown,
 ) {
-  const e = error as { code?: string; message?: string };
+  const e = error as {
+    code?: string;
+    message?: string;
+    status?: number;
+    name?: string;
+  };
   const messages: Record<string, string> = {
+    "auth/invalid-credential":
+      "Email or password does not match. Try resetting your password.",
+    "auth/email-already-in-use":
+      "An account already uses this email. Sign in or reset your password.",
+    "auth/invalid-email": "Enter a valid email address.",
+    "auth/too-many-requests":
+      "Too many attempts. Wait a few minutes, then try again.",
+    "auth/expired-action-code":
+      "This email link has expired. Request a new one.",
+    "auth/invalid-action-code":
+      "This email link is invalid or was already used. Request a new one.",
+    "auth/requires-recent-login":
+      "Sign in again before changing your password or deleting your account.",
+    "auth/weak-password":
+      "Choose a stronger password with at least 10 characters.",
+    unexpected_failure:
+      "The account service is temporarily unavailable. Signup or sign-in could not finish. Your saved CVs and workspace are safe; please try again later.",
+    service_unavailable:
+      "The account service is temporarily unavailable. Your saved data is safe; please try again later.",
     invalid_credentials:
       "Email or password does not match. If you already have an account, try Reset password.",
     email_not_confirmed:
@@ -23,6 +47,11 @@ export function authErrorMessage(
     weak_password: "Choose a stronger password with at least 10 characters.",
   };
   if (e?.code && messages[e.code]) return messages[e.code];
+  if ((e?.status || 0) >= 500) return messages.unexpected_failure;
+  if (
+    /timed out|timeout|abort/i.test((e?.name || "") + " " + (e?.message || ""))
+  )
+    return "The account service did not respond in time. Check your connection and try again later. Your saved data is unchanged.";
   if (/invalid login credentials/i.test(e?.message || ""))
     return messages.invalid_credentials;
   if (/email not confirmed/i.test(e?.message || ""))

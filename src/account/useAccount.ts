@@ -50,7 +50,7 @@ export function useAccount() {
     } catch (e) {
       if (!mounted.current || version !== request.current) return;
       // An intermittent background failure must not make a signed-in account disappear.
-      if (!quiet) setError((e as Error).message);
+      if (!quiet || !current.current) setError((e as Error).message);
     } finally {
       if (mounted.current && version === request.current) setBusy(false);
     }

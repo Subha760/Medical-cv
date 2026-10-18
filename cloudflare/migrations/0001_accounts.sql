@@ -1,0 +1,16 @@
+PRAGMA foreign_keys=ON;
+CREATE TABLE IF NOT EXISTS profiles(user_id TEXT PRIMARY KEY,code TEXT UNIQUE NOT NULL,referred_by TEXT REFERENCES profiles(user_id),credits INTEGER NOT NULL DEFAULT 0 CHECK(credits>=0),frozen INTEGER NOT NULL DEFAULT 0,deleted INTEGER NOT NULL DEFAULT 0,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE IF NOT EXISTS templates(id TEXT PRIMARY KEY,config TEXT NOT NULL,active INTEGER NOT NULL DEFAULT 1);
+CREATE TABLE IF NOT EXISTS ledger(reference TEXT PRIMARY KEY,user_id TEXT NOT NULL REFERENCES profiles(user_id),delta INTEGER NOT NULL CHECK(delta<>0),reason TEXT NOT NULL,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+CREATE TRIGGER IF NOT EXISTS ledger_balance AFTER INSERT ON ledger BEGIN UPDATE profiles SET credits=credits+NEW.delta WHERE user_id=NEW.user_id; END;
+CREATE TABLE IF NOT EXISTS unlocks(user_id TEXT NOT NULL REFERENCES profiles(user_id),template_id TEXT NOT NULL REFERENCES templates(id),PRIMARY KEY(user_id,template_id));
+CREATE TRIGGER IF NOT EXISTS unlock_charge AFTER INSERT ON unlocks BEGIN INSERT INTO ledger(reference,user_id,delta,reason) VALUES('template:'||NEW.user_id||':'||NEW.template_id,NEW.user_id,-1,'template unlock'); END;
+CREATE TABLE IF NOT EXISTS receipts(user_id TEXT PRIMARY KEY REFERENCES profiles(user_id),identity_hash TEXT UNIQUE NOT NULL,cv_hash TEXT NOT NULL,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE IF NOT EXISTS config(id INTEGER PRIMARY KEY CHECK(id=1),referrals_enabled INTEGER NOT NULL DEFAULT 1,imports_enabled INTEGER NOT NULL DEFAULT 1);
+INSERT OR IGNORE INTO config(id) VALUES(1);
+CREATE TRIGGER IF NOT EXISTS referral_award AFTER INSERT ON receipts WHEN (SELECT referrals_enabled FROM config WHERE id=1)=1 BEGIN INSERT INTO ledger(reference,user_id,delta,reason) SELECT 'referral:'||NEW.user_id,user_id,1,'referral' FROM profiles WHERE user_id=(SELECT referred_by FROM profiles WHERE user_id=NEW.user_id) AND frozen=0 AND deleted=0; END;
+CREATE TABLE IF NOT EXISTS edits(id TEXT PRIMARY KEY,user_id TEXT NOT NULL REFERENCES profiles(user_id),fingerprint TEXT NOT NULL,kind TEXT NOT NULL CHECK(kind IN ('pdf','docx')),state TEXT NOT NULL DEFAULT 'reserved' CHECK(state IN ('reserved','finalized','refunded')),result_hash TEXT,expires_at TEXT NOT NULL,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+CREATE TRIGGER IF NOT EXISTS edit_charge AFTER INSERT ON edits BEGIN INSERT INTO ledger(reference,user_id,delta,reason) VALUES('edit:'||NEW.id,NEW.user_id,-1,'document edit'); END;
+CREATE TABLE IF NOT EXISTS tickets(id TEXT PRIMARY KEY,user_id TEXT NOT NULL REFERENCES profiles(user_id),subject TEXT NOT NULL,message TEXT NOT NULL,status TEXT NOT NULL DEFAULT 'open',reply TEXT NOT NULL DEFAULT '',created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE IF NOT EXISTS audit(id TEXT PRIMARY KEY,actor TEXT NOT NULL,action TEXT NOT NULL,details TEXT NOT NULL,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+CREATE TRIGGER IF NOT EXISTS edit_refund AFTER UPDATE OF state ON edits WHEN OLD.state='reserved' AND NEW.state='refunded' BEGIN INSERT INTO ledger(reference,user_id,delta,reason) VALUES('refund:'||NEW.id,NEW.user_id,1,'edit refund'); END;

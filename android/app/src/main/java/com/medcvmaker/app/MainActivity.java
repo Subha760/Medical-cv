@@ -70,6 +70,8 @@ public class MainActivity extends Activity {
                 Uri uri = request.getUrl();
                 // Public app uses local assets. Pulse permits only its own HTTPS owner-verification resources.
                 if ("https".equals(uri.getScheme()) && "jfweexvfnkotusyajkst.supabase.co".equals(uri.getHost())) return null;
+                if ("https".equals(uri.getScheme()) && java.util.Arrays.asList("identitytoolkit.googleapis.com", "securetoken.googleapis.com", "medico-choicematrix.firebaseapp.com").contains(uri.getHost())) return null;
+                if ("https".equals(uri.getScheme()) && "medico.choicematrix.in".equals(uri.getHost()) && uri.getPath().equals("/api/account")) return null;
                 if(pulseApp() && trustedPulseResource(uri))return null;
                 return new WebResourceResponse("text/plain", "UTF-8", 404, "Not Found", java.util.Collections.emptyMap(), new java.io.ByteArrayInputStream(new byte[0]));
             }

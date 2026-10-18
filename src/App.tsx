@@ -2,7 +2,8 @@ import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { lazy, Suspense, useEffect, useState, useRef } from "react";
 import CacheNotice from "./components/CacheNotice";
 import OfflineStatus from "./components/OfflineStatus";
-import { backend, authReturnKind } from "./account/client";
+import { backend, authReturnKind, authReturnError } from "./account/client";
+import { authErrorMessage } from "./account/authMessages";
 import HomePage from "./pages/HomePage";
 const TemplateSelectPage = lazy(() => import("./pages/TemplateSelectPage"));
 const EditorPage = lazy(() => import("./pages/EditorPage"));
@@ -25,11 +26,23 @@ export default function App() {
   useEffect(() => {
     const restored = () => setDataRevision((v) => v + 1);
     window.addEventListener("medico:data-restored", restored);
-    const routeReturn = (kind: string | null) => {
+    const routeReturn = (kind: string | null, checkError = false) => {
       if (!kind) return;
       const url = new URL(window.location.href);
       url.searchParams.delete("auth");
       history.replaceState(null, "", url.pathname + url.search + url.hash);
+      if (checkError && authReturnError) {
+        navigate(
+          kind === "reset" || kind === "recovery"
+            ? "/forgot-password"
+            : "/verify-email",
+          {
+            replace: true,
+            state: { authError: authErrorMessage(authReturnError) },
+          },
+        );
+        return;
+      }
       navigate(
         kind === "reset" || kind === "recovery"
           ? "/reset-password"
@@ -39,7 +52,9 @@ export default function App() {
     };
     if (authReturnKind && !returnHandled.current) {
       returnHandled.current = true;
-      void backend.auth.getSession().then(() => routeReturn(authReturnKind));
+      void backend.auth
+        .getSession()
+        .then(() => routeReturn(authReturnKind, true));
     }
     const {
       data: { subscription },

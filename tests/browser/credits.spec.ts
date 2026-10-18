@@ -1,37 +1,12 @@
+import { firebaseTestUser, signInFirebaseFixture } from "./firebase-fixture";
 import { test, expect } from "@playwright/test";
 import { demoCv } from "../../src/data/demoCv";
 import { TEMPLATE_CATALOG } from "../../src/data/templateCatalog";
 
-const backend = "https://jfweexvfnkotusyajkst.supabase.co";
-const id = "00000000-0000-4000-8000-000000000022";
-function session() {
-  const exp = Math.floor(Date.now() / 1000) + 3600;
-  const token =
-    "eyJhbGciOiJIUzI1NiJ9." +
-    Buffer.from(
-      JSON.stringify({ sub: id, role: "authenticated", exp }),
-    ).toString("base64url") +
-    ".fixture";
-  return {
-    access_token: token,
-    refresh_token: "fixture-refresh",
-    expires_at: exp,
-    expires_in: 3600,
-    token_type: "bearer",
-    user: {
-      id,
-      email: "nurse@example.test",
-      aud: "authenticated",
-      role: "authenticated",
-      app_metadata: {},
-      user_metadata: {},
-      created_at: new Date().toISOString(),
-    },
-  };
-}
+const backend = "https://medico.choicematrix.in";
 function account(credits = 0, qualified = false) {
   return {
-    userId: id,
+    userId: firebaseTestUser.id,
     code: "AABBCCDDEEFF",
     owner: false,
     qualified,
@@ -47,7 +22,6 @@ function account(credits = 0, qualified = false) {
 test("automatic CV verification requires consent and sends only completion fields", async ({
   page,
 }) => {
-  const auth = session();
   const cv = demoCv(TEMPLATE_CATALOG[0].id, "teal");
   cv.isDraft = false;
   cv.personalInfo.fullAddress = "PRIVATE ADDRESS";
@@ -55,29 +29,31 @@ test("automatic CV verification requires consent and sends only completion field
   cv.signatureDataUrl = null;
   const completions: Record<string, unknown>[] = [];
   let qualified = false;
-  await page.addInitScript(
-    ({ auth, cv }) => {
-      if (!localStorage.getItem("medico:auth"))
-        localStorage.setItem("medico:auth", JSON.stringify(auth));
-      if (!localStorage.getItem("medcv:documents"))
-        localStorage.setItem("medcv:documents", JSON.stringify([cv]));
-    },
-    { auth, cv },
-  );
+  await page.addInitScript((cv) => {
+    if (!localStorage.getItem("medcv:documents"))
+      localStorage.setItem("medcv:documents", JSON.stringify([cv]));
+  }, cv);
   await page.route(backend + "/**", async (route) => {
     const path = new URL(route.request().url()).pathname;
-    if (path === "/rest/v1/rpc/medcv_account")
+    if (
+      path === "/api/account" &&
+      route.request().postDataJSON().action !== "complete"
+    )
       return route.fulfill({ json: account(0, qualified) });
-    if (path === "/functions/v1/medcv-gateway") {
+    if (
+      path === "/api/account" &&
+      route.request().postDataJSON().action === "complete"
+    ) {
       const body = route.request().postDataJSON();
       expect(body.action).toBe("complete");
-      completions.push(body.cv);
+      completions.push(body.payload.cv);
       qualified = true;
       return route.fulfill({ json: { ok: true } });
     }
-    if (path === "/auth/v1/user") return route.fulfill({ json: auth.user });
+    if (path === "/auth/v1/user") return route.fulfill({ json: {} });
     throw new Error("Unexpected backend request: " + path);
   });
+  await signInFirebaseFixture(page);
   await page.goto("/#/preview/demo");
   await page
     .getByRole("button", { name: "Download PDF", exact: true })
@@ -133,18 +109,13 @@ test("automatic CV verification requires consent and sends only completion field
 test("credit balance updates automatically and offline refresh keeps the account visible", async ({
   page,
 }) => {
-  const auth = session();
   let balance = 0;
   let fail = false;
   let polls = 0;
   await page.clock.install();
-  await page.addInitScript(
-    (auth) => localStorage.setItem("medico:auth", JSON.stringify(auth)),
-    auth,
-  );
   await page.route(backend + "/**", async (route) => {
     const path = new URL(route.request().url()).pathname;
-    if (path === "/rest/v1/rpc/medcv_account") {
+    if (path === "/api/account") {
       polls++;
       if (fail)
         return route.fulfill({
@@ -153,10 +124,10 @@ test("credit balance updates automatically and offline refresh keeps the account
         });
       return route.fulfill({ json: account(balance) });
     }
-    if (path === "/auth/v1/user") return route.fulfill({ json: auth.user });
+    if (path === "/auth/v1/user") return route.fulfill({ json: {} });
     throw new Error("Unexpected backend request: " + path);
   });
-  await page.goto("/#/account");
+  await signInFirebaseFixture(page);
   const credit = page
     .locator(".metric-grid article")
     .filter({ hasText: "Available credits" })

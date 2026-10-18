@@ -1,3 +1,4 @@
+import { firebaseTestUser, signInFirebaseFixture } from "./firebase-fixture";
 import { test, expect } from "@playwright/test";
 import { demoCv } from "../../src/data/demoCv";
 import {
@@ -8,33 +9,9 @@ import { readFileSync } from "node:fs";
 const configs = JSON.parse(
   readFileSync("release/premium-configs.json", "utf8"),
 );
-const backend = "https://jfweexvfnkotusyajkst.supabase.co";
-const uid = "00000000-0000-4000-8000-000000000022";
+const backend = "https://medico.choicematrix.in";
+const uid = firebaseTestUser.id;
 const config = configs[0];
-function authSession() {
-  const exp = Math.floor(Date.now() / 1000) + 3600;
-  return {
-    access_token:
-      "eyJhbGciOiJIUzI1NiJ9." +
-      Buffer.from(
-        JSON.stringify({ sub: uid, role: "authenticated", exp }),
-      ).toString("base64url") +
-      ".fixture",
-    refresh_token: "fixture-refresh",
-    expires_at: exp,
-    expires_in: 3600,
-    token_type: "bearer",
-    user: {
-      id: uid,
-      email: "nurse@example.test",
-      aud: "authenticated",
-      role: "authenticated",
-      app_metadata: {},
-      user_metadata: {},
-      created_at: new Date().toISOString(),
-    },
-  };
-}
 test("forged cached unlocks cannot enable Mira themes or premium exports", async ({
   page,
 }) => {
@@ -79,28 +56,23 @@ test("forged cached unlocks cannot enable Mira themes or premium exports", async
 test("Mira offers only verified owned designs and exports recheck the server", async ({
   page,
 }) => {
-  const auth = authSession();
   const cv = demoCv(config.id, "teal");
   let denied = false;
   let frozen = false;
   let verifications = 0;
-  await page.addInitScript(
-    ({ auth, cv }) => {
-      localStorage.setItem("medico:auth", JSON.stringify(auth));
-      localStorage.setItem("medcv:documents", JSON.stringify([cv]));
-      localStorage.setItem("medico:cache-notice", "yes");
-    },
-    { auth, cv },
-  );
+  await page.addInitScript((cv) => {
+    localStorage.setItem("medcv:documents", JSON.stringify([cv]));
+    localStorage.setItem("medico:cache-notice", "yes");
+  }, cv);
   await page.route(backend + "/**", async (route) => {
     const path = new URL(route.request().url()).pathname;
-    if (path === "/auth/v1/user") return route.fulfill({ json: auth.user });
-    if (path === "/rest/v1/rpc/medcv_account") {
+    if (path === "/auth/v1/user") return route.fulfill({ json: {} });
+    if (path === "/api/account") {
       const body = route.request().postDataJSON();
-      if (body.p_action === "template") {
+      if (body.action === "template") {
         verifications++;
         return denied
-          ? route.fulfill({ status: 403, json: { message: "Template locked" } })
+          ? route.fulfill({ status: 403, json: { error: "Template locked" } })
           : route.fulfill({ json: config });
       }
       return route.fulfill({
@@ -120,13 +92,12 @@ test("Mira offers only verified owned designs and exports recheck the server", a
     }
     throw new Error("Unexpected request " + path);
   });
+  await signInFirebaseFixture(page);
   await page.goto("/");
   await page
     .getByRole("button", { name: "Open Mira CV guide", exact: true })
     .click();
-  await expect(page.locator("#mira-theme option")).toHaveCount(
-    TEMPLATE_CATALOG.length + 1,
-  );
+  await expect(page.locator("#mira-theme option")).toHaveCount(11);
   await page.locator("#mira-theme").selectOption(config.id);
   await page.goto("/#/preview/demo");
   await expect(

@@ -52,3 +52,24 @@ assert.equal(values.get("medico:last-email"), undefined);
 console.log(
   "Provider error fallback, verification expiry and remembered-email controls passed.",
 );
+assert.match(
+  authErrorMessage({
+    code: "unexpected_failure",
+    message: "database connection refused",
+  }),
+  /temporarily unavailable/,
+);
+assert.match(
+  authErrorMessage({ status: 503, message: "sensitive database detail" }),
+  /temporarily unavailable/,
+);
+assert.match(
+  authErrorMessage({
+    name: "TimeoutError",
+    message: "Account request timed out",
+  }),
+  /did not respond in time/,
+);
+console.log(
+  "Auth outages and request timeouts produce actionable, non-sensitive errors.",
+);

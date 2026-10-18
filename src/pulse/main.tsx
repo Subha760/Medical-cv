@@ -1,3 +1,4 @@
+import { acceptPulseSession } from "../account/pulseAuth";
 import "../utils/compat";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -18,11 +19,7 @@ function Pulse() {
   const [emailSessionExpiry, setEmailSessionExpiry] = useState(
     () => localStorage.getItem("pulse:expires") || "",
   );
-  const [otp, setOtp] = useState(""),
-    [factor, setFactor] = useState(""),
-    [qr, setQr] = useState(""),
-    [secret, setSecret] = useState(""),
-    [report, setReport] = useState<Report | null>(null),
+  const [report, setReport] = useState<Report | null>(null),
     [busy, setBusy] = useState(false),
     [reason, setReason] = useState(""),
     [message, setMessage] = useState(
@@ -99,11 +96,7 @@ function Pulse() {
         throw new Error(
           data.error || "Secure sign-in could not be completed. Please retry.",
         );
-      const result = await backend.auth.setSession({
-        access_token: data.access_token,
-        refresh_token: data.refresh_token,
-      });
-      if (result.error) throw result.error;
+      acceptPulseSession(data);
       localStorage.setItem("pulse:expires", data.expires_at);
       setEmailSessionExpiry(data.expires_at);
       history.replaceState(null, "", location.pathname);
@@ -130,10 +123,6 @@ function Pulse() {
   useEffect(() => {
     if (account?.owner)
       void run(async () => {
-        const r = await backend.auth.mfa.listFactors();
-        if (r.error) throw r.error;
-        const f = r.data.totp[0];
-        if (f) setFactor(f.id);
         try {
           await load();
         } catch {
@@ -273,87 +262,10 @@ function Pulse() {
               Continue with Gmail
             </a>
             <p>
-              Verify your owner Gmail to open a new 30-minute session. If you
-              previously configured an authenticator, you can also use it below.
+              Verify your owner Gmail to open a new 30-minute session. Reports
+              and actions require the signed email-verification session on the
+              server.
             </p>
-            {!factor ? (
-              <button
-                className="btn btn-primary"
-                disabled={busy}
-                onClick={() =>
-                  void run(async () => {
-                    const r = await backend.auth.mfa.enroll({
-                      factorType: "totp",
-                      friendlyName: "Pulse owner",
-                      issuer: "Medico Pulse",
-                    });
-                    if (r.error) throw r.error;
-                    setFactor(r.data.id);
-                    setQr(r.data.totp.qr_code);
-                    setSecret(r.data.totp.secret);
-                  })
-                }
-              >
-                Set up an authenticator
-              </button>
-            ) : (
-              <p>Enter the current six-digit code from your authenticator.</p>
-            )}
-            {qr && (
-              <>
-                <img
-                  className="mfa-qr"
-                  src={
-                    qr.startsWith("data:")
-                      ? qr
-                      : "data:image/svg+xml;charset=utf-8," +
-                        encodeURIComponent(qr)
-                  }
-                  alt="Authenticator setup QR code"
-                />
-                <details>
-                  <summary>Manual setup secret</summary>
-                  <code>{secret}</code>
-                </details>
-                <p>
-                  Store your authenticator backup securely. This secret is shown
-                  only during setup.
-                </p>
-              </>
-            )}
-            {factor && (
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  void run(async () => {
-                    const r = await backend.auth.mfa.challengeAndVerify({
-                      factorId: factor,
-                      code: otp,
-                    });
-                    if (r.error) throw r.error;
-                    setQr("");
-                    setSecret("");
-                    setOtp("");
-                    await load();
-                  });
-                }}
-              >
-                <label>
-                  Authenticator code
-                  <input
-                    inputMode="numeric"
-                    pattern="[0-9]{6}"
-                    maxLength={6}
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
-                    required
-                  />
-                </label>
-                <button className="btn btn-primary">
-                  Verify and open Pulse
-                </button>
-              </form>
-            )}
           </section>
         ) : (
           <Dashboard

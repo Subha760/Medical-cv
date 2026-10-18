@@ -89,6 +89,12 @@ export default function AccountPage() {
           </section>
         ) : (
           <>
+            {account.emailVerified === false && (
+              <p className="notice">
+                You’re signed in. Verify your email to use referrals and premium
+                credits. <Link to="/verify-email">Verify email</Link>
+              </p>
+            )}
             <p className="notice">
               Credits are checked with the server every 30 seconds while this
               page is visible, and when you return online. One qualifying

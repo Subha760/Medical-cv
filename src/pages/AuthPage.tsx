@@ -7,6 +7,7 @@ import {
 } from "react-router-dom";
 import NavBar from "../components/NavBar";
 import AppIcon from "../components/AppIcon";
+import { firebaseAccount } from "../account/firebaseAdapter";
 import { backend } from "../account/client";
 import {
   authErrorMessage,
@@ -38,28 +39,29 @@ export default function AuthPage({ mode }: { mode: Mode }) {
     () => localStorage.getItem("medico:referral") || "",
   );
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(route.state?.authError || "");
   const [message, setMessage] = useState(
     params.has("signed_out")
       ? "Signed out. Your CVs, workspace and account records are saved. Sign in again to return to your account."
       : "",
   );
   const [ready, setReady] = useState(false);
-  const [code, setCode] = useState("");
   const [verificationLink, setVerificationLink] = useState("");
   const [cooldown, setCooldown] = useState(0);
   useEffect(() => {
-    setError("");
+    setError(route.state?.authError || "");
     setPassword("");
     setConfirm("");
     setMessage(
-      mode === "verify"
-        ? "Your signup request was accepted. Open the verification email, then return to sign in. If you already have an account, reset your password."
-        : params.has("signed_out")
-          ? "Signed out. Your saved data remains on this device."
-          : "",
+      route.state?.authError
+        ? ""
+        : mode === "verify"
+          ? "Open the Firebase verification email, then return and check verification. Sign in first if you opened this page on another device."
+          : params.has("signed_out")
+            ? "Signed out. Your saved data remains on this device."
+            : "",
     );
-  }, [mode]);
+  }, [mode, route.state?.authError]);
   useEffect(() => {
     if (!cooldown) return;
     const t = setTimeout(() => setCooldown((v) => v - 1), 1000);
@@ -70,7 +72,13 @@ export default function AuthPage({ mode }: { mode: Mode }) {
     const handle = (session: unknown) => {
       if (!mounted) return;
       setReady(Boolean(session));
-      if (session && ["login", "signup", "verify"].includes(mode))
+      if (
+        session &&
+        !route.state?.authError &&
+        (["login", "signup"].includes(mode) ||
+          (mode === "verify" &&
+            firebaseAccount.auth.currentUser?.emailVerified))
+      )
         navigate("/account", { replace: true });
     };
     void backend.auth.getSession().then(({ data }) => handle(data.session));
@@ -87,7 +95,7 @@ export default function AuthPage({ mode }: { mode: Mode }) {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [mode, navigate]);
+  }, [mode, navigate, route.state?.authError]);
   async function run(fn: () => Promise<void>) {
     if (busy) return;
     setBusy(true);
@@ -164,36 +172,15 @@ export default function AuthPage({ mode }: { mode: Mode }) {
           "Password updated. Your account and saved data are unchanged.",
         );
       } else {
-        let tokenHash = "";
-        let type: "signup" | "recovery" | "email" = "signup";
-        if (verificationLink) {
-          const url = new URL(verificationLink);
-          if (
-            url.origin !== "https://jfweexvfnkotusyajkst.supabase.co" ||
-            url.pathname !== "/auth/v1/verify"
-          )
-            throw new Error(
-              "Paste the original Supabase verification link from your email.",
-            );
-          tokenHash =
-            url.searchParams.get("token_hash") ||
-            url.searchParams.get("token") ||
-            "";
-          if (url.searchParams.get("type") === "recovery") type = "recovery";
-        }
-        const r = tokenHash
-          ? await backend.auth.verifyOtp({ token_hash: tokenHash, type })
-          : await backend.auth.verifyOtp({
-              email: normalized,
-              token: code.trim(),
-              type: "signup",
-            });
-        if (r.error) throw r.error;
-        setCode("");
+        if (verificationLink)
+          await firebaseAccount.verifyEmailLink(verificationLink);
+        const status = await firebaseAccount.verificationStatus();
+        if (!status.verified)
+          throw new Error(
+            "Open the verification link in your email, then return and check again.",
+          );
         setVerificationLink("");
-        navigate(type === "recovery" ? "/reset-password" : "/account", {
-          replace: true,
-        });
+        navigate("/account", { replace: true });
       }
     });
   }
@@ -366,19 +353,10 @@ export default function AuthPage({ mode }: { mode: Mode }) {
               {mode === "verify" && (
                 <>
                   <p>
-                    Open the email link to verify automatically. If your email
-                    shows a code, enter it below.
+                    Open the verification link in your email, then return here
+                    and choose Check verification. You can keep using your free
+                    CV tools while verification is pending.
                   </p>
-                  <label htmlFor="auth-code">
-                    Email verification code
-                    <input
-                      id="auth-code"
-                      inputMode="numeric"
-                      autoComplete="one-time-code"
-                      value={code}
-                      onChange={(e) => setCode(e.target.value)}
-                    />
-                  </label>
                   <details>
                     <summary>Verification link opened the wrong page?</summary>
                     <p>
@@ -411,13 +389,7 @@ export default function AuthPage({ mode }: { mode: Mode }) {
               )}
               <button
                 className="btn btn-primary auth-submit"
-                disabled={
-                  busy ||
-                  (mode === "forgot" && cooldown > 0) ||
-                  (mode === "verify" &&
-                    !code.trim() &&
-                    !verificationLink.trim())
-                }
+                disabled={busy || (mode === "forgot" && cooldown > 0)}
               >
                 {busy
                   ? "Please wait…"
@@ -426,7 +398,7 @@ export default function AuthPage({ mode }: { mode: Mode }) {
                     : mode === "signup"
                       ? "Create account"
                       : mode === "verify"
-                        ? "Verify email"
+                        ? "Check verification"
                         : mode === "forgot"
                           ? cooldown
                             ? `Try again in ${cooldown}s`

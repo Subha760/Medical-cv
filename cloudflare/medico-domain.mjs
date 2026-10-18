@@ -1,3 +1,5 @@
+import { ownerSession } from "./owner-auth.mjs";
+import { accountRequest } from "./firebase-accounts.mjs";
 const ORIGIN = "https://subha760.github.io";
 const PREFIX = "/Medical-cv";
 const DOMAIN = "https://medico.choicematrix.in";
@@ -71,7 +73,8 @@ export async function openSession(value, env, now = Date.now()) {
     deadline <= now ||
     deadline > now + HANDOFF_TTL ||
     typeof session?.access_token !== "string" ||
-    typeof session?.refresh_token !== "string" ||
+    (session?.provider !== "cloudflare" &&
+      typeof session?.refresh_token !== "string") ||
     !Number.isFinite(Date.parse(session.expires_at)) ||
     Date.parse(session.expires_at) <= now
   )
@@ -79,28 +82,9 @@ export async function openSession(value, env, now = Date.now()) {
   return session;
 }
 async function verifiedSession(assertion) {
-  // This is a signed assertion, not an email claim. The Edge verifies its signature and owner identity.
-  // Use an application header rather than forwarding Cloudflare's reserved proxy header across zones.
-  const result = await fetch(
-    "https://jfweexvfnkotusyajkst.supabase.co/functions/v1/medcv-pulse-access",
-    {
-      method: "POST",
-      headers: {
-        "X-Medcv-Access-Assertion": assertion,
-        "Content-Type": "application/json",
-      },
-      body: "{}",
-      redirect: "manual",
-    },
-  );
-  // Cloudflare's runtime rejects redirect:"error" before sending the request.
-  // Manual mode is supported; never follow a redirect carrying the assertion.
-  if (result.status >= 300 && result.status < 400)
-    throw new Error("owner_session_unavailable");
-  const data = await result.json();
-  if (!result.ok) throw new Error(data.code || "owner_session_unavailable");
-  return data;
+  return ownerSession(assertion);
 }
+
 export default {
   async fetch(req, env) {
     const u = new URL(req.url);
@@ -108,6 +92,7 @@ export default {
       return response("Unknown host", 421);
     if (u.protocol !== "https:")
       return response(null, 308, { Location: DOMAIN + u.pathname + u.search });
+    if (u.pathname === "/api/account") return accountRequest(req, env);
     if (u.pathname === "/pulse/login" || u.pathname === "/pulse/login/") {
       if (req.method !== "GET") return response("Method not allowed", 405);
       if (!req.headers.get("Cf-Access-Jwt-Assertion"))
@@ -175,31 +160,19 @@ export default {
       const assertion = req.headers.get("Cf-Access-Jwt-Assertion");
       if (!assertion || assertion.length > 16000)
         return response("Owner verification required", 401);
-      // Never trust an asserted email/header alone. The Edge Function checks RS256, issuer, audience and expiry.
-      const result = await fetch(
-        "https://jfweexvfnkotusyajkst.supabase.co/functions/v1/medcv-pulse-access",
-        {
-          method: "POST",
-          headers: {
-            "X-Medcv-Access-Assertion": assertion,
-            "Content-Type": "application/json",
-          },
-          body: "{}",
-          redirect: "manual",
-        },
-      );
-      if (result.status >= 300 && result.status < 400)
+      try {
+        return response(JSON.stringify(await ownerSession(assertion)), 200, {
+          "Content-Type": "application/json",
+        });
+      } catch {
         return response(
-          JSON.stringify({
-            error: "The owner account service could not be reached.",
-          }),
-          503,
+          JSON.stringify({ error: "Fresh owner verification required." }),
+          401,
           { "Content-Type": "application/json" },
         );
-      return response(result.body, result.status, {
-        "Content-Type": "application/json",
-      });
+      }
     }
+
     if (!["GET", "HEAD"].includes(req.method))
       return response("Method not allowed", 405);
     // Only static site requests are forwarded. Never forward cookies, Authorization or Access tokens to GitHub.
@@ -215,7 +188,7 @@ export default {
     h.delete("Access-Control-Allow-Origin");
     h.set(
       "Content-Security-Policy",
-      "default-src 'self'; script-src 'self' https://static.cloudflareinsights.com https://pagead2.googlesyndication.com https://*.googlesyndication.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googlesyndication.com; font-src 'self' data:; connect-src 'self' https://cloudflareinsights.com https://jfweexvfnkotusyajkst.supabase.co https://*.googlesyndication.com; worker-src 'self' blob:; frame-src https://*.googlesyndication.com https://*.doubleclick.net; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
+      "default-src 'self'; script-src 'self' https://static.cloudflareinsights.com https://pagead2.googlesyndication.com https://*.googlesyndication.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googlesyndication.com; font-src 'self' data:; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://medico-choicematrix.firebaseapp.com https://medico.choicematrix.in https://cloudflareinsights.com https://jfweexvfnkotusyajkst.supabase.co https://*.googlesyndication.com; worker-src 'self' blob:; frame-src https://*.googlesyndication.com https://*.doubleclick.net; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
     );
     if (u.pathname.startsWith("/pulse")) {
       h.set("X-Robots-Tag", "noindex, nofollow, noarchive");

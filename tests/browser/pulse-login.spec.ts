@@ -2,7 +2,6 @@ import { test, expect } from "@playwright/test";
 import { sealSession, openSession } from "../../cloudflare/medico-domain.mjs";
 
 const domain = "https://medico.choicematrix.in";
-const backend = "https://jfweexvfnkotusyajkst.supabase.co";
 const owner = "00000000-0000-4000-8000-000000000001";
 const email = "subhajitsatpathi6@gmail.com";
 
@@ -23,8 +22,8 @@ test("verified owner handoff opens Pulse reports instead of a false expiry error
   const token = "eyJhbGciOiJIUzI1NiJ9." + payload + ".test-signature";
   const env = { PULSE_HANDOFF_KEY: Buffer.alloc(32, 7).toString("base64") };
   const session = {
+    provider: "cloudflare",
     access_token: token,
-    refresh_token: "test-refresh",
     expires_at: new Date(exp * 1000).toISOString(),
   };
   const user = {
@@ -149,6 +148,28 @@ test("verified owner handoff opens Pulse reports instead of a false expiry error
       });
       return;
     }
+    if (url.pathname === "/api/account") {
+      const { action, payload } = route.request().postDataJSON();
+      if (action === "admin_credit") {
+        changes.push({ p_action: action, p_payload: payload });
+        const profile = report.profiles.find(
+          (p) => p.user_id === payload.userId,
+        )!;
+        profile.credits += payload.amount;
+        return route.fulfill({ json: { ok: true } });
+      }
+      if (action === "admin_ticket") {
+        changes.push({ p_action: action, p_payload: payload });
+        const ticket = report.tickets.find((t) => t.id === payload.id)!;
+        ticket.reply = payload.reply;
+        ticket.status = "resolved";
+        return route.fulfill({ json: { ok: true } });
+      }
+      if (action === "admin_report") reportReads++;
+      return route.fulfill({
+        json: action === "admin_report" ? report : account,
+      });
+    }
     expect(url.pathname).not.toBe("/pulse/login/session");
     // Fetch fixtures independently: Firefox retains the original Host header
     // when route.fetch changes the URL, which Vite correctly refuses.
@@ -156,34 +177,6 @@ test("verified owner handoff opens Pulse reports instead of a false expiry error
       "http://127.0.0.1:4173" + url.pathname + url.search,
     );
     await route.fulfill({ response });
-  });
-  await page.route(backend + "/**", async (route) => {
-    const path = new URL(route.request().url()).pathname;
-    if (path === "/auth/v1/logout") return route.fulfill({ status: 204 });
-    if (path === "/auth/v1/user") return route.fulfill({ json: user });
-    if (path === "/rest/v1/rpc/medcv_account") {
-      const { p_action, p_payload } = route.request().postDataJSON();
-      if (p_action === "admin_credit") {
-        changes.push({ p_action, p_payload });
-        const profile = report.profiles.find(
-          (p) => p.user_id === p_payload.userId,
-        )!;
-        profile.credits += p_payload.amount;
-        return route.fulfill({ json: { ok: true } });
-      }
-      if (p_action === "admin_ticket") {
-        changes.push({ p_action, p_payload });
-        const ticket = report.tickets.find((t) => t.id === p_payload.id)!;
-        ticket.reply = p_payload.reply;
-        ticket.status = "resolved";
-        return route.fulfill({ json: { ok: true } });
-      }
-      if (p_action === "admin_report") reportReads++;
-      return route.fulfill({
-        json: p_action === "admin_report" ? report : account,
-      });
-    }
-    throw new Error("Unexpected authentication request: " + path);
   });
   // Each fixture navigation starts a new request so Playwright intercepts it.
   // (Redirect-chain requests bypass routing.) Worker tests separately assert HTTP 303.
@@ -288,7 +281,7 @@ test("verified owner handoff opens Pulse reports instead of a false expiry error
   ).toBeVisible();
   expect(exchanges).toBe(1);
   expect(
-    await page.evaluate(() => localStorage.getItem("pulse:auth")),
+    await page.evaluate(() => localStorage.getItem("pulse:owner-session")),
   ).toBeTruthy();
   await page.getByRole("button", { name: "Sign out", exact: true }).click();
   await expect(page).toHaveURL(domain + "/pulse/?signed_out=1", {
@@ -299,7 +292,7 @@ test("verified owner handoff opens Pulse reports instead of a false expiry error
   ).toBeVisible({ timeout: 15000 });
   expect(accessLogouts).toBe(1);
   expect(
-    await page.evaluate(() => localStorage.getItem("pulse:auth")),
+    await page.evaluate(() => localStorage.getItem("pulse:owner-session")),
   ).toBeNull();
   expect(report.profiles).toHaveLength(2);
 });
