@@ -11,6 +11,7 @@ export function useAccount() {
   const [account, setAccount] = useState<Account | null>(null),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
   const request = useRef(0);
   const current = useRef<Account | null>(null);
   const mounted = useRef(false);
@@ -18,15 +19,15 @@ export function useAccount() {
     const version = ++request.current;
     if (!quiet) setBusy(true);
     try {
-      const {
-        data: { session },
-      } = await backend.auth.getSession();
+      const { data, error: sessionError } = await backend.auth.getSession();
+      if (!mounted.current || version !== request.current) return;
+      if (sessionError) throw sessionError;
+      const session = data.session;
+      setSignedIn(Boolean(session));
       if (!session) {
-        if (mounted.current && version === request.current) {
-          current.current = null;
-          setTemplateOwner(null);
-          setAccount(null);
-        }
+        current.current = null;
+        setTemplateOwner(null);
+        setAccount(null);
         return;
       }
       const code = localStorage.getItem("medico:referral") || "";
@@ -66,6 +67,7 @@ export function useAccount() {
         current.current = null;
         setTemplateOwner(null);
         setAccount(null);
+        setSignedIn(false);
         setBusy(false);
       } else
         setTimeout(() => {
@@ -96,5 +98,5 @@ export function useAccount() {
       document.removeEventListener("visibilitychange", sync);
     };
   }, [refresh]);
-  return { account, error, busy, refresh, setError };
+  return { account, signedIn, error, busy, refresh, setError };
 }

@@ -1,9 +1,6 @@
 import { pulseAuthAdapter } from "./pulseAuth";
-import { createClient } from "@supabase/supabase-js";
 import { firebaseAuthAdapter, firebaseAccount } from "./firebaseAdapter";
 import { accountFetch } from "./request";
-export const backendUrl = "https://jfweexvfnkotusyajkst.supabase.co";
-// A publishable key identifies the project. All authority is enforced by verified sessions and database roles.
 const isPulse = location.pathname.includes("/pulse");
 export const authReturnKind =
   new URLSearchParams(location.search).get("auth") ||
@@ -17,34 +14,7 @@ export const authReturnError =
           "Email verification did not complete. Request a fresh verification link.",
       }
     : null;
-if (isPulse) {
-  for (const key of ["pulse:auth", "pulse:expires"]) {
-    try {
-      const previous = sessionStorage.getItem(key);
-      if (previous && !localStorage.getItem(key))
-        localStorage.setItem(key, previous);
-      if (previous) sessionStorage.removeItem(key);
-    } catch {
-      /* Storage restrictions prevent session migration; verification remains required. */
-    }
-  }
-}
-const legacyBackend = createClient(
-  backendUrl,
-  "sb_publishable_bqCwiBot6gKENGqoIkMDgw_kvyqiu3l",
-  {
-    global: { fetch: accountFetch },
-    auth: {
-      storageKey: isPulse ? "pulse:auth" : "medico:auth",
-      storage: localStorage,
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: !isPulse,
-    },
-  },
-);
 export const backend = {
-  ...legacyBackend,
   auth: isPulse ? pulseAuthAdapter : firebaseAuthAdapter,
 };
 export type Account = {
@@ -71,14 +41,6 @@ export async function accountAction<T = Account>(
   payload: Record<string, unknown> = {},
 ): Promise<T> {
   return firebaseAction<T>(action, payload);
-  /* Legacy data is retained for a separate verified migration.
-
-  const { data, error } = await legacyBackend.rpc("medcv_account", {
-    p_action: action,
-    p_payload: payload,
-  });
-  if (error) throw new Error(error.message);
-  return data as T; */
 }
 export async function gateway(
   action: string,
@@ -112,7 +74,11 @@ async function firebaseAction<T>(
     },
     body: JSON.stringify({ action, payload }),
   });
-  const result = await res.json();
+  const result = await res.json().catch(() => {
+    throw new Error(
+      "Couldn’t load your account details. Try again in a moment.",
+    );
+  });
   if (!res.ok)
     throw new Error(result.error || "Unable to complete account request.");
   return result as T;

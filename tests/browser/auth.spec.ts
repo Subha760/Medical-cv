@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { firebaseConfig } from "../../src/account/firebaseConfig";
 const firebase = "https://identitytoolkit.googleapis.com/**";
 const id = "test-firebase-user";
 const token = () =>
@@ -149,7 +150,7 @@ test("password reset uses Firebase hosted recovery and does not expose account e
   await page
     .getByRole("button", { name: "Send reset link", exact: true })
     .click();
-  expect(request.requestType).toBe("PASSWORD_RESET");
+  expect(request?.requestType).toBe("PASSWORD_RESET");
   expect(request.continueUrl).toBe(
     "https://medico.choicematrix.in/#/login?email_return=reset",
   );
@@ -164,7 +165,16 @@ test("reset URL alone cannot authorize password changes; signup fits small phone
   await expect(
     page.getByRole("link", { name: "Request a reset link" }),
   ).toBeVisible();
-  await expect(page.locator("#auth-password")).toHaveCount(0);
+  const requests: unknown[] = [];
+  await page.route(firebase, (route) => {
+    requests.push(route.request().url());
+    return route.abort();
+  });
+  await page.locator("#auth-password").fill("NewSecurePass123");
+  await page.getByLabel("Confirm password").fill("NewSecurePass123");
+  await page.getByRole("button", { name: "Save new password" }).click();
+  await expect(page).toHaveURL(/reset-password/);
+  expect(requests).toEqual([]);
   await page.setViewportSize({ width: 320, height: 740 });
   await page.goto("/#/signup");
   expect(
@@ -195,4 +205,105 @@ test("failed signup does not announce success or erase work", async ({
   expect(
     await page.evaluate(() => localStorage.getItem("medcv:workspace")),
   ).toBe("preserved");
+});
+
+test("account service failure keeps the Firebase session available for retry", async ({
+  page,
+}) => {
+  await setup(page);
+  let fail = true;
+  await page.route("https://medico.choicematrix.in/api/account", (route) =>
+    fail
+      ? route.fulfill({
+          status: 503,
+          json: { error: "Account service unavailable." },
+        })
+      : route.fallback(),
+  );
+  await page.goto("/#/login");
+  await page.locator("#auth-email").fill("nurse@example.test");
+  await page.locator("#auth-password").fill("SecurePass123");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(page.getByRole("alert")).toContainText(
+    "Account service unavailable",
+  );
+  await expect(
+    page.getByRole("heading", { name: "You’re signed in" }),
+  ).toBeVisible();
+  await expect(page.getByRole("link", { name: "Create account" })).toHaveCount(
+    0,
+  );
+  fail = false;
+  await page.getByRole("button", { name: "Try again" }).click();
+  await expect(
+    page.getByText("You’re signed in. Verify your email", { exact: false }),
+  ).toBeVisible();
+});
+
+test("password reset accepts a Firebase reset link and returns to sign-in", async ({
+  page,
+}) => {
+  const requests: unknown[] = [];
+  await page.route(
+    "https://identitytoolkit.googleapis.com/**/accounts:resetPassword?*",
+    (route) => {
+      requests.push(route.request().postDataJSON());
+      return route.fulfill({
+        json: { email: "nurse@example.test", requestType: "PASSWORD_RESET" },
+      });
+    },
+  );
+  await page.goto("/#/reset-password");
+  await page
+    .getByLabel("Original password reset link")
+    .fill(
+      `https://${firebaseConfig.authDomain}/__/auth/action?mode=resetPassword&apiKey=${firebaseConfig.apiKey}&oobCode=test-reset-code`,
+    );
+  await page.locator("#auth-password").fill("NewSecurePass123");
+  await page.getByLabel("Confirm password").fill("NewSecurePass123");
+  await page.getByRole("button", { name: "Save new password" }).click();
+  await expect(
+    page.getByRole("status").filter({ hasText: "Password updated" }),
+  ).toBeVisible();
+  await expect(page.locator("#auth-email")).toHaveValue("nurse@example.test");
+  expect(requests).toEqual([
+    expect.objectContaining({ oobCode: "test-reset-code" }),
+    expect.objectContaining({
+      oobCode: "test-reset-code",
+      newPassword: "NewSecurePass123",
+    }),
+  ]);
+});
+
+test("signup stays recoverable when verification email fails", async ({
+  page,
+}) => {
+  await setup(page);
+  let attempts = 0;
+  await page.route(
+    "https://identitytoolkit.googleapis.com/**/accounts:sendOobCode?*",
+    (route) =>
+      ++attempts === 1
+        ? route.fulfill({
+            status: 400,
+            json: { error: { message: "TOO_MANY_ATTEMPTS_TRY_LATER" } },
+          })
+        : route.fallback(),
+  );
+  await page.goto("/#/signup");
+  await page.locator("#auth-email").fill("nurse@example.test");
+  await page.locator("#auth-password").fill("SecurePass123");
+  await page.getByLabel("Confirm password").fill("SecurePass123");
+  await page
+    .getByRole("button", { name: "Create account", exact: true })
+    .click();
+  await expect(page).toHaveURL(/verify-email/);
+  await expect(page.getByRole("alert")).toContainText(
+    "Your account was created",
+  );
+  await page.getByRole("button", { name: "Resend verification email" }).click();
+  await expect(
+    page.getByText("A new verification email was requested.", { exact: false }),
+  ).toBeVisible();
+  expect(attempts).toBe(2);
 });

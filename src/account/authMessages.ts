@@ -12,6 +12,12 @@ export function authErrorMessage(
       "Email or password does not match. Try resetting your password.",
     "auth/email-already-in-use":
       "An account already uses this email. Sign in or reset your password.",
+    "auth/user-not-found":
+      "Email or password does not match. Try resetting your password.",
+    "auth/wrong-password":
+      "Email or password does not match. Try resetting your password.",
+    "auth/network-request-failed":
+      "Could not connect to sign-in. Check your internet connection and try again.",
     "auth/invalid-email": "Enter a valid email address.",
     "auth/too-many-requests":
       "Too many attempts. Wait a few minutes, then try again.",
@@ -68,17 +74,11 @@ export function rememberedEmail() {
   }
 }
 export function rememberEmail(email: string, remember = true) {
-  if (remember)
-    localStorage.setItem("medico:last-email", email.trim().toLowerCase());
-  else localStorage.removeItem("medico:last-email");
-}
-export function authReturnUrl(kind: "verify" | "reset") {
-  const native = location.hostname === "appassets.androidplatform.net";
-  return (
-    (native
-      ? "https://medico.choicematrix.in/"
-      : location.origin + location.pathname) +
-    "?auth=" +
-    kind
-  );
+  try {
+    if (remember)
+      localStorage.setItem("medico:last-email", email.trim().toLowerCase());
+    else localStorage.removeItem("medico:last-email");
+  } catch {
+    // Remembering an address is optional when storage is unavailable.
+  }
 }

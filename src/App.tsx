@@ -2,7 +2,7 @@ import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { lazy, Suspense, useEffect, useState, useRef } from "react";
 import CacheNotice from "./components/CacheNotice";
 import OfflineStatus from "./components/OfflineStatus";
-import { backend, authReturnKind, authReturnError } from "./account/client";
+import { authReturnKind, authReturnError } from "./account/client";
 import { authErrorMessage } from "./account/authMessages";
 import HomePage from "./pages/HomePage";
 const TemplateSelectPage = lazy(() => import("./pages/TemplateSelectPage"));
@@ -26,12 +26,12 @@ export default function App() {
   useEffect(() => {
     const restored = () => setDataRevision((v) => v + 1);
     window.addEventListener("medico:data-restored", restored);
-    const routeReturn = (kind: string | null, checkError = false) => {
+    const routeReturn = (kind: string | null) => {
       if (!kind) return;
       const url = new URL(window.location.href);
       url.searchParams.delete("auth");
       history.replaceState(null, "", url.pathname + url.search + url.hash);
-      if (checkError && authReturnError) {
+      if (authReturnError) {
         navigate(
           kind === "reset" || kind === "recovery"
             ? "/forgot-password"
@@ -52,18 +52,10 @@ export default function App() {
     };
     if (authReturnKind && !returnHandled.current) {
       returnHandled.current = true;
-      void backend.auth
-        .getSession()
-        .then(() => routeReturn(authReturnKind, true));
+      routeReturn(authReturnKind);
     }
-    const {
-      data: { subscription },
-    } = backend.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") routeReturn("reset");
-    });
     return () => {
       window.removeEventListener("medico:data-restored", restored);
-      subscription.unsubscribe();
     };
   }, [navigate]);
   useEffect(() => {
