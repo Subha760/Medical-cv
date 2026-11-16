@@ -42,15 +42,15 @@ npm run test:e2e
 
 ## Backend and privacy
 
-The backend uses dedicated `medcv_private` tables in the connected ChoiceMatrix Supabase project. Existing Deals tables and shared Auth settings are not changed. Clients have no direct table access. Public invoker RPCs call private, narrowly granted handlers; receipt/finalization/preflight helpers are service-role-only. Owner identity is configured server-side, and administration requires a verified TOTP/AAL2 session or a server-issued, unexpired Gmail verification grant tied to the exact Auth session. Session records, expiry and email verification are checked by the database.
+Medico uses Firebase email/password authentication. The app keeps its session on the current device and uses Firebase-issued ID tokens to call `/api/account`. The Cloudflare Worker verifies those tokens and stores account, referral and entitlement records in the `ACCOUNTS` D1 database. Email verification is required for referral and premium actions. The Supabase source and data predate this migration. A Firebase sign-in does not automatically transfer a Supabase account or its credits.
 
-`supabase/functions/medcv-gateway` authenticates every request with Supabase `getUser` and then validates the continued session/entitlement in PostgreSQL. Its platform JWT flag is disabled because the function implements authentication itself; this is not an anonymous processing route. It limits request size and archive expansion, checks entitlements before rendering and never persists reference-file/CV content. The publishable frontend key is not a service key. Migration files and deployment source are included; server secrets are never shipped to browsers.
+Firebase hosts the verification and password reset pages. If the hosted reset page fails to open, use **Forgot or need to set your password?** and then **Use the original reset link** after requesting the email. Paste the original Firebase link and choose a new password. Configure Firebase Email/Password authentication and authorize `medico.choicematrix.in` for email return links.
 
 Ordinary CV/workspace editing stays local. Manual referral completion verification, or optional automatic verification enabled by the user, transmits only name, title, email and education/employment institution and retains a hash/receipt. Photos, signatures and the rest of the CV stay local. Paid import exports process the reference and edit intent transiently, retaining entitlement/hash metadata. See the live policy for provider logs, deletion and retained anti-abuse fingerprints.
 
 ## Android and store preparation
 
-AGP 8.10.1 / Gradle 8.11.1 / Java 17 / compile and target API 36 / minimum API 23. Product flavors: `medico` retains `com.medcvmaker.app`; `pulse` uses `com.medcvmaker.app.pulse`. The bridged WebView serves packaged local files; only the configured Supabase HTTPS host is allowed for API resources, and remote navigation opens externally. File exports use Android's document picker. Android 10 instrumentation exercises both entries; API 36 window insets are handled.
+AGP 8.10.1 / Gradle 8.11.1 / Java 17 / compile and target API 36 / minimum API 23. Product flavors: `medico` retains `com.medcvmaker.app`; `pulse` uses `com.medcvmaker.app.pulse`. The bridged WebView serves packaged local files; the app allows Firebase Auth and the Medico account endpoint for account requests, and remote navigation opens externally. File exports use Android's document picker. Android 10 instrumentation exercises both entries; API 36 window insets are handled.
 
 ```sh
 npm run build
@@ -67,9 +67,7 @@ Web AdSense is disabled until real publisher/slot IDs, approval flags and a Goog
 
 The live domain is https://medico.choicematrix.in/ with a dedicated Cloudflare Worker, managed TLS and security headers. GitHub Pages remains the build origin. `cloudflare/medico-domain.mjs` contains the domain Worker; its custom domain is managed by Cloudflare, without changing the other ChoiceMatrix sites.
 
-Pulse’s Continue with Gmail opens Cloudflare Access email verification. The only allowed email is subhajitsatpathi6@gmail.com. A signed Access assertion is verified by `medcv-pulse-access` (RS256/JWKS, fixed issuer/audience, exact email and expiry) before issuing a short-lived owner session. It pins the first verified owner’s Auth user ID. Public/ordinary authenticated roles cannot grant owner sessions. No Gmail password or OAuth inbox access is required. Existing verified TOTP/AAL2 remains supported. Native Pulse’s link opens this secure login in the browser; its packaged offline console does not receive a browser session automatically.
-
-The shared Access organization has an existing team hostname; its name/login design and other Access applications are unchanged. Public signup email still uses Supabase. An owner email request was accepted (HTTP 200); inbox receipt and general-public delivery were not verified. Custom SMTP/auth settings cannot be managed through the connected database tools. Cloudflare Email Sending returned 2036 Unauthorized. Store submission tools/credentials are not connected; developer account declarations, store review and advertising IDs/consent/approval remain external requirements. See `release/SECURITY-AND-DOMAIN.md`.
+Pulse uses Cloudflare Access for the configured owner Gmail. The Worker validates the Access assertion before issuing a short-lived owner session for administrative requests. The packaged Pulse app opens the hosted console for this flow.
 
 ## Known limits
 

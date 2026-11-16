@@ -13,7 +13,7 @@ import {
 } from "../account/referrals";
 export default function AccountPage() {
   const navigate = useNavigate();
-  const { account, error, busy, refresh, setError } = useAccount();
+  const { account, signedIn, error, busy, refresh, setError } = useAccount();
   const [message, setMessage] = useState(""),
     [subject, setSubject] = useState(""),
     [ticket, setTicket] = useState("");
@@ -34,6 +34,16 @@ export default function AccountPage() {
     } finally {
       setWorking(false);
     }
+  }
+  async function signOut() {
+    try {
+      preserveProfileData();
+    } catch {
+      // A full storage quota can prevent the optional snapshot.
+    }
+    const result = await backend.auth.signOut({ scope: "local" });
+    if (result.error) throw result.error;
+    navigate("/login?signed_out=1", { replace: true });
   }
   return (
     <>
@@ -56,7 +66,32 @@ export default function AccountPage() {
           </p>
         )}
         {busy && <p role="status">Connecting securely…</p>}
-        {!account ? (
+        {!account && signedIn !== false ? (
+          !busy && (
+            <section className="card studio-panel auth-invite">
+              <h2>
+                {signedIn ? "You’re signed in" : "Couldn’t check your session"}
+              </h2>
+              <div className="action-row">
+                <button
+                  className="btn btn-primary"
+                  onClick={() => void refresh()}
+                >
+                  Try again
+                </button>
+                {signedIn && (
+                  <button
+                    className="btn btn-secondary"
+                    disabled={working}
+                    onClick={() => void run(signOut)}
+                  >
+                    Sign out
+                  </button>
+                )}
+              </div>
+            </section>
+          )
+        ) : !account ? (
           <section className="card studio-panel auth-invite">
             <h2>Your account, ready when you are</h2>
             <p>
@@ -296,23 +331,8 @@ export default function AccountPage() {
               <h2>Account controls</h2>
               <button
                 className="btn btn-secondary"
-                onClick={() =>
-                  void run(async () => {
-                    try {
-                      preserveProfileData();
-                    } catch {
-                      /* Original local records remain intact even if the optional snapshot is full. */
-                    }
-                    const result = await backend.auth.signOut({
-                      scope: "local",
-                    });
-                    if (result.error) throw result.error;
-                    navigate("/login?signed_out=1", { replace: true });
-                    setMessage(
-                      "Signed out. Your local CVs remain on this device.",
-                    );
-                  })
-                }
+                disabled={working}
+                onClick={() => void run(signOut)}
               >
                 Sign out
               </button>{" "}

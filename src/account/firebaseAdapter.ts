@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { updatePassword, type User } from "firebase/auth";
+import type { User } from "firebase/auth";
 import { createFirebaseAccountAuth } from "./firebaseAuth";
 import { firebaseConfig } from "./firebaseConfig";
 export const firebaseAccount = createFirebaseAccountAuth(firebaseConfig);
@@ -33,9 +33,12 @@ export const firebaseAuthAdapter = {
   onAuthStateChange: (callback: (event: string, value: unknown) => void) => {
     let first = true,
       previous: string | null = null;
+    let revision = 0;
     const unsub = firebaseAccount.subscribe((user) => {
+      const current = ++revision;
       void session(user)
         .then((value) => {
+          if (current !== revision) return;
           const event = first
             ? "INITIAL_SESSION"
             : !user
@@ -47,41 +50,20 @@ export const firebaseAuthAdapter = {
           previous = user?.uid || null;
           callback(event, value);
         })
-        .catch(() => callback("SIGNED_OUT", null));
+        .catch(() => {
+          if (current === revision) callback("TOKEN_REFRESHED", null);
+        });
     });
-    return { data: { subscription: { unsubscribe: unsub } } };
+    return {
+      data: {
+        subscription: {
+          unsubscribe() {
+            ++revision;
+            unsub();
+          },
+        },
+      },
+    };
   },
-  signUp: ({ email, password }: { email: string; password: string }) =>
-    guarded(async () => {
-      await firebaseAccount.createAccount(email, password);
-      return { session: await session(firebaseAccount.auth.currentUser) };
-    }),
-  signInWithPassword: ({
-    email,
-    password,
-  }: {
-    email: string;
-    password: string;
-  }) =>
-    guarded(async () => {
-      await firebaseAccount.signIn(email, password);
-      return { session: await session(firebaseAccount.auth.currentUser) };
-    }),
   signOut: () => guarded(() => firebaseAccount.signOut()),
-  resetPasswordForEmail: (email: string) =>
-    guarded(() => firebaseAccount.requestPasswordReset(email)),
-  updateUser: ({ password }: { password: string }) =>
-    guarded(async () => {
-      const user = firebaseAccount.auth.currentUser;
-      if (!user) throw new Error("Sign in first.");
-      await updatePassword(user, password);
-      return { user };
-    }),
-  resend: () => guarded(() => firebaseAccount.resendVerification()),
-  verifyOtp: () =>
-    guarded(async () => {
-      throw new Error(
-        "Open the Firebase verification link from your email, then check verification here.",
-      );
-    }),
 } as unknown as SupabaseClient["auth"];

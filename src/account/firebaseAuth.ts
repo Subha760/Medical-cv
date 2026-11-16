@@ -54,12 +54,11 @@ export function createFirebaseAccountAuth(
   ) {
     const url = new URL(value);
     if (
-      url.protocol !== "https:" ||
-      url.hostname !== config.authDomain ||
+      url.origin !== `https://${config.authDomain}` ||
       url.pathname !== "/__/auth/action"
     )
       throw new Error("Use the original Firebase email link for this app.");
-    const action = parseActionCodeURL(value);
+    const action = parseActionCodeURL(url.href);
     if (
       !action ||
       action.apiKey !== config.apiKey ||
@@ -82,8 +81,16 @@ export function createFirebaseAccountAuth(
         password,
       );
       // The user stays unverified if delivery fails. Never grant credits or owner access here.
-      await sendEmailVerification(result.user, { url: continueUrl("verify") });
+      let verificationError: unknown = null;
+      try {
+        await sendEmailVerification(result.user, {
+          url: continueUrl("verify"),
+        });
+      } catch (error) {
+        verificationError = error;
+      }
       return {
+        verificationError,
         userId: result.user.uid,
         email: result.user.email,
         verified: result.user.emailVerified,
@@ -126,6 +133,7 @@ export function createFirebaseAccountAuth(
       await sendEmailVerification(user, { url: continueUrl("verify") });
     },
     async verifyEmailLink(value: string) {
+      await auth.authStateReady();
       const code = actionLink(value, ActionCodeOperation.VERIFY_EMAIL);
       const info = await checkActionCode(auth, code);
       if (
@@ -146,16 +154,24 @@ export function createFirebaseAccountAuth(
       };
     },
     async requestPasswordReset(address: string) {
-      await sendPasswordResetEmail(auth, email(address), {
-        url: continueUrl("reset"),
-      });
+      try {
+        await sendPasswordResetEmail(auth, email(address), {
+          url: continueUrl("reset"),
+        });
+      } catch (error) {
+        // Older Firebase settings can report a missing account explicitly.
+        if ((error as { code?: string })?.code !== "auth/user-not-found")
+          throw error;
+      }
     },
     async resetPassword(value: string, password: string) {
       if (password.length < 10)
         throw new Error("Use at least 10 characters for your new password.");
       const code = actionLink(value, ActionCodeOperation.PASSWORD_RESET);
       const address = await verifyPasswordResetCode(auth, code);
+      await auth.authStateReady();
       await confirmPasswordReset(auth, code, password);
+      if (auth.currentUser?.email === address) await signOut(auth);
       return { email: address };
     },
     async verifiedIdToken() {
